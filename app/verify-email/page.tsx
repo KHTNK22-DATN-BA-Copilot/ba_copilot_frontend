@@ -13,7 +13,8 @@ export default function VerifyEmailPage() {
     const [countdown, setCountdown] = useState(0);
     const router = useRouter();
     const searchParams = useSearchParams();
-    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);// mặc định = 0, sẽ set khi vào trang
+
 
     useEffect(() => {
         // Get email from URL params
@@ -22,6 +23,20 @@ export default function VerifyEmailPage() {
             setEmail(decodeURIComponent(emailParam));
         }
     }, [searchParams]);
+
+    useEffect(() => {
+        setCountdown(60);
+    }, []);
+
+    useEffect(() => {
+        let timer: string | number | NodeJS.Timeout | undefined;
+        if (countdown > 0) {
+            timer = setInterval(() => {
+                setCountdown(prev => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [countdown]);
 
     useEffect(() => {
         // Countdown for resend button
