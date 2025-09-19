@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Divider from '@mui/material/Divider';
+import { grey } from '@mui/material/colors';
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -14,6 +16,7 @@ export default function RegisterPage() {
     });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoginLoading, setIsLoginLoading] = useState(false);
 
     const validateForm = () => {
         const newErrors: { [key: string]: string } = {};
@@ -97,6 +100,12 @@ export default function RegisterPage() {
         }
     };
 
+    const handleGoogleLogin = async () => {
+        setIsLoginLoading(true);
+
+        // Simulate Google login process
+    }
+
     return (
         <div className="relative min-h-screen flex items-center justify-center  p-4">
             <div className="absolute from-green-50 to-emerald-100 inset-0 -z-10 overflow-hidden">
@@ -104,11 +113,36 @@ export default function RegisterPage() {
                 <div className="absolute top-0 right-2/7 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 dark:opacity-30 animate-blob animation-delay-2000"></div>
                 <div className="absolute bottom-0 right-1/5 w-114 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 dark:opacity-30 animate-blob animation-delay-4000"></div>
             </div>
-            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
+            <div className="max-w-md w-full space-y-2 bg-white p-8 rounded-xl shadow-lg">
                 <div className="text-center">
                     <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h2>
                     <p className="text-gray-600">Join us today and get started</p>
                 </div>
+
+                {/* Google Login Button */}
+                <button
+                    type="button"
+                    onClick={handleGoogleLogin}
+                    disabled={isLoginLoading}
+                    className={`w-full py-1.5 px-3 rounded-lg border-1  font-medium text-black transition-colors ${isLoginLoading
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+                        }`}
+                >
+                    {isLoginLoading ? (
+                        <div className="flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                            Login...
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-center gap-2">
+                            <img src="/ic_google.svg" alt="Google icon" className="h-5 w-5" />
+                            Login with Google
+                        </div>
+                    )}
+                </button>
+
+                <Divider>or</Divider>
 
                 <form className="space-y-6" onSubmit={handleSubmit}>
                     {/* Name Field */}
@@ -123,8 +157,8 @@ export default function RegisterPage() {
                             value={formData.name}
                             onChange={handleChange}
                             className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${errors.name
-                                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                                ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
                                 }`}
                             placeholder="Enter your full name"
                         />
@@ -145,8 +179,8 @@ export default function RegisterPage() {
                             value={formData.email}
                             onChange={handleChange}
                             className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${errors.email
-                                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                                ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
                                 }`}
                             placeholder="Enter your email"
                         />
@@ -167,8 +201,8 @@ export default function RegisterPage() {
                             value={formData.password}
                             onChange={handleChange}
                             className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${errors.password
-                                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                                ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
                                 }`}
                             placeholder="Create a password"
                         />
@@ -189,8 +223,8 @@ export default function RegisterPage() {
                             value={formData.confirmPassword}
                             onChange={handleChange}
                             className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${errors.confirmPassword
-                                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                                ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
                                 }`}
                             placeholder="Confirm your password"
                         />
@@ -204,8 +238,8 @@ export default function RegisterPage() {
                         type="submit"
                         disabled={isLoading}
                         className={`w-full py-1.5 px-3 rounded-lg font-medium text-white transition-colors ${isLoading
-                                ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
                             }`}
                     >
                         {isLoading ? (
