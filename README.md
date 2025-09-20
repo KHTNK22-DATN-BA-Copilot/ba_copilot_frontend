@@ -29,4 +29,7 @@ https://ui.shadcn.com/docs/components
 npx shadcn@latest add accordion
 ```
 
+## Naming convention
+- 1. Component: PascalCase. For example: SignInButton, SideBar,...
+
 
