@@ -87,7 +87,7 @@ export default function SignInForm() {
                             id="email"
                             name="email"
                             placeholder="Email"
-                            className="mt-1"
+                            className="mt-1 focus:ring-blue-500 focus:border-blue-500"
                         />
                         {state.errors && (
                             <p className="text-red-500 text-sm">{state.errors.email}</p>
@@ -98,7 +98,7 @@ export default function SignInForm() {
                             id="password"
                             name="password"
                             placeholder="Password"
-                            className="mt-1"
+                            className="mt-1 focus:ring-blue-500 focus:border-blue-500"
                         />
                         {state.errors && (
                             <p className="text-red-500 text-sm">{state.errors.password}</p>
@@ -106,7 +106,7 @@ export default function SignInForm() {
                     </div>
 
                     <Button
-                        className="w-full mb-8 cursor-pointer"
+                        className="w-full mb-8 cursor-pointer bg-blue-500 hover:bg-blue-600"
                         type="submit"
                         disabled={isPending}
                     >
@@ -125,7 +125,7 @@ export default function SignInForm() {
                 <p>
                     Don't have an account?
                     <Link
-                        href={"/sign-up"}
+                        href={"/register"}
                         className="mx-2 hover:underline cursor-pointer"
                     >
                         Sign up
