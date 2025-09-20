@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function VerifyEmailPage() {
+export default function VerifyEmailForm() {
     const [email, setEmail] = useState('');
     const [pin, setPin] = useState(['', '', '', '', '', '']);
     const [isVerifying, setIsVerifying] = useState(false);
@@ -149,13 +149,7 @@ export default function VerifyEmailPage() {
     };
 
     return (
-        <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br p-4">
-            <div className="absolute from-green-50 to-emerald-100 inset-0 -z-10 overflow-hidden">
-                <div className="absolute top-72 left-1/5 w-81 h-81 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 dark:opacity-30 animate-blob"></div>
-                <div className="absolute top-0 right-2/7 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 dark:opacity-30 animate-blob animation-delay-2000"></div>
-                <div className="absolute bottom-0 right-1/5 w-114 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 dark:opacity-30 animate-blob animation-delay-4000"></div>
-            </div>
-
+        <>
             <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg text-center">
                 {/* Shield Icon */}
                 <div className="flex justify-center">
@@ -272,6 +266,6 @@ export default function VerifyEmailPage() {
                     </p>
                 </div>
             </div>
-        </div>
+        </>
     );
 }
