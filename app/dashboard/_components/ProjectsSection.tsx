@@ -1,12 +1,61 @@
-export default function ProjectsSection() {
+type ProjectsSectionProps = {
+  isOpenFilter: boolean;
+  setIsOpenFilter: (value: boolean) => void;
+};
+
+export default function ProjectsSection({ isOpenFilter, setIsOpenFilter }: ProjectsSectionProps) {
   return (
     <div className="col-span-12">
-      <div className="flex justify-between items-center mb-6">
+      {/* <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Recent projects:</h2>
         <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md">
           Filter
         </button>
+      </div> */}
+
+      <div className="flex justify-between items-center mb-6 relative">
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+        Recent projects:
+      </h2>
+
+      <div className="relative">
+        <button
+          onClick={() => setIsOpenFilter(!isOpenFilter)}
+          className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md"
+        >
+          Filter
+        </button>
+
+        {isOpenFilter && (
+          <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
+            <ul className="py-1 text-sm text-gray-700 dark:text-gray-200">
+              <li>
+                <button
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => {
+                    setIsOpenFilter(false)
+                    console.log("Most Recent selected")
+                  }}
+                >
+                  Most Recent
+                </button>
+              </li>
+              <li>
+                <button
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => {
+                    setIsOpenFilter(false)
+                    console.log("Title selected")
+                  }}
+                >
+                  Title
+                </button>
+              </li>
+            </ul>
+          </div>
+        )}
       </div>
+    </div>
 
       {/* Row 1 */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-6">
