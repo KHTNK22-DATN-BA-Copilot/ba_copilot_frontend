@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from './_components/Header';
 import MainContent from './_components/MainContent';
 import Footer from './_components/Footer';
@@ -9,9 +9,33 @@ export default function DashboardPage() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(false);
 
+    // Load theme from localStorage on component mount
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        // Use saved theme, or fall back to system preference
+        const shouldUseDarkMode = savedTheme === 'dark' || (savedTheme === null && prefersDark);
+        
+        setIsDarkMode(shouldUseDarkMode);
+        
+        // Apply theme to document
+        if (shouldUseDarkMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, []);
+
     const toggleDarkMode = () => {
-        setIsDarkMode(!isDarkMode);
-        if (!isDarkMode) {
+        const newDarkMode = !isDarkMode;
+        setIsDarkMode(newDarkMode);
+        
+        // Save to localStorage
+        localStorage.setItem('theme', newDarkMode ? 'dark' : 'light');
+        
+        // Apply to document
+        if (newDarkMode) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');

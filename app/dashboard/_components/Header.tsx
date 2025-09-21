@@ -18,9 +18,12 @@ export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDa
                 <div className="grid grid-cols-12 items-center h-16">
                     {/* Logo */}
                     <div className="col-span-6 lg:col-span-2">
-                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        <button 
+                            onClick={() => window.location.reload()}
+                            className="text-2xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200 cursor-pointer"
+                        >
                             🤖 BA Copilot
-                        </div>
+                        </button>
                     </div>
 
                     {/* Nav */}
