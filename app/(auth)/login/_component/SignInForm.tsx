@@ -32,7 +32,7 @@ const submitAction = async (preState: any, formData: FormData) => {
             errors: parsedData.error.flatten().fieldErrors,
         };
     }
-    redirect("/");
+    redirect("/dashboard");
     return { success: true };
 };
 

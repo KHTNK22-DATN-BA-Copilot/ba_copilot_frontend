@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 
 export default function VerifyEmailForm() {
     const [email, setEmail] = useState('');
@@ -238,11 +239,11 @@ export default function VerifyEmailForm() {
                 )}
 
                 {/* Manual Verify Button */}
-                <button
+                <Button
                     onClick={() => handleVerifyPin(pin.join(''))}
                     disabled={isVerifying || pin.some(digit => digit === '')}
                     className={`w-full py-1.5 px-3 rounded-lg font-medium transition-colors ${isVerifying || pin.some(digit => digit === '')
-                        ? 'bg-blue-600 cursor-not-allowed text-white'
+                        ? 'bg-blue-500 cursor-not-allowed text-white'
                         : 'bg-green-600 hover:bg-green-700 text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2'
                         }`}
                 >
@@ -254,7 +255,7 @@ export default function VerifyEmailForm() {
                     ) : (
                         'Verify PIN'
                     )}
-                </button>
+                </Button>
 
                 {/* Support */}
                 <div className="text-center text-sm text-gray-500 pt-4">
