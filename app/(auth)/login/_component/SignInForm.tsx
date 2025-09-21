@@ -80,7 +80,7 @@ export default function SignInForm() {
                     </p>
                 </div>
                 <form action={formAction}>
-                    <div className="mb-10">
+                    <div className="mb-2">
                         <Label htmlFor="email">Email</Label>
                         <Input
                             type="email"
@@ -103,6 +103,15 @@ export default function SignInForm() {
                         {state.errors && (
                             <p className="text-red-500 text-sm">{state.errors.password}</p>
                         )}
+                    </div>
+
+                    <div className="flex justify-end items-center mb-6">
+                        <Link
+                            href={"/forgot-password"}
+                            className="text-sm text-blue-500 hover:underline"
+                        >
+                            Forgot password?
+                        </Link>
                     </div>
 
                     <Button
