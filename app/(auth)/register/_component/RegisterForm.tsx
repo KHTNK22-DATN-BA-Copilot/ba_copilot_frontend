@@ -1,111 +1,28 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import Divider from '@mui/material/Divider';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
+import { useRegisterForm } from "./useRegisterForm";
+import GoogleLoginButton from './GoogleLoginButton';
+import PasswordRequirements from './PasswordRequirements';
+import PasswordMatchIndicator from './PasswordMatchIndicator';
+
 export default function RegisterForm() {
-    const router = useRouter();
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        password: '',
-        confirmPassword: ''
-    });
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [isLoading, setIsLoading] = useState(false);
-    const [isLoginLoading, setIsLoginLoading] = useState(false);
 
-    const validateForm = () => {
-        const newErrors: { [key: string]: string } = {};
-
-        // Name validation
-        if (!formData.name.trim()) {
-            newErrors.name = 'Name is required';
-        } else if (formData.name.trim().length < 2) {
-            newErrors.name = 'Name must be at least 2 characters';
-        }
-
-        // Email validation
-        if (!formData.email) {
-            newErrors.email = 'Email is required';
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'Please enter a valid email address';
-        }
-
-        // Password validation
-        if (!formData.password) {
-            newErrors.password = 'Password is required';
-        } else if (formData.password.length < 6) {
-            newErrors.password = 'Password must be at least 8 characters, with at least one uppercase letter, one lowercase letter, one number, and one special character.';
-        }
-
-        // Confirm password validation
-        if (!formData.confirmPassword) {
-            newErrors.confirmPassword = 'Please confirm your password';
-        } else if (formData.password !== formData.confirmPassword) {
-            newErrors.confirmPassword = 'Passwords do not match';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!validateForm()) {
-            return;
-        }
-
-        setIsLoading(true);
-
-        try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Here you would typically make an API call to register the user
-            console.log('Registration data:', {
-                name: formData.name,
-                email: formData.email,
-                password: formData.password
-            });
-
-            // Redirect to email verification page with email parameter
-            router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
-
-        } catch (error) {
-            console.error('Registration error:', error);
-            alert('Registration failed. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-
-        // Clear error when user starts typing
-        if (errors[name]) {
-            setErrors(prev => ({
-                ...prev,
-                [name]: ''
-            }));
-        }
-    };
-
-    const handleGoogleLogin = async () => {
-        setIsLoginLoading(true);
-
-        // Simulate Google login process
-    }
+    const {
+        formData,
+        errors,
+        isLoading,
+        isLoginLoading,
+        passwordRequirements,
+        isFormValid,
+        handleSubmit,
+        handleChange,
+        handleGoogleLogin,
+    } = useRegisterForm();
 
     return (
         <>
@@ -117,30 +34,11 @@ export default function RegisterForm() {
                     </div>
 
                     {/* Google Login Button */}
-                    <Button
-                        type="button"
-                        onClick={handleGoogleLogin}
-                        disabled={isLoginLoading}
-                        className={`mt-8 mb-4 w-full py-1.5 px-3 rounded-lg border-1  font-medium text-black transition-colors ${isLoginLoading
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
-                            }`}
-                    >
-                        {isLoginLoading ? (
-                            <div className="flex items-center justify-center">
-                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                                Login...
-                            </div>
-                        ) : (
-                            <div className="flex items-center justify-center gap-2">
-                                <img src="/ic_google.svg" alt="Google icon" className="h-5 w-5" />
-                                Login with Google
-                            </div>
-                        )}
-                    </Button>
+                    <GoogleLoginButton onClick={handleGoogleLogin} isLoading={isLoginLoading} />
 
                     <Divider>or</Divider>
 
+                    {/* Registration Form */}
                     <form className="space-y-6 mt-4" onSubmit={handleSubmit}>
                         {/* Name Field */}
                         <div>
@@ -206,6 +104,12 @@ export default function RegisterForm() {
                             {errors.password && (
                                 <p className="mt-1 text-sm text-red-600">{errors.password}</p>
                             )}
+
+                            {/* Password Requirements */}
+                            <PasswordRequirements
+                                requirements={passwordRequirements}
+                                password={formData.password}
+                            />
                         </div>
 
                         {/* Confirm Password Field */}
@@ -228,13 +132,19 @@ export default function RegisterForm() {
                             {errors.confirmPassword && (
                                 <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
                             )}
+
+                            {/* Password Match Indicator */}
+                            <PasswordMatchIndicator
+                                password={formData.password}
+                                confirmPassword={formData.confirmPassword}
+                            />
                         </div>
 
                         {/* Submit Button */}
                         <Button
                             type="submit"
-                            disabled={isLoading}
-                            className={`w-full py-1.5 px-3 rounded-lg font-medium text-white transition-colors ${isLoading
+                            disabled={isLoading || !isFormValid()}
+                            className={`w-full py-1.5 px-3 rounded-lg font-medium text-white transition-colors ${isLoading || !isFormValid()
                                 ? 'bg-gray-400 cursor-not-allowed'
                                 : 'bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
                                 }`}
