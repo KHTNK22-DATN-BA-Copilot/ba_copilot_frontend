@@ -45,7 +45,6 @@ const submitAction = async (preState: any, formData: FormData) => {
         }),
     });
     const data = await res.json();
-    console.log("Response from /api/login:", data);
 
     if (!res.ok) {
         return {

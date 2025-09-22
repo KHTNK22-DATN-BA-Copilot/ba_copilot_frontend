@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 export async function POST(request: NextRequest) {
     const { email, password } = await request.json();
@@ -16,5 +17,10 @@ export async function POST(request: NextRequest) {
 
     const response = await res.json();
     const accessToken = response.access_token;
-    return NextResponse.json({message: "Login succesfully"}, { status: res.status });
+    (await cookies()).set("access_token", accessToken, {
+        httpOnly: true,
+        sameSite: "lax",
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+    });
+    return NextResponse.json({message: "Login successfully"}, { status: res.status });
 }
