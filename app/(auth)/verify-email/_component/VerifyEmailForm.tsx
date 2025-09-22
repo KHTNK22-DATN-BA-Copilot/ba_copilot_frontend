@@ -1,166 +1,26 @@
 'use client';
-
-import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import useVerifyEmail from './useVerifyEmail';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { dir } from 'console';
+import PinInput from './PinInput';
+import ResendButton from './ResendButton';
+import VerifyMessage from './VerifyMessage';
 
 export default function VerifyEmailForm() {
-    const [email, setEmail] = useState('');
-    const [pin, setPin] = useState(['', '', '', '', '', '']);
-    const [isVerifying, setIsVerifying] = useState(false);
-    const [isResending, setIsResending] = useState(false);
-    const [message, setMessage] = useState('');
-    const [countdown, setCountdown] = useState(0);
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);// mặc định = 0, sẽ set khi vào trang
-
-
-    useEffect(() => {
-        // Get email from URL params
-        const emailParam = searchParams.get('email');
-        if (emailParam) {
-            setEmail(decodeURIComponent(emailParam));
-        }
-    }, [searchParams]);
-
-    useEffect(() => {
-        setCountdown(60);
-    }, []);
-
-    useEffect(() => {
-        let timer: string | number | NodeJS.Timeout | undefined;
-        if (countdown > 0) {
-            timer = setInterval(() => {
-                setCountdown(prev => prev - 1);
-            }, 1000);
-        }
-        return () => clearInterval(timer);
-    }, [countdown]);
-
-    useEffect(() => {
-        // Countdown for resend button
-        if (countdown > 0) {
-            const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-            return () => clearTimeout(timer);
-        }
-    }, [countdown]);
-
-    const handlePinChange = (index: number, value: string) => {
-        if (value.length > 1) return; // Only allow single digit
-        if (!/^\d*$/.test(value)) return; // Only allow numbers
-
-        const newPin = [...pin];
-        newPin[index] = value;
-        setPin(newPin);
-
-        // Auto focus next input
-        if (value && index < 5) {
-            inputRefs.current[index + 1]?.focus();
-        }
-
-        // Auto verify when all 6 digits are entered
-        if (newPin.every(digit => digit !== '') && value) {
-            handleVerifyPin(newPin.join(''));
-        }
-    };
-
-    const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-        if (e.key === 'Backspace' && !pin[index] && index > 0) {
-            inputRefs.current[index - 1]?.focus();
-        }
-    };
-
-    const handlePaste = (e: React.ClipboardEvent) => {
-        e.preventDefault();
-        const pastedData = e.clipboardData.getData('text');
-        const digits = pastedData.replace(/\D/g, '').slice(0, 6);
-
-        if (digits.length === 6) {
-            const newPin = digits.split('');
-            setPin(newPin);
-            handleVerifyPin(digits);
-        }
-    };
-
-    const handleVerifyPin = async (pinCode: string) => {
-        if (pinCode.length !== 6) return;
-
-        setIsVerifying(true);
-        setMessage('');
-
-        try {
-            const payload = {
-                code: pinCode
-            }
-
-            const respond = await axios.post(
-                `http://localhost:8010/api/v1/auth/verify-email?email=${encodeURIComponent(email)}`,
-                payload
-            )
-
-            console.log('Response:', respond.data);
-
-            setTimeout(() => {
-                router.push('/login?verified=true');
-            }, 2000);
-
-            if (pinCode === respond.data.code) { // Mock successful PIN
-                setMessage('Email verified successfully! Redirecting...');
-                setTimeout(() => {
-                    router.push('/login?verified=true');
-                }, 2000);
-            } else {
-
-            }
-        } catch (error) {
-            console.error('Error verifying PIN:', error);
-
-            if (axios.isAxiosError(error) && error.response) {
-                setMessage(error.response.data.message || ' PIN. Please try again.');
-            } else {
-                setMessage('An unexpected error occurred. Please try again.');
-            }
-
-            setPin(['', '', '', '', '', '']);
-            inputRefs.current[0]?.focus();
-        } finally {
-            setIsVerifying(false);
-        }
-    };
-
-    const handleResendPin = async () => {
-        if (countdown > 0 || !email) return;
-
-        setIsResending(true);
-        setMessage('');
-
-        try {
-            // Simulate API call to resend PIN
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Here you would make an actual API call to resend PIN
-            console.log('Resending PIN to:', email);
-
-            setMessage('New PIN sent successfully!');
-            setCountdown(60); // 60 second cooldown
-            setPin(['', '', '', '', '', '']);
-            inputRefs.current[0]?.focus();
-
-        } catch (error) {
-            console.error('Error resending PIN:', error);
-            setMessage('Failed to resend PIN. Please try again.');
-        } finally {
-            setIsResending(false);
-        }
-    };
-
-    const handleChangeEmail = () => {
-        router.push('/register');
-    };
+    const {
+        email,
+        pin,
+        isVerifying,
+        isResending,
+        message,
+        countdown,
+        inputRefs,
+        handlePinChange,
+        handleKeyDown,
+        handlePaste,
+        handleVerifyPin,
+        handleResendPin,
+    } = useVerifyEmail();
 
     return (
         <>
@@ -200,56 +60,23 @@ export default function VerifyEmailForm() {
 
                 {/* PIN Input */}
                 <div className="space-y-2">
-                    <div className="flex justify-center space-x-1.5">
-                        {pin.map((digit, index) => (
-                            <input
-                                key={index}
-                                ref={(el) => {
-                                    inputRefs.current[index] = el;
-                                }}
-                                type="text"
-                                maxLength={1}
-                                value={digit}
-                                onChange={(e) => handlePinChange(index, e.target.value)}
-                                onKeyDown={(e) => handleKeyDown(index, e)}
-                                onPaste={handlePaste}
-                                className="w-12 h-12 text-center text-xl font-bold border-1 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
-                                disabled={isVerifying}
-                            />
-                        ))}
-                    </div>
-
-                    {/* Resend Section */}
-                    <div className="text-center">
-                        <p className="text-sm text-gray-600">
-                            Didn't receive a code?{' '}
-                            <button
-                                onClick={handleResendPin}
-                                disabled={isResending || countdown > 0}
-                                className={`font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded ${isResending || countdown > 0
-                                    ? 'text-gray-500 cursor-not-allowed'
-                                    : 'text-blue-600 hover:underline'
-                                    }`}
-                            >
-                                {isResending
-                                    ? 'Sending...'
-                                    : countdown > 0
-                                        ? `Resend in ${countdown}s`
-                                        : 'Resend'}
-                            </button>
-                        </p>
-                    </div>
+                    <PinInput
+                        pin={pin}
+                        inputRefs={inputRefs}
+                        isVerifying={isVerifying}
+                        onChange={handlePinChange}
+                        onKeyDown={handleKeyDown}
+                        onPaste={handlePaste}
+                    />
+                    <ResendButton
+                        countdown={countdown}
+                        isResending={isResending}
+                        onResend={handleResendPin}
+                    />
                 </div>
 
                 {/* Message */}
-                {message && (
-                    <div className={`p-3 rounded-lg ${message.includes('successfully') || message.includes('Redirecting')
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                        }`}>
-                        {message}
-                    </div>
-                )}
+                <VerifyMessage message={message} />
 
                 {/* Manual Verify Button */}
                 <Button
