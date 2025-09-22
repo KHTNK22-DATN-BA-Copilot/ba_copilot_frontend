@@ -19,6 +19,53 @@ export default function RegisterForm() {
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [isLoading, setIsLoading] = useState(false);
     const [isLoginLoading, setIsLoginLoading] = useState(false);
+    const [passwordRequirements, setPasswordRequirements] = useState({
+        length: false,
+        uppercase: false,
+        lowercase: false,
+        number: false,
+        special: false
+    });
+
+    const checkPasswordRequirements = (password: string) => {
+        setPasswordRequirements({
+            length: password.length >= 8,
+            uppercase: /[A-Z]/.test(password),
+            lowercase: /[a-z]/.test(password),
+            number: /\d/.test(password),
+            special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+        });
+    };
+
+    const isFormValid = () => {
+        // Check if all fields are filled
+        const allFieldsFilled = (
+            formData.name.trim() !== '' &&
+            formData.email.trim() !== '' &&
+            formData.password.trim() !== '' &&
+            formData.confirmPassword.trim() !== ''
+        );
+
+        // Check if email format is valid
+        const emailValid = /\S+@\S+\.\S+/.test(formData.email);
+
+        // Check if password meets all requirements
+        const passwordValid = (
+            passwordRequirements.length &&
+            passwordRequirements.uppercase &&
+            passwordRequirements.lowercase &&
+            passwordRequirements.number &&
+            passwordRequirements.special
+        );
+
+        // Check if passwords match
+        const passwordsMatch = formData.password === formData.confirmPassword;
+
+        // Check if name is at least 2 characters
+        const nameValid = formData.name.trim().length >= 2;
+
+        return allFieldsFilled && emailValid && passwordValid && passwordsMatch && nameValid;
+    };
 
     const validateForm = () => {
         const newErrors: { [key: string]: string } = {};
@@ -40,8 +87,28 @@ export default function RegisterForm() {
         // Password validation
         if (!formData.password) {
             newErrors.password = 'Password is required';
-        } else if (formData.password.length < 6) {
-            newErrors.password = 'Password must be at least 8 characters, with at least one uppercase letter, one lowercase letter, one number, and one special character.';
+        } else {
+            const passwordErrors = [];
+            
+            if (formData.password.length < 8) {
+                passwordErrors.push('at least 8 characters');
+            }
+            if (!/[A-Z]/.test(formData.password)) {
+                passwordErrors.push('one uppercase letter');
+            }
+            if (!/[a-z]/.test(formData.password)) {
+                passwordErrors.push('one lowercase letter');
+            }
+            if (!/\d/.test(formData.password)) {
+                passwordErrors.push('one number');
+            }
+            if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)) {
+                passwordErrors.push('one special character');
+            }
+            
+            if (passwordErrors.length > 0) {
+                newErrors.password = `Password must contain ${passwordErrors.join(', ')}.`;
+            }
         }
 
         // Confirm password validation
@@ -98,6 +165,11 @@ export default function RegisterForm() {
             ...prev,
             [name]: value
         }));
+
+        // Real-time password validation
+        if (name === 'password') {
+            checkPasswordRequirements(value);
+        }
 
         // Clear error when user starts typing
         if (errors[name]) {
@@ -213,6 +285,35 @@ export default function RegisterForm() {
                             {errors.password && (
                                 <p className="mt-1 text-sm text-red-600">{errors.password}</p>
                             )}
+                            
+                            {/* Password Requirements */}
+                            {formData.password && (
+                                <div className="mt-2 space-y-1">
+                                    <p className="text-xs text-gray-600 mb-1">Password must contain:</p>
+                                    <div className="grid grid-cols-1 gap-1 text-xs">
+                                        <div className={`flex items-center ${passwordRequirements.length ? 'text-green-600' : 'text-red-500'}`}>
+                                            <span className="mr-1">{passwordRequirements.length ? '✓' : '✗'}</span>
+                                            At least 8 characters
+                                        </div>
+                                        <div className={`flex items-center ${passwordRequirements.uppercase ? 'text-green-600' : 'text-red-500'}`}>
+                                            <span className="mr-1">{passwordRequirements.uppercase ? '✓' : '✗'}</span>
+                                            One uppercase letter (A-Z)
+                                        </div>
+                                        <div className={`flex items-center ${passwordRequirements.lowercase ? 'text-green-600' : 'text-red-500'}`}>
+                                            <span className="mr-1">{passwordRequirements.lowercase ? '✓' : '✗'}</span>
+                                            One lowercase letter (a-z)
+                                        </div>
+                                        <div className={`flex items-center ${passwordRequirements.number ? 'text-green-600' : 'text-red-500'}`}>
+                                            <span className="mr-1">{passwordRequirements.number ? '✓' : '✗'}</span>
+                                            One number (0-9)
+                                        </div>
+                                        <div className={`flex items-center ${passwordRequirements.special ? 'text-green-600' : 'text-red-500'}`}>
+                                            <span className="mr-1">{passwordRequirements.special ? '✓' : '✗'}</span>
+                                            One special character (!@#$%^&*)
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Confirm Password Field */}
@@ -235,13 +336,32 @@ export default function RegisterForm() {
                             {errors.confirmPassword && (
                                 <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
                             )}
+                            
+                            {/* Password Match Indicator */}
+                            {formData.confirmPassword && (
+                                <div className="mt-2">
+                                    <div className={`flex items-center text-xs ${
+                                        formData.password === formData.confirmPassword
+                                            ? 'text-green-600'
+                                            : 'text-red-500'
+                                    }`}>
+                                        <span className="mr-1">
+                                            {formData.password === formData.confirmPassword ? '✓' : '✗'}
+                                        </span>
+                                        {formData.password === formData.confirmPassword
+                                            ? 'Passwords match'
+                                            : 'Passwords do not match'
+                                        }
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Submit Button */}
                         <Button
                             type="submit"
-                            disabled={isLoading}
-                            className={`w-full py-1.5 px-3 rounded-lg font-medium text-white transition-colors ${isLoading
+                            disabled={isLoading || !isFormValid()}
+                            className={`w-full py-1.5 px-3 rounded-lg font-medium text-white transition-colors ${isLoading || !isFormValid()
                                 ? 'bg-gray-400 cursor-not-allowed'
                                 : 'bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
                                 }`}
