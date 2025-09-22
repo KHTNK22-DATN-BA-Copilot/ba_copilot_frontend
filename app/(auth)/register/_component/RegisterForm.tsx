@@ -1,190 +1,28 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import axios from 'axios';
 import Link from 'next/link';
 import Divider from '@mui/material/Divider';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
+import { useRegisterForm } from "./useRegisterForm";
+import GoogleLoginButton from './GoogleLoginButton';
+import PasswordRequirements from './PasswordRequirements';
+import PasswordMatchIndicator from './PasswordMatchIndicator';
+
 export default function RegisterForm() {
-    const router = useRouter();
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        password: '',
-        confirmPassword: ''
-    });
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [isLoading, setIsLoading] = useState(false);
-    const [isLoginLoading, setIsLoginLoading] = useState(false);
-    const [passwordRequirements, setPasswordRequirements] = useState({
-        length: false,
-        uppercase: false,
-        lowercase: false,
-        number: false,
-        special: false
-    });
 
-    const checkPasswordRequirements = (password: string) => {
-        setPasswordRequirements({
-            length: password.length >= 8,
-            uppercase: /[A-Z]/.test(password),
-            lowercase: /[a-z]/.test(password),
-            number: /\d/.test(password),
-            special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
-        });
-    };
-
-    const isFormValid = () => {
-        // Check if all fields are filled
-        const allFieldsFilled = (
-            formData.name.trim() !== '' &&
-            formData.email.trim() !== '' &&
-            formData.password.trim() !== '' &&
-            formData.confirmPassword.trim() !== ''
-        );
-
-        // Check if email format is valid
-        const emailValid = /\S+@\S+\.\S+/.test(formData.email);
-
-        // Check if password meets all requirements
-        const passwordValid = (
-            passwordRequirements.length &&
-            passwordRequirements.uppercase &&
-            passwordRequirements.lowercase &&
-            passwordRequirements.number &&
-            passwordRequirements.special
-        );
-
-        // Check if passwords match
-        const passwordsMatch = formData.password === formData.confirmPassword;
-
-        // Check if name is at least 2 characters
-        const nameValid = formData.name.trim().length >= 2;
-
-        return allFieldsFilled && emailValid && passwordValid && passwordsMatch && nameValid;
-    };
-
-    const validateForm = () => {
-        const newErrors: { [key: string]: string } = {};
-
-        // Name validation
-        if (!formData.name.trim()) {
-            newErrors.name = 'Name is required';
-        } else if (formData.name.trim().length < 2) {
-            newErrors.name = 'Name must be at least 2 characters';
-        }
-
-        // Email validation
-        if (!formData.email) {
-            newErrors.email = 'Email is required';
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'Please enter a valid email address';
-        }
-
-        // Password validation
-        if (!formData.password) {
-            newErrors.password = 'Password is required';
-        } else {
-            const passwordErrors = [];
-            
-            if (formData.password.length < 8) {
-                passwordErrors.push('at least 8 characters');
-            }
-            if (!/[A-Z]/.test(formData.password)) {
-                passwordErrors.push('one uppercase letter');
-            }
-            if (!/[a-z]/.test(formData.password)) {
-                passwordErrors.push('one lowercase letter');
-            }
-            if (!/\d/.test(formData.password)) {
-                passwordErrors.push('one number');
-            }
-            if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)) {
-                passwordErrors.push('one special character');
-            }
-            
-            if (passwordErrors.length > 0) {
-                newErrors.password = `Password must contain ${passwordErrors.join(', ')}.`;
-            }
-        }
-
-        // Confirm password validation
-        if (!formData.confirmPassword) {
-            newErrors.confirmPassword = 'Please confirm your password';
-        } else if (formData.password !== formData.confirmPassword) {
-            newErrors.confirmPassword = 'Passwords do not match';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!validateForm()) {
-            return;
-        }
-
-        setIsLoading(true);
-
-        try {
-            const payload = {
-                name: formData.name,
-                email: formData.email,
-                passwordhash: formData.password
-            }
-
-            const respond = await axios.post(
-                'http://localhost:8010/api/v1/auth/register',
-                payload
-            )
-
-            console.log('Registration successful:', respond.data);
-
-            router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
-        } catch (error) {
-            console.error('Registration error:', error);
-            
-            if (axios.isAxiosError(error) && error.response) {
-                alert("Registration failed: " + error.response.data.message);
-            } else {
-                alert("An unexpected error occurred. Please try again.");
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-
-        // Real-time password validation
-        if (name === 'password') {
-            checkPasswordRequirements(value);
-        }
-
-        // Clear error when user starts typing
-        if (errors[name]) {
-            setErrors(prev => ({
-                ...prev,
-                [name]: ''
-            }));
-        }
-    };
-
-    const handleGoogleLogin = async () => {
-        setIsLoginLoading(true);
-
-        // Simulate Google login process
-    }
+    const {
+        formData,
+        errors,
+        isLoading,
+        isLoginLoading,
+        passwordRequirements,
+        isFormValid,
+        handleSubmit,
+        handleChange,
+        handleGoogleLogin,
+    } = useRegisterForm();
 
     return (
         <>
@@ -196,30 +34,11 @@ export default function RegisterForm() {
                     </div>
 
                     {/* Google Login Button */}
-                    <Button
-                        type="button"
-                        onClick={handleGoogleLogin}
-                        disabled={isLoginLoading}
-                        className={`mt-8 mb-4 w-full py-1.5 px-3 rounded-lg border-1  font-medium text-black transition-colors ${isLoginLoading
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
-                            }`}
-                    >
-                        {isLoginLoading ? (
-                            <div className="flex items-center justify-center">
-                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                                Login...
-                            </div>
-                        ) : (
-                            <div className="flex items-center justify-center gap-2">
-                                <img src="/ic_google.svg" alt="Google icon" className="h-5 w-5" />
-                                Login with Google
-                            </div>
-                        )}
-                    </Button>
+                    <GoogleLoginButton onClick={handleGoogleLogin} isLoading={isLoginLoading} />
 
                     <Divider>or</Divider>
 
+                    {/* Registration Form */}
                     <form className="space-y-6 mt-4" onSubmit={handleSubmit}>
                         {/* Name Field */}
                         <div>
@@ -285,35 +104,12 @@ export default function RegisterForm() {
                             {errors.password && (
                                 <p className="mt-1 text-sm text-red-600">{errors.password}</p>
                             )}
-                            
+
                             {/* Password Requirements */}
-                            {formData.password && (
-                                <div className="mt-2 space-y-1">
-                                    <p className="text-xs text-gray-600 mb-1">Password must contain:</p>
-                                    <div className="grid grid-cols-1 gap-1 text-xs">
-                                        <div className={`flex items-center ${passwordRequirements.length ? 'text-green-600' : 'text-red-500'}`}>
-                                            <span className="mr-1">{passwordRequirements.length ? '✓' : '✗'}</span>
-                                            At least 8 characters
-                                        </div>
-                                        <div className={`flex items-center ${passwordRequirements.uppercase ? 'text-green-600' : 'text-red-500'}`}>
-                                            <span className="mr-1">{passwordRequirements.uppercase ? '✓' : '✗'}</span>
-                                            One uppercase letter (A-Z)
-                                        </div>
-                                        <div className={`flex items-center ${passwordRequirements.lowercase ? 'text-green-600' : 'text-red-500'}`}>
-                                            <span className="mr-1">{passwordRequirements.lowercase ? '✓' : '✗'}</span>
-                                            One lowercase letter (a-z)
-                                        </div>
-                                        <div className={`flex items-center ${passwordRequirements.number ? 'text-green-600' : 'text-red-500'}`}>
-                                            <span className="mr-1">{passwordRequirements.number ? '✓' : '✗'}</span>
-                                            One number (0-9)
-                                        </div>
-                                        <div className={`flex items-center ${passwordRequirements.special ? 'text-green-600' : 'text-red-500'}`}>
-                                            <span className="mr-1">{passwordRequirements.special ? '✓' : '✗'}</span>
-                                            One special character (!@#$%^&*)
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                            <PasswordRequirements
+                                requirements={passwordRequirements}
+                                password={formData.password}
+                            />
                         </div>
 
                         {/* Confirm Password Field */}
@@ -336,25 +132,12 @@ export default function RegisterForm() {
                             {errors.confirmPassword && (
                                 <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
                             )}
-                            
+
                             {/* Password Match Indicator */}
-                            {formData.confirmPassword && (
-                                <div className="mt-2">
-                                    <div className={`flex items-center text-xs ${
-                                        formData.password === formData.confirmPassword
-                                            ? 'text-green-600'
-                                            : 'text-red-500'
-                                    }`}>
-                                        <span className="mr-1">
-                                            {formData.password === formData.confirmPassword ? '✓' : '✗'}
-                                        </span>
-                                        {formData.password === formData.confirmPassword
-                                            ? 'Passwords match'
-                                            : 'Passwords do not match'
-                                        }
-                                    </div>
-                                </div>
-                            )}
+                            <PasswordMatchIndicator
+                                password={formData.password}
+                                confirmPassword={formData.confirmPassword}
+                            />
                         </div>
 
                         {/* Submit Button */}
