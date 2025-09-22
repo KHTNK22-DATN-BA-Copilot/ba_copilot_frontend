@@ -32,6 +32,27 @@ const submitAction = async (preState: any, formData: FormData) => {
             errors: parsedData.error.flatten().fieldErrors,
         };
     }
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const res = await fetch ("/api/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            email,
+            password,
+        }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+        return {
+            success: false,
+            errors: data,
+        };
+    }
+
     redirect("/dashboard");
     return { success: true };
 };
