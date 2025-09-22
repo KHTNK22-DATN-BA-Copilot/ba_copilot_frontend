@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { dir } from 'console';
 
 export default function VerifyEmailForm() {
     const [email, setEmail] = useState('');
@@ -91,27 +93,38 @@ export default function VerifyEmailForm() {
         setMessage('');
 
         try {
-            // Simulate API call to verify PIN
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            const payload = {
+                code: pinCode
+            }
 
-            // Here you would make an actual API call to verify PIN
-            console.log('Verifying PIN:', pinCode, 'for email:', email);
+            const respond = await axios.post(
+                `http://localhost:8010/api/v1/auth/verify-email?email=${encodeURIComponent(email)}`,
+                payload
+            )
 
-            // Simulate successful verification
-            if (pinCode === '123456') { // Mock successful PIN
+            console.log('Response:', respond.data);
+
+            setTimeout(() => {
+                router.push('/login?verified=true');
+            }, 2000);
+
+            if (pinCode === respond.data.code) { // Mock successful PIN
                 setMessage('Email verified successfully! Redirecting...');
                 setTimeout(() => {
                     router.push('/login?verified=true');
                 }, 2000);
             } else {
-                setMessage('Invalid PIN. Please try again.');
-                setPin(['', '', '', '', '', '']);
-                inputRefs.current[0]?.focus();
-            }
 
+            }
         } catch (error) {
             console.error('Error verifying PIN:', error);
-            setMessage('Verification failed. Please try again.');
+
+            if (axios.isAxiosError(error) && error.response) {
+                setMessage(error.response.data.message || ' PIN. Please try again.');
+            } else {
+                setMessage('An unexpected error occurred. Please try again.');
+            }
+
             setPin(['', '', '', '', '', '']);
             inputRefs.current[0]?.focus();
         } finally {

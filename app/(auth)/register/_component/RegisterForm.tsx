@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import Link from 'next/link';
 import Divider from '@mui/material/Divider';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -64,22 +65,28 @@ export default function RegisterForm() {
         setIsLoading(true);
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Here you would typically make an API call to register the user
-            console.log('Registration data:', {
+            const payload = {
                 name: formData.name,
                 email: formData.email,
-                password: formData.password
-            });
+                passwordhash: formData.password
+            }
 
-            // Redirect to email verification page with email parameter
+            const respond = await axios.post(
+                'http://localhost:8010/api/v1/auth/register',
+                payload
+            )
+
+            console.log('Registration successful:', respond.data);
+
             router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
-
         } catch (error) {
             console.error('Registration error:', error);
-            alert('Registration failed. Please try again.');
+            
+            if (axios.isAxiosError(error) && error.response) {
+                alert("Registration failed: " + error.response.data.message);
+            } else {
+                alert("An unexpected error occurred. Please try again.");
+            }
         } finally {
             setIsLoading(false);
         }
