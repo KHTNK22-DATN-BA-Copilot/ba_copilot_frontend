@@ -40,7 +40,7 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
     ```
 ### ⚠️ Important:
 - Please ensure that you change the back-end domain in `.env` file. If you are using:
-    - npm: set domain to `http://localhos:8010`
+    - npm: set domain to `http://localhost:8010`
     - docker: set domain to `http://host.docker.internal:8010`
         
 
