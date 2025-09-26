@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface SearchProps {
     isOpen: boolean;
@@ -10,13 +11,56 @@ interface SearchProps {
 interface SearchResult {
     id: string;
     title: string;
-    type: 'project' | 'user' | 'document';
+    type: 'project' | 'user' | 'document' | 'page';
     description?: string;
     lastModified?: string;
+    route?: string;
 }
 
 // Mock data for demonstration - In real app, this would come from API/context
 const mockSearchData: SearchResult[] = [
+    // BA Copilot Pages
+    {
+        id: 'page-dashboard',
+        title: 'Dashboard',
+        type: 'page',
+        description: 'Main dashboard with project overview and analytics',
+        lastModified: 'Always available',
+        route: '/dashboard'
+    },
+    {
+        id: 'page-ai-conversations',
+        title: 'AI Conversations',
+        type: 'page',
+        description: 'Chat with AI assistants for business analysis tasks',
+        lastModified: 'Ready to use',
+        route: '/aiconversations'
+    },
+    {
+        id: 'page-diagrams',
+        title: 'Diagrams',
+        type: 'page',
+        description: 'Create flowcharts, process diagrams, and system architecture',
+        lastModified: 'Design tools',
+        route: '/diagrams'
+    },
+    {
+        id: 'page-srs-generator',
+        title: 'SRS Generator',
+        type: 'page',
+        description: 'Generate comprehensive Software Requirements Specification documents',
+        lastModified: 'AI-powered',
+        route: '/srsgenerator'
+    },
+    {
+        id: 'page-wireframe-generator',
+        title: 'Wireframe Generator',
+        type: 'page',
+        description: 'Create professional wireframes and mockups with AI assistance',
+        lastModified: 'Design tools',
+        route: '/wireframegenerator'
+    },
+    // Sample Projects
     {
         id: '1',
         title: 'BA Copilot Dashboard',
@@ -52,6 +96,7 @@ const mockSearchData: SearchResult[] = [
         description: 'Secure mobile banking application',
         lastModified: '1 week ago'
     },
+    // Sample Documents
     {
         id: '6',
         title: 'User Settings',
@@ -73,6 +118,7 @@ const mockSearchData: SearchResult[] = [
         description: 'UI components and design guidelines',
         lastModified: '3 weeks ago'
     },
+    // Sample Users
     {
         id: '9',
         title: 'Admin User',
@@ -90,11 +136,12 @@ const mockSearchData: SearchResult[] = [
 ];
 
 export default function Search({ isOpen, setIsOpen }: SearchProps) {
+    const router = useRouter();
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<SearchResult[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(-1);
-    const [recentSearches, setRecentSearches] = useState<string[]>(['Dashboard', 'Projects', 'Authentication']);
+    const [recentSearches, setRecentSearches] = useState<string[]>(['Dashboard', 'AI Conversations', 'Diagrams']);
     const searchInputRef = useRef<HTMLInputElement>(null);
     const searchContainerRef = useRef<HTMLDivElement>(null);
 
@@ -185,8 +232,15 @@ export default function Search({ isOpen, setIsOpen }: SearchProps) {
         const updatedRecent = [result.title, ...recentSearches.filter(s => s !== result.title)].slice(0, 3);
         setRecentSearches(updatedRecent);
 
-        // Here you would typically navigate to the selected item
-        // For example: router.push(`/dashboard/project/${result.id}`);
+        // Navigate to the page if it has a route
+        if (result.route) {
+            router.push(result.route);
+        } else {
+            // For projects, documents, users without specific routes
+            console.log('Navigate to result:', result);
+            // You can implement specific navigation logic here
+            // For example: router.push(`/dashboard/project/${result.id}`);
+        }
 
         // Close search and reset state
         setIsOpen(false);
@@ -196,6 +250,12 @@ export default function Search({ isOpen, setIsOpen }: SearchProps) {
 
     const getResultIcon = (type: SearchResult['type']) => {
         switch (type) {
+            case 'page':
+                return (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                );
             case 'project':
                 return (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -221,6 +281,8 @@ export default function Search({ isOpen, setIsOpen }: SearchProps) {
 
     const getTypeColor = (type: SearchResult['type']) => {
         switch (type) {
+            case 'page':
+                return 'text-indigo-600 dark:text-indigo-400';
             case 'project':
                 return 'text-blue-600 dark:text-blue-400';
             case 'user':

@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Header from './_components/Header';
+import Header from '../../components/layout/Header';
 import MainContent from './_components/MainContent';
-import Footer from './_components/Footer';
+import Footer from '../../components/layout/Footer';
+import Sidebar from '../../components/layout/Sidebar';
 
 export default function DashboardPage() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -50,9 +51,19 @@ export default function DashboardPage() {
                 isDarkMode={isDarkMode}
                 toggleDarkMode={toggleDarkMode}
             />
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <MainContent />
-            </main>
+            <div className="flex h-[calc(100vh-4rem)]">
+                {/* Sidebar - hidden on mobile, visible on desktop */}
+                <div className="hidden lg:block">
+                    <Sidebar isDarkMode={isDarkMode} />
+                </div>
+                
+                {/* Main Content */}
+                <main className="flex-1 overflow-auto">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        <MainContent />
+                    </div>
+                </main>
+            </div>
             <Footer />
         </div>
     );

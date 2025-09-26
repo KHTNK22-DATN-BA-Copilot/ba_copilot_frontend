@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Search from './Search';
-import UserActions from './UserActions';
-import MobileMenu from './MobileMenu';
+import Search from '../../app/dashboard/_components/Search';
+import UserActions from '../../app/dashboard/_components/UserActions';
+import MobileMenu from '../../app/dashboard/_components/MobileMenu';
 
 interface HeaderProps {
     isMenuOpen: boolean;
