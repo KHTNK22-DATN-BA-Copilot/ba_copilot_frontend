@@ -232,37 +232,10 @@ export default function Search({ isOpen, setIsOpen }: SearchProps) {
         }
     };
 
-    return (
-        <>
-            {/* Fixed Search Bar at Top Center */}
-            <div className="col-span-12 mb-6">
-                <div className="flex justify-center">
-                    <div className="relative w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl">
-                        <button
-                            onClick={() => setIsOpen(true)}
-                            className="w-full flex items-center px-4 py-3 text-left bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 group"
-                        >
-                            <svg className="w-5 h-5 text-gray-400 dark:text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            <span className="flex-1 text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300">
-                                Search projects, documents, users...
-                            </span>
-                            <div className="flex items-center space-x-1 text-xs text-gray-400 dark:text-gray-500">
-                                <kbd className="px-2 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded">
-                                    ⌘
-                                </kbd>
-                                <kbd className="px-2 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded">
-                                    K
-                                </kbd>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-            </div>
+    // Only show modal when open
+    if (!isOpen) return null;
 
-            {/* Search Modal */}
-            {isOpen && (
+    return (
                 <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-none flex items-start justify-center pt-16 sm:pt-20 px-4">
                 <div
                     ref={searchContainerRef}
@@ -430,7 +403,5 @@ export default function Search({ isOpen, setIsOpen }: SearchProps) {
                     </div>
                 </div>
             </div>
-            )}
-        </>
     );
 }
