@@ -47,6 +47,7 @@ const submitAction = async (preState: any, formData: FormData) => {
     const data = await res.json();
 
     if (!res.ok) {
+        alert(data.error || "Login failed");
         return {
             success: false,
             errors: data,

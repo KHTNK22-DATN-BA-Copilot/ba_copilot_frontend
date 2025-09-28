@@ -133,7 +133,7 @@ export function useRegisterForm() {
             }
 
             const respond = await axios.post(
-                'http://localhost:8010/api/v1/auth/register',
+                `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/auth/register`,
                 payload
             )
 

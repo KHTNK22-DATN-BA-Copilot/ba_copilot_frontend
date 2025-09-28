@@ -2,8 +2,9 @@
 This is Front-end repo for BA Copilot. A web-base application that focus on BA in their bussiness.   
 
 ## ✨ Getting Started
-
+### 1. If you are using npm
 First, install packages:
+
 
 ```bash
 npm i
@@ -26,6 +27,22 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+### 2. If you want to use docker
+- clone this repo
+- change directory
+    ```bash
+    cd ba-copilot
+    ```
+- run docker
+    ```bash
+    docker compose up --build -d
+    ```
+### ⚠️ Important:
+- Please ensure that you change the back-end domain in `.env` file. If you are using:
+    - npm: set domain to `http://localhost:8010`
+    - docker: set domain to `http://host.docker.internal:8010`
+        
 
 ## 📁 About this repo
 - This repo is built on Nextjs's architecture. We mainly work on these folders (There will be an update if there are any changes)

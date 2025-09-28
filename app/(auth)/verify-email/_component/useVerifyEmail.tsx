@@ -92,7 +92,7 @@ export default function useVerifyEmail() {
             }
 
             const respond = await axios.post(
-                `http://localhost:8010/api/v1/auth/verify-email?email=${encodeURIComponent(email)}`,
+                `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/auth/verify-email?email=${encodeURIComponent(email)}`,
                 payload
             )
 

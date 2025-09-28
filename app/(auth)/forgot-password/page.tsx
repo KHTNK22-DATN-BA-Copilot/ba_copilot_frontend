@@ -84,6 +84,19 @@ export default function ForgotPasswordPage() {
     const handleEmailSubmit = async (e: any) => {
         e.preventDefault();
         try {
+            
+            const res = await fetch("/api/forgot-password/sendEmail", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email: formData.email }),
+            });
+            const response = await res.json();
+            if (!res.ok) {
+                alert(response.message || "Failed to send email");
+                return;
+            }
             setCurrentStep(STEPS.VERIFY_CODE);
         } catch (error) {
             console.error("Error:", error);
@@ -93,7 +106,20 @@ export default function ForgotPasswordPage() {
     const handleCodeVerification = async (e: any) => {
         e.preventDefault();
         try {
-            alert(formData.verificationCode);
+            const res = await fetch("/api/forgot-password/verifyPin", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    code: formData.verificationCode,
+                    email: formData.email,
+                })
+            });
+            if (!res.ok) {
+                alert("Failed to verify code");
+                return;
+            }
             setCurrentStep(STEPS.NEW_PASSWORD);
         } catch (error) {
             console.error("Error:", error);
@@ -103,6 +129,20 @@ export default function ForgotPasswordPage() {
     const handlePasswordReset = async (e: any) => {
         e.preventDefault();
         try {
+            const res = await fetch("/api/forgot-password/resetPassword", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    new_password: formData.newPassword,
+                    email: formData.email,
+                })
+            });
+            if (!res.ok) {
+                alert("Failed to reset password");
+                return;
+            }
             setCurrentStep(STEPS.SUCCESS);
         } catch (error) {
             console.error("Error:", error);
