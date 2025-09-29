@@ -48,9 +48,23 @@ export default function DashboardLayout({
                 toggleDarkMode={toggleDarkMode}
             />
             <div className="flex h-[calc(100vh-4rem)]">
-                {/* Sidebar - hidden on mobile, visible on desktop */}
-                <div className="hidden lg:block">
-                    <Sidebar isDarkMode={isDarkMode} />
+                {/* Desktop Sidebar - visible on extra large screens */}
+                <div className="hidden xl:block">
+                    <Sidebar 
+                        isDarkMode={isDarkMode}
+                        isOpen={false}
+                        isMobile={false}
+                    />
+                </div>
+                
+                {/* Mobile/Tablet/iPad Sidebar - overlay on smaller screens */}
+                <div className="xl:hidden">
+                    <Sidebar 
+                        isDarkMode={isDarkMode}
+                        isOpen={isMenuOpen}
+                        onClose={() => setIsMenuOpen(false)}
+                        isMobile={true}
+                    />
                 </div>
                 
                 {/* Main Content */}

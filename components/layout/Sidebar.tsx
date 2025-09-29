@@ -5,6 +5,9 @@ import { useState } from 'react';
 
 interface SidebarProps {
     isDarkMode: boolean;
+    isOpen?: boolean;
+    onClose?: () => void;
+    isMobile?: boolean;
 }
 
 const navigationItems = [
@@ -62,15 +65,42 @@ const navigationItems = [
     }
 ];
 
-export default function Sidebar({ isDarkMode }: SidebarProps) {
+export default function Sidebar({ isDarkMode, isOpen = false, onClose, isMobile = false }: SidebarProps) {
     const router = useRouter();
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = useState(false);
+    
+    const handleNavigation = (href: string) => {
+        router.push(href);
+        // Close mobile sidebar when navigating
+        if (isMobile && onClose) {
+            onClose();
+        }
+    };
 
     return (
-        <aside className={`${
-            isCollapsed ? 'w-16' : 'w-64'
-        } bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 flex flex-col h-full`}>
+        <>
+            {/* Mobile Backdrop */}
+            {isMobile && isOpen && (
+                <div 
+                    className="fixed inset-0 backdrop-brightness-50 z-40 xl:hidden"
+                    onClick={onClose}
+                />
+            )}
+            
+            {/* Sidebar */}
+            <aside className={`
+                ${isMobile 
+                    ? `fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out ${
+                        isOpen ? 'translate-x-0' : '-translate-x-full'
+                    }`
+                    : 'relative'
+                }
+                ${isCollapsed ? 'w-16' : 'w-64'} 
+                bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 
+                ${isMobile ? '' : 'transition-all duration-300'} 
+                flex flex-col h-full
+            `}>
             {/* Sidebar Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                 {!isCollapsed && (
@@ -78,19 +108,38 @@ export default function Sidebar({ isDarkMode }: SidebarProps) {
                         Navigation
                     </h2>
                 )}
-                <button
-                    onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="p-1.5 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                    <svg 
-                        className={`w-4 h-4 transition-transform duration-200 ${isCollapsed ? 'rotate-180' : ''}`} 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                    >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                </button>
+                
+                <div className="flex items-center space-x-1">
+                    {/* Mobile close button */}
+                    {isMobile && (
+                        <button
+                            onClick={onClose}
+                            className="xl:hidden p-1.5 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            aria-label="Close sidebar"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    )}
+                    
+                    {/* Desktop collapse button */}
+                    {!isMobile && (
+                        <button
+                            onClick={() => setIsCollapsed(!isCollapsed)}
+                            className="p-1.5 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        >
+                            <svg 
+                                className={`w-4 h-4 transition-transform duration-200 ${isCollapsed ? 'rotate-180' : ''}`} 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Navigation Items */}
@@ -100,7 +149,7 @@ export default function Sidebar({ isDarkMode }: SidebarProps) {
                     return (
                         <button
                             key={item.name}
-                            onClick={() => router.push(item.href)}
+                            onClick={() => handleNavigation(item.href)}
                             className={`w-full flex items-center ${
                                 isCollapsed ? 'justify-center px-3' : 'px-3'
                             } py-2.5 rounded-lg text-left transition-all duration-200 group ${
@@ -147,6 +196,7 @@ export default function Sidebar({ isDarkMode }: SidebarProps) {
                 )}
             </div>
         </aside>
+        </>
     );
 }
 

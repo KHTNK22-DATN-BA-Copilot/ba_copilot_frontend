@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Search from '../../app/dashboard/_components/Search';
 import UserActions from '../../app/dashboard/_components/UserActions';
-import MobileMenu from '../../app/dashboard/_components/MobileMenu';
 
 interface HeaderProps {
     isMenuOpen: boolean;
@@ -46,14 +45,32 @@ export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDa
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Main Header Row */}
                 <div className="flex items-center justify-between h-16">
-                    {/* Logo */}
-                    <div className="flex-shrink-0">
-                        <button 
-                            onClick={handleLogoClick}
-                            className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200 cursor-pointer"
+                    {/* Left side: Mobile menu button + Logo */}
+                    <div className="flex items-center">
+                        {/* Mobile sidebar toggle button - visible on tablet and mobile */}
+                        <button
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            className="xl:hidden p-2 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors mr-2"
+                            aria-label="Toggle sidebar"
                         >
-                            🤖 BA Copilot
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                {isMenuOpen ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                )}
+                            </svg>
                         </button>
+                        
+                        {/* Logo */}
+                        <div className="flex-shrink-0">
+                            <button 
+                                onClick={handleLogoClick}
+                                className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200 cursor-pointer"
+                            >
+                                🤖 BA Copilot
+                            </button>
+                        </div>
                     </div>
 
                     {/* Desktop Search Bar */}
@@ -112,8 +129,6 @@ export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDa
                     </button>
                 </div>
 
-                {/* Mobile Menu */}
-                {isMenuOpen && <MobileMenu />}
             </div>
 
             {/* Search Modal */}
