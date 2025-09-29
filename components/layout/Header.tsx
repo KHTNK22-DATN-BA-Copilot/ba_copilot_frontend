@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import Search from '../../app/dashboard/_components/Search';
 import UserActions from '../../app/dashboard/_components/UserActions';
 import MobileMenu from '../../app/dashboard/_components/MobileMenu';
@@ -13,7 +14,19 @@ interface HeaderProps {
 }
 
 export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDarkMode}: HeaderProps) {
+    const router = useRouter();
+    const pathname = usePathname();
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+    const handleLogoClick = () => {
+        if (pathname === '/dashboard') {
+            // If on dashboard, just reload
+            window.location.reload();
+        } else {
+            // If on other pages, navigate to dashboard
+            router.push('/dashboard');
+        }
+    };
 
     // Handle Ctrl+K shortcut for search
     useEffect(() => {
@@ -36,7 +49,7 @@ export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDa
                     {/* Logo */}
                     <div className="flex-shrink-0">
                         <button 
-                            onClick={() => window.location.reload()}
+                            onClick={handleLogoClick}
                             className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200 cursor-pointer"
                         >
                             🤖 BA Copilot

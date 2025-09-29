@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface UserActionsProps {
   isDarkMode: boolean;
@@ -8,7 +9,54 @@ interface UserActionsProps {
 }
 
 export default function UserActions({ isDarkMode, toggleDarkMode, isMenuOpen, setIsMenuOpen}: UserActionsProps) {
+  const router = useRouter();
   const [isAvatarDropdownOpen, setIsAvatarDropdownOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      // Get token from localStorage
+      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+      
+      if (token) {
+        // Call backend logout API
+        await fetch('http://localhost:8000/api/v1/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+      // Continue with logout even if API call fails
+    } finally {
+      // Clear all authentication data from localStorage
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('userData');
+      localStorage.removeItem('theme'); // Clear theme preference
+      
+      // Clear sessionStorage as well
+      sessionStorage.removeItem('access_token');
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('refresh_token');
+      sessionStorage.removeItem('user');
+      sessionStorage.removeItem('userData');
+      sessionStorage.removeItem('theme'); // Clear theme preference
+      
+      // Reset theme to light mode
+      document.documentElement.classList.remove('dark');
+      
+      // Close dropdown
+      setIsAvatarDropdownOpen(false);
+      
+      // Navigate to login page
+      router.push('/login');
+    }
+  };
 
   return (
     <div className="flex items-center space-x-1">
@@ -49,8 +97,7 @@ export default function UserActions({ isDarkMode, toggleDarkMode, isMenuOpen, se
               <button
                 onClick={() => {
                   setIsAvatarDropdownOpen(false);
-                  console.log('Navigate to Account Settings');
-                  // Add navigation logic here
+                  router.push('/accountsetting');
                 }}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center transition-colors"
               >
@@ -64,11 +111,7 @@ export default function UserActions({ isDarkMode, toggleDarkMode, isMenuOpen, se
               <hr className="border-gray-200 dark:border-gray-700" />
               
               <button
-                onClick={() => {
-                  setIsAvatarDropdownOpen(false);
-                  console.log('Logout clicked');
-                  // Add logout logic here
-                }}
+                onClick={handleLogout}
                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center transition-colors"
               >
                 <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
