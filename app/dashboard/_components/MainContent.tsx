@@ -1,6 +1,5 @@
 import OverviewSection from './OverviewSection';
 import ProjectsSection from './ProjectsSection';
-
 import { useState } from 'react';
 
 export default function MainContent() {
