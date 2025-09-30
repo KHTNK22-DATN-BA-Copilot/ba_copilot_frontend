@@ -2,52 +2,19 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import Headers from '../../components/layout/Header';
+import Headers from '../../../components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
 export default function AccountSettingPage() {
     const router = useRouter();
-    const [isDarkMode, setIsDarkMode] = useState(false);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    const toggleDarkMode = () => {
-        setIsDarkMode((prev) => {
-            const newMode = !prev;
-            localStorage.setItem('theme', newMode ? 'dark' : 'light');
-            if (newMode) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-            return newMode;
-        });
-    };
-
-    useEffect(() => {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-            setIsDarkMode(true);
-            document.documentElement.classList.add('dark');
-        } else {
-            setIsDarkMode(false);
-            document.documentElement.classList.remove('dark');
-        }
-    }, []);
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-            {/* Header */}
-            <Headers
-                isMenuOpen={isMenuOpen}
-                setIsMenuOpen={setIsMenuOpen}
-                isDarkMode={isDarkMode}
-                toggleDarkMode={toggleDarkMode}
-            />
-            
+
             {/* Main Layout */}
             <div className="flex h-[calc(100vh-4rem)]">
                 {/* Main Content */}
-                <main className="flex-1 overflow-auto">
+                <main className="flex-1">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                         <div className="grid grid-cols-12 gap-6">
                             {/* Page Header */}
@@ -132,8 +99,6 @@ export default function AccountSettingPage() {
                     </div>
                 </main>
             </div>
-            {/* Footer */}
-            <Footer />
         </div>
     );
 }
