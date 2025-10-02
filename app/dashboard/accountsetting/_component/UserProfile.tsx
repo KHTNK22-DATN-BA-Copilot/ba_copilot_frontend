@@ -1,57 +1,49 @@
 "use client";
 import Image from "next/image";
 import Avatar from "@/public/Profile.png";
-import { Pencil, PenIcon, X, Check, Edit } from "lucide-react";
+import { Pencil, Edit } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Field } from "./Field";
 
-function Field({
-    label,
-    value,
-    state,
-    onChange,
-}: {
-    label: string;
-    value: string;
-    state: "view" | "edit";
-    onChange: any;
-}) {
+type UserProfileProps = {
+    fullName: string;
+    email: string;
+    username: string;
+};
+
+function isEqual(a: UserProfileProps, b: UserProfileProps) {
     return (
-        <div className="sm:flex sm:justify-between sm:items-center py-2">
-            <div className="flex items-center gap-x-2">
-                <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {label}
-                </Label>
-            </div>
-            {state === "edit" ? (
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Input
-                        type={label === "Email" ? "email" : "text"}
-                        value={value}
-                        onChange={(e) => onChange(e.target.value)}
-                        className="max-w-xs"
-                        aria-label={label}
-                    />
-                </div>
-            ) : (
-                <p className="truncate max-w-xs">{value}</p>
-            )}
-        </div>
+        a.fullName.trim() === b.fullName.trim() &&
+        a.email.trim() === b.email.trim() &&
+        a.username.trim() === b.username.trim()
     );
+}
+
+function isValidEmail(email: string) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
 }
 
 export default function UserProfile() {
     const [avatar, setAvatar] = useState(Avatar.src);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const [state, setState] = useState<"view" | "edit">("view");
-    const [originalProfile, setOriginalProfile] = useState<{
-        fullName: string;
-        email: string;
-        username: string;
-    }>({
+    const [state, setState] = useState<"view" | "edit" | "alert" | "pending">(
+        "view"
+    );
+    const [originalProfile, setOriginalProfile] = useState<UserProfileProps>({
         fullName: "Pham Gia Khang",
         email: "pgkhangt1@gmail.com",
         username: "khang080704",
@@ -60,8 +52,21 @@ export default function UserProfile() {
 
     const handleChangeInfor = async () => {
         console.log(EditProfile);
-        setState("view");
+        setState("pending");
         setOriginalProfile(EditProfile);
+        setState("view");
+    };
+
+    const sendAlert = async () => {
+        if (EditProfile.email !== originalProfile.email) {
+            if (!isValidEmail(EditProfile.email)) {
+                alert("Please enter a valid email address.");
+                return;
+            }
+            setState("alert");
+        } else {
+            handleChangeInfor();
+        }
     };
 
     return (
@@ -105,14 +110,6 @@ export default function UserProfile() {
             <hr className="my-2" />
             <div className="mt-6 space-y-4">
                 <Field
-                    label="Full Name"
-                    value={EditProfile.fullName}
-                    state={state}
-                    onChange={(value: string) =>
-                        setEditProfile((pre) => ({ ...pre, fullName: value }))
-                    }
-                />
-                <Field
                     label="Email"
                     value={EditProfile.email}
                     state={state}
@@ -121,23 +118,27 @@ export default function UserProfile() {
                     }
                 />
                 <Field
-                    label="User name"
-                    value={EditProfile.username}
+                    label="Full Name"
+                    value={EditProfile.fullName}
                     state={state}
                     onChange={(value: string) =>
-                        setEditProfile((pre) => ({ ...pre, username: value }))
+                        setEditProfile((pre) => ({ ...pre, fullName: value }))
                     }
                 />
             </div>
-            {state === "edit" && (
+            {(state === "edit" || state === "pending") && (
                 <div
                     className={`gap-4 justify-center mt-2 max-md:justify-center flex`}
                 >
                     <Button
                         className="hover:cursor-pointer"
-                        onClick={handleChangeInfor}
+                        onClick={sendAlert}
+                        disabled={
+                            isEqual(originalProfile, EditProfile) ||
+                            state === "pending"
+                        }
                     >
-                        Edit
+                        {state === "pending" ? "Saving..." : "Save"}
                     </Button>
                     <Button
                         variant={"outline"}
@@ -150,6 +151,32 @@ export default function UserProfile() {
                     </Button>
                 </div>
             )}
+            <AlertDialog
+                open={state === "alert"}
+                onOpenChange={() => setState("view")}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Are you absolutely sure?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. We will change your
+                            email and redirect you to the login page.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel
+                            onClick={() => setEditProfile(originalProfile)}
+                        >
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction onClick={handleChangeInfor}>
+                            Continue
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </article>
     );
 }
