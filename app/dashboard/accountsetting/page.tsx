@@ -1,13 +1,24 @@
 import Link from "next/link";
 import { Metadata } from "next";
 import UserProfile from "./_component/UserProfile";
+import { cookies } from "next/headers";
 
 export const metadata: Metadata = {
     title: "Account Settings - BA Copilot",
     description: "Manage your account preferences and settings on BA Copilot.",
 }
 
-export default function AccountSettingPage() {
+export default async function AccountSettingPage() {
+    const access_token = (await cookies()).get("access_token")?.value || "";
+    const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/user/me`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${access_token}`
+        }
+    });
+
+    const userProfile = await res.json();
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
@@ -52,7 +63,7 @@ export default function AccountSettingPage() {
                                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                                         Profile Settings
                                     </h3>
-                                    <UserProfile />
+                                    <UserProfile name={userProfile.name} email={userProfile.email} />
                                 </div>
                             </div>
 

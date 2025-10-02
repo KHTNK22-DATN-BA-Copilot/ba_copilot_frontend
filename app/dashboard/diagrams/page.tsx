@@ -1,9 +1,12 @@
-'use client';
+import Link from 'next/link';
+import { Metadata } from 'next';
 
-import { useRouter } from 'next/navigation';
+export const metadata: Metadata = {
+    title: 'Diagrams - BA Copilot',
+    description: 'Create and manage diagrams for business analysis on BA Copilot.',
+}
 
 export default function DiagramsPage() {
-    const router = useRouter();
 
     return (
         <div className="grid grid-cols-12 gap-6">
@@ -11,14 +14,14 @@ export default function DiagramsPage() {
             <div className="col-span-12">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                     <div className="flex items-center space-x-3">
-                        <button
-                            onClick={() => router.push('/dashboard')}
+                        <Link
+                            href="/dashboard"
                             className="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 xl:hidden"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>
-                        </button>
+                        </Link>
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                                 📊 Diagrams

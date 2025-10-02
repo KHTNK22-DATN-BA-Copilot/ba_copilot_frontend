@@ -17,53 +17,73 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Field } from "./Field";
 
-type UserProfileProps = {
-    fullName: string;
+//import util relevant user management
+import { StateProps, UserProfileProps, isEqual, isValidEmail } from "@/lib/user";
+
+
+export default function UserProfile({
+    name,
+    email,
+}: {
+    name: string;
     email: string;
-    username: string;
-};
-
-function isEqual(a: UserProfileProps, b: UserProfileProps) {
-    return (
-        a.fullName.trim() === b.fullName.trim() &&
-        a.email.trim() === b.email.trim() &&
-        a.username.trim() === b.username.trim()
-    );
-}
-
-function isValidEmail(email: string) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-export default function UserProfile() {
+}) {
     const [avatar, setAvatar] = useState(Avatar.src);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const [state, setState] = useState<"view" | "edit" | "alert" | "pending">(
-        "view"
-    );
+    const [state, setState] = useState<StateProps>({
+        state: "view",
+    });
     const [originalProfile, setOriginalProfile] = useState<UserProfileProps>({
-        fullName: "Pham Gia Khang",
-        email: "pgkhangt1@gmail.com",
-        username: "khang080704",
+        fullName: name,
+        email: email,
     });
     const [EditProfile, setEditProfile] = useState(originalProfile);
 
+    const isEditMode = state.state === "edit";
+    const isPendingMode = state.state === "pending";
+    const isErrorMode = state.state === "error";
+    const isAlertMode = state.state === "alert";
+
     const handleChangeInfor = async () => {
         console.log(EditProfile);
-        setState("pending");
+        setState({ state: "pending" });
         setOriginalProfile(EditProfile);
-        setState("view");
+        try {
+            const res = await fetch("/api/me", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(EditProfile),
+            });
+            const result = await res.json();
+            if (res.ok) {
+                setState({ state: "view" });
+                if (EditProfile.email !== originalProfile.email) {
+                    window.location.href = "/login";
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                throw new Error(result.message || "Failed to update profile");
+            }
+        } catch (error) {
+            console.error("Failed to update profile:", error);
+            alert("Failed to update profile. Please try again.");
+        }
     };
 
     const sendAlert = async () => {
         if (EditProfile.email !== originalProfile.email) {
             if (!isValidEmail(EditProfile.email)) {
-                alert("Please enter a valid email address.");
+                setState({
+                    state: "error",
+                    message: "Invalid email format.",
+                });
                 return;
             }
-            setState("alert");
+            setState({ state: "alert" });
         } else {
             handleChangeInfor();
         }
@@ -96,64 +116,72 @@ export default function UserProfile() {
                         </label>
                     </div>
                     <div>
-                        <p className="font-semibold">Pham Gia Khang</p>
-                        <p className="text-gray-500 text-sm">
-                            pgkhangt1@gmail.com
-                        </p>
+                        <p className="font-semibold">{name}</p>
+                        <p className="text-gray-500 text-sm">{email}</p>
                     </div>
                 </div>
                 <Edit
                     className="hover:cursor-pointer"
-                    onClick={() => setState("edit")}
+                    onClick={() => setState({ state: "edit" })}
                 />
             </div>
             <hr className="my-2" />
             <div className="mt-6 space-y-4">
-                <Field
-                    label="Email"
-                    value={EditProfile.email}
-                    state={state}
-                    onChange={(value: string) =>
-                        setEditProfile((pre) => ({ ...pre, email: value }))
-                    }
-                />
-                <Field
-                    label="Full Name"
-                    value={EditProfile.fullName}
-                    state={state}
-                    onChange={(value: string) =>
-                        setEditProfile((pre) => ({ ...pre, fullName: value }))
-                    }
-                />
-            </div>
-            {(state === "edit" || state === "pending") && (
-                <div
-                    className={`gap-4 justify-center mt-2 max-md:justify-center flex`}
-                >
-                    <Button
-                        className="hover:cursor-pointer"
-                        onClick={sendAlert}
-                        disabled={
-                            isEqual(originalProfile, EditProfile) ||
-                            state === "pending"
-                        }
-                    >
-                        {state === "pending" ? "Saving..." : "Save"}
-                    </Button>
-                    <Button
-                        variant={"outline"}
-                        onClick={() => {
-                            setState("view");
-                            setEditProfile(originalProfile);
+                <form onSubmit={(e) => e.preventDefault()}>
+                    <Field
+                        label="Email"
+                        value={EditProfile.email}
+                        state={state.state}
+                        onChange={(value: string) => {
+                            setEditProfile((pre) => ({ ...pre, email: value }));
+                            setState({ state: "edit" });
                         }}
-                    >
-                        Cancel
-                    </Button>
-                </div>
-            )}
+                        message={isErrorMode ? state.message : ""}
+                    />
+                    <Field
+                        label="Full Name"
+                        value={EditProfile.fullName}
+                        state={state.state}
+                        onChange={(value: string) =>
+                            setEditProfile((pre) => ({
+                                ...pre,
+                                fullName: value,
+                            }))
+                        }
+                    />
+                    {(isEditMode || isPendingMode || isErrorMode) && (
+                        <div
+                            className={`gap-4 justify-center mt-2 max-md:justify-center flex`}
+                        >
+                            <Button
+                                className="hover:cursor-pointer"
+                                onClick={sendAlert}
+                                disabled={
+                                    isEqual(originalProfile, EditProfile) ||
+                                    state.state === "pending"
+                                }
+                            >
+                                {state.state === "pending"
+                                    ? "Saving..."
+                                    : "Save"}
+                            </Button>
+                            <Button
+                                variant={"outline"}
+                                onClick={() => {
+                                    setState({ state: "view" });
+                                    setEditProfile(originalProfile);
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                        </div>
+                    )}
+                </form>
+            </div>
+
             <AlertDialog
-                open={state === "alert"}
-                onOpenChange={() => setState("view")}
+                open={isAlertMode}
+                onOpenChange={() => setState({ state: "view" })}
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
