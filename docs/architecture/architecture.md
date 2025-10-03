@@ -69,6 +69,8 @@ Tài liệu này mô tả kiến trúc phía frontend cho dự án BA Copilot, d
 
 flowchart  LR
 
+  
+
 subgraph  FE
 
 U[User Interaction]
@@ -97,9 +99,9 @@ U  -->  P
 
 P  -->  C
 
-C  -->|read/write|  S
+C  -->|read/write| S
 
-P  -->|server action / fetch|  L
+P  -->|server action / fetch| L
 
 L  -->  API
 
