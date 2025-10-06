@@ -144,7 +144,7 @@ export function useRegisterForm() {
             console.error('Registration error:', error);
 
             if (axios.isAxiosError(error) && error.response) {
-                alert("Registration failed: " + error.response.data.message);
+                alert("Registration failed: " + error.response.data.detail); 
             } else {
                 alert("An unexpected error occurred. Please try again.");
             }
