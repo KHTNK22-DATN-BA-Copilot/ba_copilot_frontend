@@ -1,3 +1,5 @@
+import { Suspense } from 'react'
+
 export default function AuthLayout({
     children,
 }: {
@@ -11,7 +13,9 @@ export default function AuthLayout({
                 <div className="absolute bottom-0 right-1/5 w-114 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 dark:opacity-30 animate-blob animation-delay-4000"></div>
             </div>
             <div className="flex h-screen justify-center mx-5 sm:items-center">
-                {children}
+                <Suspense fallback={<>...</>}>
+                    {children}
+                </Suspense>
             </div>
         </>
     );
