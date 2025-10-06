@@ -10,7 +10,7 @@ export async function PUT(req: NextRequest) {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${access_token}`
         },
-        body: JSON.stringify({ name: fullName, email })
+        body: JSON.stringify({ name: fullName, email: email ? email : undefined })
     });
     const result = await res.json();
     if (res.ok) {
