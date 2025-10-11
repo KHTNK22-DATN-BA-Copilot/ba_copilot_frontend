@@ -1,11 +1,10 @@
 'use client'
-import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 import Footer from "@/components/layout/Footer";
-import Headers from "@/components/layout/Header";
-import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
+import Sidebar from "@/components/layout/Sidebar";
 
 export default function DashboardLayout({
     children,
@@ -14,6 +13,10 @@ export default function DashboardLayout({
 }) {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const pathname = usePathname();
+    
+    // Check if we're on a project page (which has its own layout)
+    const isProjectPage = pathname?.startsWith('/dashboard/project/');
 
     const toggleDarkMode = () => {
         setIsDarkMode((prev) => {
@@ -39,6 +42,11 @@ export default function DashboardLayout({
         }
     }, []);
 
+    // For project pages, render children directly (they have their own layout)
+    if (isProjectPage) {
+        return <>{children}</>;
+    }
+
     return (
         <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
             <Header
@@ -47,33 +55,14 @@ export default function DashboardLayout({
                 isDarkMode={isDarkMode}
                 toggleDarkMode={toggleDarkMode}
             />
-            <div className="flex h-[calc(100vh-4rem)]">
-                {/* Desktop Sidebar - visible on extra large screens */}
-                <div className="hidden xl:block">
-                    <Sidebar 
-                        isDarkMode={isDarkMode}
-                        isOpen={false}
-                        isMobile={false}
-                    />
+            
+            {/* Main Content - Full width without sidebar */}
+            <main className="min-h-[calc(100vh-4rem)]">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    {children}
                 </div>
-                
-                {/* Mobile/Tablet/iPad Sidebar - overlay on smaller screens */}
-                <div className="xl:hidden">
-                    <Sidebar 
-                        isDarkMode={isDarkMode}
-                        isOpen={isMenuOpen}
-                        onClose={() => setIsMenuOpen(false)}
-                        isMobile={true}
-                    />
-                </div>
-                
-                {/* Main Content */}
-                <main className="flex-1 overflow-auto">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                        {children}
-                    </div>
-                </main>
-            </div>
+            </main>
+            
             <Footer />
         </div>
     )

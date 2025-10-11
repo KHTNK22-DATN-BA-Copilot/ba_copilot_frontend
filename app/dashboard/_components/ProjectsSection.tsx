@@ -1,16 +1,39 @@
+import { useRouter } from 'next/navigation';
+import { FolderOpen } from 'lucide-react';
+
 type ProjectsSectionProps = {
   isOpenFilter: boolean;
   setIsOpenFilter: (value: boolean) => void;
   selectedFilter: string;
   setSelectedFilter: (value: string) => void;
+  isLoading?: boolean;
 };
 
-export default function ProjectsSection({ isOpenFilter, setIsOpenFilter, selectedFilter, setSelectedFilter }: ProjectsSectionProps) {
+// Skeleton component for project cards
+const ProjectCardSkeleton = () => (
+  <div className="bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse">
+    <div className="p-6">
+      <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg mb-4"></div>
+      <div className="space-y-1">
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+      </div>
+    </div>
+  </div>
+);
+
+export default function ProjectsSection({ isOpenFilter, setIsOpenFilter, selectedFilter, setSelectedFilter, isLoading = false }: ProjectsSectionProps) {
+  const router = useRouter();
 
   const handleFilterSelect = (filterName: string) => {
     setSelectedFilter(filterName);
     setIsOpenFilter(false);
     console.log(`${filterName} selected`);
+  };
+
+  const handleProjectClick = (projectId: number) => {
+    // Navigate to project page
+    router.push(`/dashboard/project/${projectId}`);
   };
 
   return (
@@ -62,22 +85,33 @@ export default function ProjectsSection({ isOpenFilter, setIsOpenFilter, selecte
       </div>
     </div>
 
-      {/* Row 1 */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
-        {[1, 2, 3, 4, 5].map((item) => (
-          <div key={item} className="bg-gray-200 dark:bg-gray-700 rounded-lg aspect-square flex items-center justify-center">
-            <div className="w-16 h-16 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
-          </div>
-        ))}
-      </div>
-
-      {/* Row 2 */}
+      {/* Project Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
-        {[6, 7, 8, 9, 10].map((item) => (
-          <div key={item} className="bg-gray-200 dark:bg-gray-700 rounded-lg aspect-square flex items-center justify-center">
-            <div className="w-16 h-16 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
-          </div>
-        ))}
+        {isLoading ? (
+          // Skeleton loading state
+          Array.from({ length: 10 }).map((_, index) => (
+            <ProjectCardSkeleton key={`skeleton-${index}`} />
+          ))
+        ) : (
+          // Actual project cards
+          [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((item) => (
+            <div
+              key={item}
+              className="bg-muted/30 dark:bg-gray-800 hover:shadow-md dark:hover:shadow-xl dark:hover:shadow-gray-400/20 dark:hover:bg-gray-750 transition-all duration-200 cursor-pointer rounded-3xl"
+              onClick={() => handleProjectClick(item)}
+            >
+              <div className="p-6 bg-gray-100 dark:bg-gray-800 rounded-3xl">
+                <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 flex items-center justify-center">
+                  <FolderOpen className="w-12 h-12 text-muted-foreground/50 dark:text-gray-400" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm truncate text-gray-900 dark:text-gray-100">Project {item}</p>
+                  <p className="text-xs text-muted-foreground dark:text-gray-400">2 days ago</p>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       <div className="text-center">

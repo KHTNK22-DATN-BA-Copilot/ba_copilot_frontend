@@ -4,7 +4,7 @@ import Headers from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 import Footer from "@/components/layout/Footer";
 
-export default function GeneratorLayout({
+export default function ProjectLayout({
     children,
 }: {
     children: React.ReactNode;
