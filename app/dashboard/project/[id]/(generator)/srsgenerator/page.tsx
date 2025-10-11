@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { SrsDataStoreProvider } from "@/context/SRSGeneratorContext";
-import MainPage from "./_components/MainPage";
+import MainPage from "@/app/(generator)/srsgenerator/_components/MainPage"
 
 export const metadata: Metadata = {
     title: "SRS Generator - BA Copilot",

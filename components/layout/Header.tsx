@@ -16,6 +16,9 @@ export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDa
     const router = useRouter();
     const pathname = usePathname();
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    
+    // Check if we're inside a project (to show/hide mobile menu button)
+    const isInsideProject = pathname?.startsWith('/dashboard/project/');
 
     const handleLogoClick = () => {
         if (pathname === '/dashboard') {
@@ -47,20 +50,22 @@ export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDa
                 <div className="flex items-center justify-between h-16">
                     {/* Left side: Mobile menu button + Logo */}
                     <div className="flex items-center">
-                        {/* Mobile sidebar toggle button - visible on tablet and mobile */}
-                        <button
-                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            className="xl:hidden p-2 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors mr-2"
-                            aria-label="Toggle sidebar"
-                        >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                {isMenuOpen ? (
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                ) : (
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                )}
-                            </svg>
-                        </button>
+                        {/* Mobile sidebar toggle button - only visible inside project pages */}
+                        {isInsideProject && (
+                            <button
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                className="xl:hidden p-2 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors mr-2"
+                                aria-label="Toggle sidebar"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    {isMenuOpen ? (
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    ) : (
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                    )}
+                                </svg>
+                            </button>
+                        )}
                         
                         {/* Logo */}
                         <div className="flex-shrink-0">

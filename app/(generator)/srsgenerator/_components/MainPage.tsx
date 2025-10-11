@@ -8,10 +8,13 @@ import Requirements from "./Requirements";
 import Diagrams from "./Diagrams";
 import { FcDocument } from "react-icons/fc";
 import { useSRSGeneratorDataStore } from "@/context/SRSGeneratorContext";
+import { useParams } from "next/navigation";
 
 export default function SRSGeneratorPage() {
     const { diagrams, requirements, projectOverview, constrain } =
         useSRSGeneratorDataStore();
+    const params = useParams();
+    const projectId = params.id;
     const GenerateDocument = async () => {
         const response = await fetch("/api/srs-generate", {
             method: "POST",
@@ -22,9 +25,9 @@ export default function SRSGeneratorPage() {
                 projectOverview,
                 requirements,
                 diagrams,
-                constrain
-            })
-        })
+                constrain,
+            }),
+        });
         const data = await response.json();
         console.log("Generated SRS Document: ", data);
     };
@@ -38,7 +41,7 @@ export default function SRSGeneratorPage() {
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                             <div className="flex items-center space-x-3">
                                 <Link
-                                    href="/dashboard"
+                                    href={`/dashboard/project/${projectId}`}
                                     className="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 xl:hidden"
                                 >
                                     <svg
