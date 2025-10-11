@@ -202,4 +202,3 @@ export default function Sidebar({ isDarkMode, isOpen = false, onClose, isMobile 
         </>
     );
 }
-
