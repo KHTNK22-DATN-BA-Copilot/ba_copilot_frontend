@@ -1,17 +1,18 @@
 "use client";
 import { createContext, useContext, useState } from "react";
 
-export type diagramOptionsProps = {
+type diagramOptionsProps = {
     id: string;
     label: string;
+    value: string;
     isCheck: boolean; // Changed from Boolean to boolean
 };
-export type ProjectOverviewProps = {
+type ProjectOverviewProps = {
     projectName?: string;
     version?: string;
     description?: string;
 };
-export type RequirementsProps = {
+type RequirementsProps = {
     id: string;
     name: string;
     type: "functional" | "non-functional";
@@ -82,16 +83,19 @@ export function SrsDataStoreProvider({
             id: "sequence-diagram",
             label: "Sequence Diagram - Shows interaction flow between components",
             isCheck: false,
+            value: "sequence"
         },
         {
             id: "architecture-diagram",
             label: "Architecture Diagram - System architecture and components overview",
             isCheck: false,
+            value: "architecture"
         },
         {
             id: "use-case-diagram",
             label: "Use Case Diagram - User interactions and system functionalities",
             isCheck: false,
+            value: "use_case"
         },
     ]);
     const handleDiagrams: DataStoreType["handleDiagrams"] = (id) => {

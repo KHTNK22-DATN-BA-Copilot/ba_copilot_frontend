@@ -12,11 +12,21 @@ import { useSRSGeneratorDataStore } from "@/context/SRSGeneratorContext";
 export default function SRSGeneratorPage() {
     const { diagrams, requirements, projectOverview, constrain } =
         useSRSGeneratorDataStore();
-    const GenerateDocument = () => {
-        console.log("Diagrams: ", diagrams);
-        console.log("Requirements: ", requirements);
-        console.log("Project Overview: ", projectOverview);
-        console.log("Constraints: ", constrain);
+    const GenerateDocument = async () => {
+        const response = await fetch("/api/srs-generate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                projectOverview,
+                requirements,
+                diagrams,
+                constrain
+            })
+        })
+        const data = await response.json();
+        console.log("Generated SRS Document: ", data);
     };
 
     return (

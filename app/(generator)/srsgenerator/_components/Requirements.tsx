@@ -6,14 +6,15 @@ import { Plus, Trash } from "lucide-react";
 import { useSRSGeneratorDataStore } from "@/context/SRSGeneratorContext";
 
 export default function Requirements() {
-    const { requirements, handleRequirements, constrain, handleConstrain } = useSRSGeneratorDataStore();
+    const { requirements, handleRequirements, constrain, handleConstrain } =
+        useSRSGeneratorDataStore();
     const functionalRequirements = requirements.filter(
         (req) => req.type === "functional"
     );
     const nonFunctionalRequirements = requirements.filter(
         (req) => req.type === "non-functional"
     );
-    
+
     const addNewFunctionalRequirement = () => {
         handleRequirements({
             actionState: "add",
@@ -21,8 +22,8 @@ export default function Requirements() {
                 id: crypto.randomUUID(),
                 name: "Functional 1",
                 type: "functional",
-            }
-        })
+            },
+        });
     };
     const addNewNonFunctionalRequirement = () => {
         handleRequirements({
@@ -31,8 +32,8 @@ export default function Requirements() {
                 id: crypto.randomUUID(),
                 name: "Non-Functional 1",
                 type: "non-functional",
-            }
-        })
+            },
+        });
     };
 
     const handleEditRequirement = (id: string, newName: string) => {
@@ -41,16 +42,18 @@ export default function Requirements() {
             data: {
                 id,
                 name: newName,
-                type: functionalRequirements.find(req => req.id === id) ? "functional" : "non-functional",
-            }
-        })
+                type: functionalRequirements.find((req) => req.id === id)
+                    ? "functional"
+                    : "non-functional",
+            },
+        });
     };
     const handleDeleteRequirement = (id: string) => {
         handleRequirements({
             actionState: "delete",
-            id
-        })
-    }
+            id,
+        });
+    };
 
     return (
         <>
@@ -67,14 +70,6 @@ export default function Requirements() {
                     <h2 className="text-md font-medium text-gray-900 dark:text-gray-100">
                         Functional Requirements
                     </h2>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={addNewFunctionalRequirement}
-                    >
-                        <Plus />
-                        <span className="hidden md:block">Add Requirement</span>
-                    </Button>
                 </div>
 
                 <div className="space-y-3">
@@ -98,7 +93,9 @@ export default function Requirements() {
                                     variant="ghost"
                                     size="sm"
                                     className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                    onClick={() => handleDeleteRequirement(req.id)}
+                                    onClick={() =>
+                                        handleDeleteRequirement(req.id)
+                                    }
                                 >
                                     <Trash />
                                 </Button>
@@ -109,6 +106,14 @@ export default function Requirements() {
                             No functional requirements added yet.
                         </p>
                     )}
+                    <Button
+                        size="sm"
+                        onClick={addNewFunctionalRequirement}
+                        className="cursor-pointer"
+                    >
+                        <Plus />
+                        Add Requirement
+                    </Button>
                 </div>
             </div>
 
@@ -118,14 +123,6 @@ export default function Requirements() {
                     <h2 className="text-md font-medium text-gray-900 dark:text-gray-100">
                         Non-Functional Requirements
                     </h2>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={addNewNonFunctionalRequirement}
-                    >
-                        <Plus />
-                        <span className="hidden md:block">Add Requirement</span>
-                    </Button>
                 </div>
 
                 <div className="space-y-3">
@@ -149,7 +146,9 @@ export default function Requirements() {
                                     variant="ghost"
                                     size="sm"
                                     className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                    onClick={() => handleDeleteRequirement(req.id)}
+                                    onClick={() =>
+                                        handleDeleteRequirement(req.id)
+                                    }
                                 >
                                     <Trash />
                                 </Button>
@@ -160,6 +159,14 @@ export default function Requirements() {
                             No non-functional requirements added yet.
                         </p>
                     )}
+                    <Button
+                        size="sm"
+                        onClick={addNewNonFunctionalRequirement}
+                        className="cursor-pointer"
+                    >
+                        <Plus />
+                        Add Requirement
+                    </Button>
                 </div>
             </div>
 
