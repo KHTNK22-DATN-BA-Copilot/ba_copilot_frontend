@@ -47,33 +47,14 @@ export default function DashboardLayout({
                 isDarkMode={isDarkMode}
                 toggleDarkMode={toggleDarkMode}
             />
-            <div className="flex h-[calc(100vh-4rem)]">
-                {/* Desktop Sidebar - visible on extra large screens */}
-                <div className="hidden xl:block">
-                    <Sidebar 
-                        isDarkMode={isDarkMode}
-                        isOpen={false}
-                        isMobile={false}
-                    />
+            
+            {/* Main Content - Full width without sidebar */}
+            <main className="min-h-[calc(100vh-4rem)]">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    {children}
                 </div>
-                
-                {/* Mobile/Tablet/iPad Sidebar - overlay on smaller screens */}
-                <div className="xl:hidden">
-                    <Sidebar 
-                        isDarkMode={isDarkMode}
-                        isOpen={isMenuOpen}
-                        onClose={() => setIsMenuOpen(false)}
-                        isMobile={true}
-                    />
-                </div>
-                
-                {/* Main Content */}
-                <main className="flex-1 overflow-auto">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                        {children}
-                    </div>
-                </main>
-            </div>
+            </main>
+            
             <Footer />
         </div>
     )
