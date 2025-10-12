@@ -1,10 +1,10 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import Header from '../../components/layout/Header';
 import MainContent from './_components/MainContent';
-import Footer from '../../components/layout/Footer';
-import Sidebar from '../../components/layout/Sidebar';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'Dashboard - BA Copilot',
+    description: 'Dashboard page for BA Copilot application',
+}
 
 export default function DashboardPage() {
 
