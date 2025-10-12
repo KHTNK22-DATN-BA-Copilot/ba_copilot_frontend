@@ -42,6 +42,8 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 - Please ensure that you change the back-end domain in `.env` file. If you are using:
     - npm: set domain to `http://localhost:8010`
     - docker: set domain to `http://host.docker.internal:8010`
+
+- I suggest that you should use all `page.tsx` and `layout.tsx` files in the `app` folder as server components (you don't need to use `use client` in these files and Next will treat them as server components). This will help you reduce bundle size and improve performance. Always think about this when you create a new page or a new layout. If you want to do tasks that need to interact with components - you can create a client component and place it in the file.
         
 
 ## 📁 About this repo
@@ -70,10 +72,12 @@ ba-copilot
 |   ├── page.tsx         // main page
 ├── component
 |   ├── ui               // components from Shadcn
+|   ├── layout           // component for global layout (header, sidebar, footer) 
 ├── docs                 // documents
 ├── lib 
 |   ├── utils.ts         // util functions
 ├── public
+├── context              // global state management
 ├── .pretierrc           // format code
 ├── components.json  
 ├── eslint.config.mjs
@@ -106,6 +110,9 @@ If you aren't in FE team, I suggest that you should modify the following repos.
 ### 5. docs
 - Holding documents about feature's workflows, testing documents, screens that the feature needs. This folder will be updated often.
 
+### 6. context
+- This folder holds and manages the global state. Some state management libraries will be used in the future and will be stored in this folder.
+
 
 These folders above are the main folders that you can modify if you aren't in FE team. Other files are configed for our program to run precisely. 
 
@@ -118,7 +125,11 @@ https://ui.shadcn.com/docs/components
 npx shadcn@latest add accordion
 ```
 
-This is the initial phase of the project, this repo seems basic. We will update this file whenever new features, documents, or other information become available.    
+## ![Vercel](https://vercel.com/favicon.ico)  Deploy
+- The application is deployed every Monday
+- View the deploy here: https://ba-copilot-frontend.vercel.app/
+
+This is the MVP phase of the project, this repo has a little bit complication. We will update this file whenever new features, documents, or other information become available.    
 
 
 

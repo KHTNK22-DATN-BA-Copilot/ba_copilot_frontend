@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
         (await cookies()).set("access_token", accessToken, {
             httpOnly: true,
             sameSite: "lax",
-            expires: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+            expires: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
         });
         return NextResponse.json(
             { message: "Login successfully" },

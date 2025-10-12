@@ -1,3 +1,4 @@
+'use client';
 import OverviewSection from './OverviewSection';
 import ProjectsSection from './ProjectsSection';
 import { useState } from 'react';
