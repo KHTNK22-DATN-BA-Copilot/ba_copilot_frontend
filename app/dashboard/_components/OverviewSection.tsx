@@ -26,7 +26,7 @@ export default function OverviewSection() {
                   <div className="p-2 rounded-lg bg-gradient-to-br ">
                     <Icon className="w-5 h-5 text-blue-600 dark:text-blue-400"/>
                   </div>
-                  <div className="space-y-1 text-center sm:text-left ">
+                  <div className="space-y-1 sm:text-left ">
                     <p className="text-sm text-muted-foreground">{card.label}</p>
                     <p className="text-2xl">{card.value}</p>
                     <p className="text-sm text-muted-foreground">{card.trend}</p>
