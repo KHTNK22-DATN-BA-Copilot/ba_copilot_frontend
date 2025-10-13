@@ -127,7 +127,7 @@ export default function ProjectsSection({ isOpenFilter, setIsOpenFilter, selecte
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((item) => (
               <div
                 key={item}
-                className="bg-muted/30 dark:bg-gray-800 hover:shadow-md dark:hover:shadow-xl dark:hover:shadow-gray-400/20 dark:hover:bg-gray-750 transition-all duration-200 cursor-pointer rounded-3xl"
+                className="bg-muted/30 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-xl dark:hover:shadow-gray-400/20 dark:hover:bg-gray-750 transition-all duration-200 cursor-pointer rounded-3xl"
                 onClick={() => handleProjectClick(item)}
               >
                 <div className="p-6 bg-gray-100 dark:bg-gray-800 rounded-3xl">
