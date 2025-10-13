@@ -98,7 +98,7 @@ export default function ProjectsSection({ isOpenFilter, setIsOpenFilter, selecte
             {/* Create New Project Button */}
             <div
               className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-dashed border-blue-300 dark:border-blue-600 hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-blue-500/20 transition-all duration-200 cursor-pointer rounded-3xl group"
-              onClick={() => router.push('/new')}
+              onClick={() => router.push('/new-project')}
             >
               <div className="p-6 rounded-3xl h-full flex flex-col items-center justify-center">
                 <div className="aspect-square w-full bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-800/30 dark:to-indigo-800/30 rounded-lg mb-4 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
