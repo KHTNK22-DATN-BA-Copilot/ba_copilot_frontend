@@ -42,11 +42,6 @@ export default function DashboardLayout({
         }
     }, []);
 
-    // For project pages, render children directly (they have their own layout)
-    // if (isProjectPage) {
-    //     return <>{children}</>;
-    // }
-
     return (
         <div
             className={`min-h-screen transition-colors duration-300 ${
