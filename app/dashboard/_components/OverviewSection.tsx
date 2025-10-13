@@ -20,13 +20,13 @@ export default function OverviewSection() {
         {overviewCards.map((card) => {
           const Icon = card.icon;
           return (
-            <Card key = {card.id} className="bg-muted/30 border-0">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="p-2 bg-white rounded-lg">
-                    <Icon className="w-5 h-5 text-muted-foreground"/>
+            <Card key = {card.id} className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <CardContent className="p-6 flex items-center h-full">
+                <div className=" sm:flex-row items-center justify-center sm:justify-between w-full gap-3">
+                  <div className="p-2 rounded-lg bg-gradient-to-br ">
+                    <Icon className="w-5 h-5 text-blue-600 dark:text-blue-400"/>
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-1 text-center sm:text-left ">
                     <p className="text-sm text-muted-foreground">{card.label}</p>
                     <p className="text-2xl">{card.value}</p>
                     <p className="text-sm text-muted-foreground">{card.trend}</p>
