@@ -17,6 +17,14 @@ type RequirementsProps = {
     name: string;
     type: "functional" | "non-functional";
 };
+type FileProps = {
+    id: string;
+    file: File;
+    name: string;
+    size: number;
+    type: string;
+    status: 'uploading' | 'completed' | 'error';
+}
 
 type actionType = {
     actionState: "add" | "update",
@@ -27,14 +35,21 @@ type actionType = {
 };
 type DataStoreType = {
     projectOverview: ProjectOverviewProps;
-    requirements: RequirementsProps[];
-    diagrams: diagramOptionsProps[];
     handleProjectOverview: (data: ProjectOverviewProps) => void;
+    
+    requirements: RequirementsProps[];
     handleRequirements: (action: actionType) => void;
+    
+    diagrams: diagramOptionsProps[];
     handleDiagrams: (id: string) => void;
+    
     constrain: string;
     handleConstrain: (value: string) => void;
-};
+
+    files: FileProps[];
+    handleFiles: (files: FileList | File[]) => void
+    removeFile: (id: string) => void
+ };
 
 
 const SrsDataStoreContext = createContext<DataStoreType | null>(null);
@@ -106,6 +121,34 @@ export function SrsDataStoreProvider({
         );
     }
 
+    const [files, setFiles] = useState<FileProps[]>([]);
+
+    const handleFiles: DataStoreType["handleFiles"] = (input) => {
+        const fileArray = Array.from(input instanceof FileList ? input : input);
+        const newFiles = fileArray.map((file) => ({
+            id: Math.random().toString(36).substr(2, 9),
+            file,
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            status: 'uploading' as const,
+        }));
+        setFiles((prev) => [...prev, ...newFiles]);
+
+        // mock upload completion per file (keeps parity with previous local behavior)
+        newFiles.forEach((nf) => {
+            setTimeout(() => {
+                setFiles((prev) =>
+                    prev.map((f) => (f.id === nf.id ? { ...f, status: 'completed' } : f))
+                );
+            }, 2000);
+        });
+    };
+
+    const removeFile: DataStoreType["removeFile"] = (id) => {
+        setFiles((prev) => prev.filter((f) => f.id !== id));
+    };
+
     return (
         <SrsDataStoreContext.Provider
             value={{
@@ -116,7 +159,10 @@ export function SrsDataStoreProvider({
                 diagrams,
                 handleDiagrams,
                 constrain,
-                handleConstrain
+                handleConstrain,
+                files,
+                handleFiles,
+                removeFile
             }}
         >
             {children}

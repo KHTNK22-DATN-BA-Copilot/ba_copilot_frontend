@@ -1,25 +1,21 @@
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
-    const { projectOverview, requirements, diagrams, constrain } = await request.json();
-    const res = await fetch(`${process.env.AI_DOMAIN}/srs/generate`, {
+    const access_token = (await cookies()).get('access_token')?.value
+    const formData = await request.formData();
+
+    const SrsGenerateFetch = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/srs/generate`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.AI_API_KEY}`,
+            'Authorization': `Bearer ${access_token}`,
         },
-        body: JSON.stringify({
-            "project_name": projectOverview.projectName,
-            "overview": projectOverview.description,
-            "features": requirements,
-            "additional_requirements": constrain,
-            "template_type": "standard",
-            "include_diagrams": diagrams.length > 0 ? true : false,
-            "diagram_types": diagrams.filter((d: { isCheck: boolean }) => d.isCheck).map((d: { value: string }) => d.value),
-        })
+        body: formData
     })
 
-    const data = await res.json();
-    console.log("SRS Generate Response: ", data);
+    const data = await SrsGenerateFetch.json()
+    console.log(data)
+    
+
     return NextResponse.json(data);
 }

@@ -12,22 +12,28 @@ import { useSRSGeneratorDataStore } from "@/context/SRSGeneratorContext";
 import { useParams } from "next/navigation";
 
 export default function SRSGeneratorPage() {
-    const { diagrams, requirements, projectOverview, constrain } =
+    const { diagrams, requirements, projectOverview, constrain, files } =
         useSRSGeneratorDataStore();
     const params = useParams();
     const projectId = params.id;
     const GenerateDocument = async () => {
+        const formData = new FormData();
+        formData.append("project_id", projectId as string);
+        formData.append("project_name", projectOverview.projectName as string)
+
+        //update this description variable, know that in requirements is an array of object, each object include id name and type, I want to fill the name field
+        const requirementNames = requirements.map(req => req.name).join("\n");
+        const description = `${projectOverview.description}\n\nRequirements:\n${requirementNames}\n\n`;
+        formData.append("description", description as string)
+        
+        files.forEach((f) => {
+            formData.append("files", f.file);
+        })
+
+
         const response = await fetch("/api/srs-generate", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                projectOverview,
-                requirements,
-                diagrams,
-                constrain,
-            }),
+            body: formData
         });
         const data = await response.json();
         console.log("Generated SRS Document: ", data);

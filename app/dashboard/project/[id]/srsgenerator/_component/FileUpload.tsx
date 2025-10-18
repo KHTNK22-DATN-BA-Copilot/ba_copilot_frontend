@@ -1,45 +1,13 @@
 'use client';
 import { useState, useRef } from 'react';
-
-interface UploadedFile {
-    id: string;
-    name: string;
-    size: number;
-    type: string;
-    status: 'uploading' | 'completed' | 'error';
-}
+import { useSRSGeneratorDataStore } from '@/context/SRSGeneratorContext';
+import { File } from 'lucide-react';
 
 export default function FileUpload() {
-    const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
     const [isDragOver, setIsDragOver] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const {files, handleFiles, removeFile} = useSRSGeneratorDataStore()
 
-    const handleFiles = (files: FileList) => {
-        const validFiles = Array.from(files).filter(file => {
-            const validTypes = ['.pdf', '.doc', '.docx', '.txt'];
-            const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-            return validTypes.includes(fileExtension) && file.size <= 10 * 1024 * 1024; // 10MB
-        });
-
-        validFiles.forEach(file => {
-            const newFile: UploadedFile = {
-                id: Math.random().toString(36).substr(2, 9),
-                name: file.name,
-                size: file.size,
-                type: file.type,
-                status: 'uploading'
-            };
-
-            setUploadedFiles(prev => [...prev, newFile]);
-
-            // Mock upload with timeout
-            setTimeout(() => {
-                setUploadedFiles(prev => 
-                    prev.map(f => f.id === newFile.id ? { ...f, status: 'completed' } : f)
-                );
-            }, 2000);
-        });
-    };
 
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
@@ -54,9 +22,15 @@ export default function FileUpload() {
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
         setIsDragOver(false);
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleFiles(files);
+        const dropped = e.dataTransfer.files;
+        if (dropped.length > 0) {
+            // filter valid files same as before
+            const validFiles = Array.from(dropped).filter(file => {
+                const validTypes = ['.pdf', '.doc', '.docx', '.txt'];
+                const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+                return validTypes.includes(fileExtension) && file.size <= 10 * 1024 * 1024; // 10MB
+            });
+            handleFiles(validFiles);
         }
     };
 
@@ -65,14 +39,16 @@ export default function FileUpload() {
     };
 
     const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            handleFiles(files);
+        const filesList = e.target.files;
+        if (filesList && filesList.length > 0) {
+            // filter valid files same as before
+            const validFiles = Array.from(filesList).filter(file => {
+                const validTypes = ['.pdf', '.doc', '.docx', '.txt'];
+                const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+                return validTypes.includes(fileExtension) && file.size <= 10 * 1024 * 1024; // 10MB
+            });
+            handleFiles(validFiles);
         }
-    };
-
-    const removeFile = (id: string) => {
-        setUploadedFiles(prev => prev.filter(f => f.id !== id));
     };
 
     const formatFileSize = (bytes: number) => {
@@ -102,19 +78,7 @@ export default function FileUpload() {
             >
                 <div className="flex flex-col items-center space-y-4">
                     <div className="w-16 h-16 text-gray-400 dark:text-gray-500">
-                        <svg
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            className="w-full h-full"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={1.5}
-                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                            />
-                        </svg>
+                        <File className='w-full h-full'/>
                     </div>
                     <div>
                         <p className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
@@ -135,11 +99,11 @@ export default function FileUpload() {
                 </div>
             </div>
 
-            {uploadedFiles.length > 0 && (
+            {files.length > 0 && (
                 <div className="mt-6">
                     <h3 className="text-lg font-medium mb-4">Uploaded Files</h3>
                     <div className="space-y-3">
-                        {uploadedFiles.map((file) => (
+                        {files.map((file) => (
                             <div key={file.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                                 <div className="flex items-center space-x-3">
                                     <div className="w-8 h-8 text-gray-500">

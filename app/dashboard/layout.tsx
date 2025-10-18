@@ -57,7 +57,7 @@ export default function DashboardLayout({
 
             {isProjectPage ? (
                 <>
-                    <div className="flex h-[calc(100vh-4rem)]">
+                    <div className="flex">
                         {/* Desktop Sidebar - visible on extra large screens */}
                         <div className="hidden xl:block">
                             <Sidebar
@@ -82,7 +82,7 @@ export default function DashboardLayout({
                     </div>
                 </>
             ) : (
-                <main className="min-h-[calc(100vh-4rem)]">
+                <main className="">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                         {children}
                     </div>

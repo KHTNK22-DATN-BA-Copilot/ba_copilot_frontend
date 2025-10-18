@@ -12,7 +12,7 @@ export default async function SRSLayout({
     const { id } = await params;
 
     return (
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Page Header */}
                 <div className="col-span-12">
@@ -35,10 +35,6 @@ export default async function SRSLayout({
                             </div>
                         </div>
 
-                        <Button className="inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
-                            <Plus/>
-                            Generate SRS
-                        </Button>
                     </div>
                 </div>
 

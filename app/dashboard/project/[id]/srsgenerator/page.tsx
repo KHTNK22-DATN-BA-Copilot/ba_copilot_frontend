@@ -4,6 +4,7 @@ import MainPage from "@/app/dashboard/project/[id]/srsgenerator/_component/MainP
 import RecentDocument from "./_component/RecentDocment";
 import Link from "next/link";
 import Template from "./_component/Template";
+import DocumentViewer from "./_component/DocumentViewer";
 
 export const metadata: Metadata = {
     title: "SRS Generator - BA Copilot",
@@ -15,10 +16,11 @@ export default async function SRSGeneratorPage({
     searchParams,
     params,
 }: {
-    searchParams: { tabs?: string };
+    searchParams: { tabs?: string; doc?: string };
     params: { id: string };
 }) {
     const tabs = (await searchParams).tabs;
+    const doc = (await searchParams).doc;
     const { id } = await params;
     return (
         <>
@@ -27,7 +29,9 @@ export default async function SRSGeneratorPage({
                     <Link
                         href={`/dashboard/project/${id}/srsgenerator`}
                         className={`p-2 rounded-2xl font-semibold text-sm ${
-                            tabs === undefined ? 'bg-white dark:bg-gray-800 dark:text-white' : 'dark:text-gray-300'
+                            tabs === undefined
+                                ? "bg-white dark:bg-gray-800 dark:text-white"
+                                : "dark:text-gray-300"
                         }`}
                     >
                         Create new
@@ -35,7 +39,9 @@ export default async function SRSGeneratorPage({
                     <Link
                         href={`/dashboard/project/${id}/srsgenerator?tabs=template`}
                         className={`p-2 rounded-2xl font-semibold text-sm ${
-                            tabs === 'template' ? 'bg-white dark:bg-gray-800 dark:text-white' : 'dark:text-gray-300'
+                            tabs === "template"
+                                ? "bg-white dark:bg-gray-800 dark:text-white"
+                                : "dark:text-gray-300"
                         }`}
                     >
                         Template
@@ -43,18 +49,22 @@ export default async function SRSGeneratorPage({
                     <Link
                         href={`/dashboard/project/${id}/srsgenerator?tabs=recent-documents`}
                         className={`p-2 rounded-2xl font-semibold text-sm ${
-                            tabs === 'recent-documents' ? 'bg-white dark:bg-gray-800 dark:text-white' : 'dark:text-gray-300'
+                            tabs === "recent-documents"
+                                ? "bg-white dark:bg-gray-800 dark:text-white"
+                                : "dark:text-gray-300"
                         }`}
                     >
-                        Recent Document
+                        Recent Documents
                     </Link>
                 </div>
-                {tabs === "recent-documents" ? (
-                    <RecentDocument />
+                {doc ? (
+                    <DocumentViewer projectId={id}/>
+                ) : tabs === "recent-documents" ? (
+                    <RecentDocument id={id} />
                 ) : tabs === "template" ? (
                     <Template />
                 ) : (
-                    <MainPage />
+                    <MainPage/>
                 )}
             </SrsDataStoreProvider>
         </>
