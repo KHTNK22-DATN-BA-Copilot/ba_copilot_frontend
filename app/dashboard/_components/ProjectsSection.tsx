@@ -1,6 +1,8 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { FolderOpen } from 'lucide-react';
+import { useState } from 'react';
+import ProjectMoreMenu from './ProjectMoreMenu';
 
 type ProjectsSectionProps = {
   isOpenFilter: boolean;
@@ -25,6 +27,8 @@ const ProjectCardSkeleton = () => (
 
 export default function ProjectsSection({ isOpenFilter, setIsOpenFilter, selectedFilter, setSelectedFilter, isLoading = false }: ProjectsSectionProps) {
   const router = useRouter();
+  const [deletingProjectId, setDeletingProjectId] = useState<number | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleFilterSelect = (filterName: string) => {
     setSelectedFilter(filterName);
@@ -37,54 +41,92 @@ export default function ProjectsSection({ isOpenFilter, setIsOpenFilter, selecte
     router.push(`/dashboard/project/${projectId}`);
   };
 
+  const handleDeleteProject = async (projectId: number) => {
+    setDeletingProjectId(projectId);
+    setDeleteError(null);
+
+    try {
+      // Soft delete: Backend sets project status to "deleted" instead of removing it
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Success - project has been soft deleted (status changed to "deleted")
+        console.log('Project deleted successfully:', data.message);
+        // Refresh the page to update the project list (soft deleted projects won't appear)
+        router.refresh();
+      } else {
+        // Error from API
+        setDeleteError(data.error || 'Failed to delete project');
+        console.error('Error deleting project:', data.error);
+      }
+    } catch (error) {
+      // Network or other error
+      setDeleteError('An unexpected error occurred while deleting the project');
+      console.error('Error deleting project:', error);
+    } finally {
+      setDeletingProjectId(null);
+    }
+  };
+
   return (
     <div className="col-span-12">
+      {/* Error Message */}
+      {deleteError && (
+        <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <p className="text-red-800 dark:text-red-200 text-sm">{deleteError}</p>
+        </div>
+      )}
+
       {/* Filter */}
       <div className="flex justify-between items-center mb-6 relative">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-        Recent projects:
-      </h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          Recent projects:
+        </h2>
 
-      <div className="relative">
-        <button
-          onClick={() => setIsOpenFilter(!isOpenFilter)}
-          className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md flex items-center gap-2"
-        >
-          {selectedFilter}
-          <svg
-            className={`w-4 h-4 transition-transform duration-200 ${isOpenFilter ? 'rotate-180' : ''}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <div className="relative">
+          <button
+            onClick={() => setIsOpenFilter(!isOpenFilter)}
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md flex items-center gap-2"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+            {selectedFilter}
+            <svg
+              className={`w-4 h-4 transition-transform duration-200 ${isOpenFilter ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-        {isOpenFilter && (
-          <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
-            <ul className="py-1 text-sm text-gray-700 dark:text-gray-200">
-              <li>
-                <button
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={() => handleFilterSelect("Most Recent")}
-                >
-                  Most Recent
-                </button>
-              </li>
-              <li>
-                <button
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={() => handleFilterSelect("Title")}
-                >
-                  Title
-                </button>
-              </li>
-            </ul>
-          </div>
-        )}
+          {isOpenFilter && (
+            <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
+              <ul className="py-1 text-sm text-gray-700 dark:text-gray-200">
+                <li>
+                  <button
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    onClick={() => handleFilterSelect("Most Recent")}
+                  >
+                    Most Recent
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    onClick={() => handleFilterSelect("Title")}
+                  >
+                    Title
+                  </button>
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
 
       {/* Project Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
@@ -134,10 +176,20 @@ export default function ProjectsSection({ isOpenFilter, setIsOpenFilter, selecte
                   <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 flex items-center justify-center">
                     <FolderOpen className="w-12 h-12 text-muted-foreground/50 dark:text-gray-400" />
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm truncate text-gray-900 dark:text-gray-100">Project {item}</p>
-                    <p className="text-xs text-muted-foreground dark:text-gray-400">2 days ago</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 space-y-1">
+                      <p className="text-sm truncate text-gray-900 dark:text-gray-100">Project {item}</p>
+                      <p className="text-xs text-muted-foreground dark:text-gray-400">2 days ago</p>
+                    </div>
+
+                    <ProjectMoreMenu
+                      projectId={item}
+                      projectName={`Project ${item}`}
+                      onDelete={handleDeleteProject}
+                      isDeleting={deletingProjectId === item}
+                    />
                   </div>
+
                 </div>
               </div>
             ))}
