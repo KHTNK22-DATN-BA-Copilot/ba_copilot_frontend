@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import Image from 'next/image';
 import Search from '../../app/dashboard/_components/Search';
 import UserActions from '../../app/dashboard/_components/UserActions';
 
@@ -12,11 +13,11 @@ interface HeaderProps {
     toggleDarkMode: () => void;
 }
 
-export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDarkMode}: HeaderProps) {
+export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDarkMode }: HeaderProps) {
     const router = useRouter();
     const pathname = usePathname();
     const [isSearchOpen, setIsSearchOpen] = useState(false);
-    
+
     // Check if we're inside a project (to show/hide mobile menu button)
     const isInsideProject = pathname?.startsWith('/dashboard/project/');
 
@@ -66,14 +67,21 @@ export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDa
                                 </svg>
                             </button>
                         )}
-                        
+
                         {/* Logo */}
                         <div className="flex-shrink-0">
-                            <button 
+                            <button
                                 onClick={handleLogoClick}
-                                className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200 cursor-pointer"
+                                className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200 cursor-pointer"
                             >
-                                🤖 BA Copilot
+                                <Image
+                                    src="/ic_ba_copilot.svg"
+                                    alt="BA Copilot Logo"
+                                    width={32}
+                                    height={32}
+                                    className="w-7 h-7 sm:w-8 sm:h-8"
+                                />
+                                BA Copilot
                             </button>
                         </div>
                     </div>

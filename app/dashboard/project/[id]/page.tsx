@@ -1,131 +1,316 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import {
+    FileText,
+    Layout,
+    BarChart3,
+    MessageSquare,
+    Calendar,
+    Clock,
+    Users,
+    CheckCircle2,
+    TrendingUp,
+    AlertCircle
+} from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 
 export default function ProjectOverviewPage() {
     const params = useParams();
+    const router = useRouter();
     const projectId = params.id;
+
+    const project = {
+        id: projectId,
+        name: `Project ${projectId}`,
+        description: "A comprehensive business analysis project for developing a modern web application with advanced features and integrations.",
+        status: "In Progress",
+        progress: 65,
+        createdDate: "Oct 1, 2025",
+        dueDate: "Dec 15, 2025",
+        teamMembers: 5,
+        completedTasks: 24,
+        totalTasks: 37,
+    };
+
+    const recentActivities = [
+        { id: 1, type: "srs", title: "SRS Document Updated", time: "2 hours ago", user: "John Doe" },
+        { id: 2, type: "wireframe", title: "Dashboard Wireframe Created", time: "5 hours ago", user: "Jane Smith" },
+        { id: 3, type: "diagram", title: "Sequence Diagram Generated", time: "1 day ago", user: "Mike Johnson" },
+        { id: 4, type: "conversation", title: "AI Conversation: User Flow", time: "2 days ago", user: "Sarah Williams" },
+    ];
+
+    const quickStats = [
+        { label: "Documents", value: "12", icon: FileText, color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-100 dark:bg-blue-900/20" },
+        { label: "Wireframes", value: "8", icon: Layout, color: "text-purple-600 dark:text-purple-400", bgColor: "bg-purple-100 dark:bg-purple-900/20" },
+        { label: "Diagrams", value: "15", icon: BarChart3, color: "text-green-600 dark:text-green-400", bgColor: "bg-green-100 dark:bg-green-900/20" },
+        { label: "AI Chats", value: "23", icon: MessageSquare, color: "text-orange-600 dark:text-orange-400", bgColor: "bg-orange-100 dark:bg-orange-900/20" },
+    ];
+
+    const getActivityIcon = (type: string) => {
+        switch (type) {
+            case "srs": return <FileText className="w-4 h-4" />;
+            case "wireframe": return <Layout className="w-4 h-4" />;
+            case "diagram": return <BarChart3 className="w-4 h-4" />;
+            case "conversation": return <MessageSquare className="w-4 h-4" />;
+            default: return <FileText className="w-4 h-4" />;
+        }
+    };
+
+    const onNavigate = (section: string) => {
+        router.push(`/dashboard/project/${projectId}/${section}`);
+    };
 
     return (
         <main className="flex-1 overflow-auto">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-12 gap-6">
-                    {/* Page Header */}
-                    <div className="col-span-12">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
-                            <div className="flex items-center space-x-3">
-                                <Link
-                                    href="/dashboard"
-                                    className="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 xl:hidden"
-                                >
-                                    <svg
-                                        className="w-5 h-5"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
+            <div className="p-6 max-w-7xl mx-auto space-y-6">
+                {/* Back Button for Mobile */}
+                <div className="xl:hidden mb-4">
+                    <Link
+                        href="/dashboard"
+                        className="inline-flex items-center space-x-2 p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+                    >
+                        <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                            />
+                        </svg>
+                        <span>Back to Dashboard</span>
+                    </Link>
+                </div>
+
+                {/* Project Header */}
+                <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{project.name}</h1>
+                                <Badge variant={project.status === "In Progress" ? "default" : "secondary"}>
+                                    {project.status}
+                                </Badge>
+                            </div>
+                            <p className="text-gray-600 dark:text-gray-400">{project.description}</p>
+                        </div>
+                        <Button variant="outline" className="ml-4">Edit Project</Button>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <Card>
+                        <CardContent className="p-6">
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                        <span className="font-medium text-gray-900 dark:text-gray-100">Overall Progress</span>
+                                    </div>
+                                    <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">{project.progress}%</span>
+                                </div>
+                                <Progress value={project.progress} className="h-3" />
+                                <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                                    <span>{project.completedTasks} of {project.totalTasks} tasks completed</span>
+                                    <span>{project.totalTasks - project.completedTasks} remaining</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Project Info Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <Card>
+                        <CardContent className="p-6">
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                                    <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Start Date</p>
+                                    <p className="font-semibold text-gray-900 dark:text-gray-100">{project.createdDate}</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardContent className="p-6">
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
+                                    <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Due Date</p>
+                                    <p className="font-semibold text-gray-900 dark:text-gray-100">{project.dueDate}</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardContent className="p-6">
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                                    <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Team Members</p>
+                                    <p className="font-semibold text-gray-900 dark:text-gray-100">{project.teamMembers} Members</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardContent className="p-6">
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+                                    <CheckCircle2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Completion</p>
+                                    <p className="font-semibold text-gray-900 dark:text-gray-100">{project.progress}%</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Quick Stats */}
+                <div>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Quick Stats</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        {quickStats.map((stat, index) => {
+                            const Icon = stat.icon;
+                            return (
+                                <Card key={index} className="hover:shadow-md transition-shadow cursor-pointer">
+                                    <CardContent className="p-6">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{stat.label}</p>
+                                                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{stat.value}</p>
+                                            </div>
+                                            <div className={`p-3 rounded-lg ${stat.bgColor}`}>
+                                                <Icon className={`w-8 h-8 ${stat.color}`} />
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Main Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Recent Activity */}
+                    <div className="lg:col-span-2">
+                        <Card>
+                            <CardContent className="p-6">
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Recent Activity</h3>
+                                <div className="space-y-4">
+                                    {recentActivities.map((activity) => (
+                                        <div key={activity.id} className="flex items-start gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                            <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg mt-1">
+                                                {getActivityIcon(activity.type)}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{activity.title}</p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <p className="text-sm text-gray-600 dark:text-gray-400">{activity.user}</p>
+                                                    <span className="text-gray-400 dark:text-gray-600">•</span>
+                                                    <p className="text-sm text-gray-600 dark:text-gray-400">{activity.time}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <Button variant="outline" className="w-full mt-4">View All Activity</Button>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Quick Actions */}
+                    <div>
+                        <Card>
+                            <CardContent className="p-6">
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
+                                <div className="space-y-2">
+                                    <Button
+                                        variant="outline"
+                                        className="w-full justify-start gap-3"
+                                        onClick={() => onNavigate("aiconversations")}
                                     >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                                        />
-                                    </svg>
-                                </Link>
-                                <div>
-                                    <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                        📁 Project Overview
-                                    </h1>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                        Project ID: {projectId}
-                                    </p>
+                                        <MessageSquare className="w-4 h-4" />
+                                        Start AI Conversation
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full justify-start gap-3"
+                                        onClick={() => onNavigate("srsgenerator")}
+                                    >
+                                        <FileText className="w-4 h-4" />
+                                        Generate SRS
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full justify-start gap-3"
+                                        onClick={() => onNavigate("wireframegenerator")}
+                                    >
+                                        <Layout className="w-4 h-4" />
+                                        Create Wireframe
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full justify-start gap-3"
+                                        onClick={() => onNavigate("diagrams")}
+                                    >
+                                        <BarChart3 className="w-4 h-4" />
+                                        Design Diagram
+                                    </Button>
                                 </div>
-                            </div>
+                            </CardContent>
+                        </Card>
 
-                            <div className="flex items-center space-x-3">
-                                <button className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                    Edit Project
-                                </button>
-                                <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors">
-                                    Share Project
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Main Content Area */}
-                    <div className="col-span-12">
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8 mb-8 transition-colors duration-300">
-                            <div className="text-center py-12">
-                                <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                                    <svg className="w-12 h-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                    </svg>
-                                </div>
-                                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                                    Project Overview Coming Soon
-                                </h3>
-                                <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-                                    This is a placeholder for the project overview page. Content will be implemented here in future iterations.
-                                </p>
-                                <div className="mt-6 flex justify-center space-x-3">
-                                    <button className="px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
-                                        Get Started
-                                    </button>
-                                    <button className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                                        Learn More
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Quick Actions Grid */}
-                    <div className="col-span-12">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300">
-                                <div className="flex items-center mb-3">
-                                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center mr-3">
-                                        <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
+                        {/* Tasks Overview */}
+                        <Card className="mt-6">
+                            <CardContent className="p-6">
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Tasks Overview</h3>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                            <span className="text-sm text-gray-700 dark:text-gray-300">Completed</span>
+                                        </div>
+                                        <span className="font-semibold text-gray-900 dark:text-gray-100">{project.completedTasks}</span>
                                     </div>
-                                    <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100">Documents</h4>
-                                </div>
-                                <p className="text-gray-600 dark:text-gray-400 text-sm">
-                                    Manage project documents and requirements
-                                </p>
-                            </div>
-
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300">
-                                <div className="flex items-center mb-3">
-                                    <div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center mr-3">
-                                        <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                        </svg>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                            <span className="text-sm text-gray-700 dark:text-gray-300">In Progress</span>
+                                        </div>
+                                        <span className="font-semibold text-gray-900 dark:text-gray-100">8</span>
                                     </div>
-                                    <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100">Analytics</h4>
-                                </div>
-                                <p className="text-gray-600 dark:text-gray-400 text-sm">
-                                    View project metrics and progress
-                                </p>
-                            </div>
-
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300">
-                                <div className="flex items-center mb-3">
-                                    <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center mr-3">
-                                        <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        </svg>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <AlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                                            <span className="text-sm text-gray-700 dark:text-gray-300">Pending</span>
+                                        </div>
+                                        <span className="font-semibold text-gray-900 dark:text-gray-100">5</span>
                                     </div>
-                                    <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100">Team</h4>
                                 </div>
-                                <p className="text-gray-600 dark:text-gray-400 text-sm">
-                                    Manage team members and permissions
-                                </p>
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </div>
