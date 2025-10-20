@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import Image from 'next/image';
 import Search from '../../app/dashboard/_components/Search';
 import UserActions from '../../app/dashboard/_components/UserActions';
 
@@ -12,11 +13,11 @@ interface HeaderProps {
     toggleDarkMode: () => void;
 }
 
-export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDarkMode}: HeaderProps) {
+export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDarkMode }: HeaderProps) {
     const router = useRouter();
     const pathname = usePathname();
     const [isSearchOpen, setIsSearchOpen] = useState(false);
-    
+
     // Check if we're inside a project (to show/hide mobile menu button)
     const isInsideProject = pathname?.startsWith('/dashboard/project/');
 
@@ -44,7 +45,8 @@ export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDa
     }, []);
 
     return (
-        <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
+        {/* </header><header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300"> */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Main Header Row */}
                 <div className="flex items-center justify-between h-16">
@@ -66,14 +68,21 @@ export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDa
                                 </svg>
                             </button>
                         )}
-                        
+
                         {/* Logo */}
                         <div className="flex-shrink-0">
-                            <button 
+                            <button
                                 onClick={handleLogoClick}
-                                className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200 cursor-pointer"
+                                className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200 cursor-pointer"
                             >
-                                🤖 BA Copilot
+                                <Image
+                                    src="/ic_ba_copilot.svg"
+                                    alt="BA Copilot Logo"
+                                    width={32}
+                                    height={32}
+                                    className="w-7 h-7 sm:w-8 sm:h-8"
+                                />
+                                BA Copilot
                             </button>
                         </div>
                     </div>
@@ -115,22 +124,17 @@ export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDa
                 </div>
 
                 {/* Mobile Search Bar - New Line */}
-                <div className="md:hidden pb-3">
+                <div className="md:hidden pb-2">
                     <button
                         onClick={() => setIsSearchOpen(true)}
-                        className="w-full flex items-center px-4 py-3 text-left bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500 group"
+                        className="w-full flex items-center px-4 py-1 text-left bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500 group"
                     >
-                        <svg className="w-5 h-5 text-gray-400 dark:text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-4 text-gray-400 dark:text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                         <span className="flex-1 text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300">
-                            Search projects, documents, users...
+                            Search...
                         </span>
-                        <div className="flex items-center space-x-1 text-xs text-gray-400 dark:text-gray-500">
-                            <kbd className="px-2 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded">
-                                ⌘K
-                            </kbd>
-                        </div>
                     </button>
                 </div>
 

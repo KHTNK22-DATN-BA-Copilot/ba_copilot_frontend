@@ -1,5 +1,8 @@
 import { FolderOpen } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import ProjectMoreMenu from "./ProjectMoreMenu";
+import { redirect } from "next/navigation";
 
 type ProjectsSectionProps = {
     isOpenFilter: boolean;
@@ -41,15 +44,62 @@ export default function ProjectsSection({
     isLoading = false,
     projects,
 }: ProjectsSectionProps) {
+    const [deletingProjectId, setDeletingProjectId] = useState<number | null>(
+        null
+    );
+    const [deleteError, setDeleteError] = useState<string | null>(null);
+
     const handleFilterSelect = (filterName: string) => {
         setSelectedFilter(filterName);
         setIsOpenFilter(false);
         console.log(`${filterName} selected`);
     };
-    console.log("Projects in ProjectsSection:", projects);
+
+
+    const handleDeleteProject = async (projectId: number) => {
+        setDeletingProjectId(projectId);
+        setDeleteError(null);
+
+        try {
+            // Soft delete: Backend sets project status to "deleted" instead of removing it
+            const response = await fetch(`/api/projects/${projectId}`, {
+                method: "DELETE",
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Success - project has been soft deleted (status changed to "deleted")
+                console.log("Project deleted successfully:", data.message);
+                // Refresh the page to update the project list (soft deleted projects won't appear)
+                
+            } else {
+                // Error from API
+                setDeleteError(data.error || "Failed to delete project");
+                console.error("Error deleting project:", data.error);
+            }
+        } catch (error) {
+            // Network or other error
+            setDeleteError(
+                "An unexpected error occurred while deleting the project"
+            );
+            console.error("Error deleting project:", error);
+        } finally {
+            setDeletingProjectId(null);
+        }
+    };
 
     return (
         <div className="col-span-12">
+            {/* Error Message */}
+            {deleteError && (
+                <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                    <p className="text-red-800 dark:text-red-200 text-sm">
+                        {deleteError}
+                    </p>
+                </div>
+            )}
+
             {/* Filter */}
             <div className="flex justify-between items-center mb-6 relative">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
@@ -112,7 +162,7 @@ export default function ProjectsSection({
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
                 {isLoading ? (
                     // Skeleton loading state
-                    Array.from({ length: 10 }).map((_, index) => (
+                    Array.from({ length: projects.length }).map((_, index) => (
                         <ProjectCardSkeleton key={`skeleton-${index}`} />
                     ))
                 ) : (
@@ -151,8 +201,10 @@ export default function ProjectsSection({
 
                         {/* Actual project cards */}
                         {projects.map((item) => (
-                            <Link
-                                href={`/dashboard/project/${item.id}`}
+                            <div
+                                onClick={(e) => {
+                                  redirect(`/dashboard/project/${item.id}`)
+                                }}
                                 key={item.id}
                                 className="bg-muted/30 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-xl dark:hover:shadow-gray-400/20 dark:hover:bg-gray-750 transition-all duration-200 cursor-pointer rounded-3xl"
                             >
@@ -160,16 +212,27 @@ export default function ProjectsSection({
                                     <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 flex items-center justify-center">
                                         <FolderOpen className="w-12 h-12 text-muted-foreground/50 dark:text-gray-400" />
                                     </div>
-                                    <div className="space-y-1">
-                                        <p className="text-sm truncate text-gray-900 dark:text-gray-100">
-                                            {item.name}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground dark:text-gray-400">
-                                            {getDay(item.created_at)}
-                                        </p>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1 space-y-1">
+                                            <p className="text-sm truncate text-gray-900 dark:text-gray-100">
+                                                {item.name}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground dark:text-gray-400">
+                                                {getDay(item.created_at)}
+                                            </p>
+                                        </div>
+
+                                        <ProjectMoreMenu
+                                            projectId={item.id}
+                                            projectName={`Project ${item.name}`}
+                                            onDelete={() => handleDeleteProject(item.id)}
+                                            isDeleting={
+                                                deletingProjectId === item.id
+                                            }
+                                        />
                                     </div>
                                 </div>
-                            </Link>
+                            </div>
                         ))}
                     </>
                 )}

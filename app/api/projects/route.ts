@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Call backend API to get projects
+        // Call backend API to get projects (backend filters out soft-deleted projects with status="deleted")
         const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/projects/`, {
             method: "GET",
             headers: {
