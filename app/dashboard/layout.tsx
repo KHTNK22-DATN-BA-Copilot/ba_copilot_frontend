@@ -44,9 +44,8 @@ export default function DashboardLayout({
 
     return (
         <div
-            className={`min-h-screen transition-colors duration-300 ${
-                isDarkMode ? "dark bg-gray-900" : "bg-gray-50"
-            }`}
+            className={`min-h-screen transition-colors duration-300 ${isDarkMode ? "dark bg-gray-900" : "bg-gray-50"
+                }`}
         >
             <Header
                 isMenuOpen={isMenuOpen}
@@ -57,39 +56,40 @@ export default function DashboardLayout({
 
             {isProjectPage ? (
                 <>
-                    <div className="flex h-[calc(100vh-4rem)]">
-                        {/* Desktop Sidebar - visible on extra large screens */}
-                        <div className="hidden xl:block">
-                            <Sidebar
-                                isDarkMode={isDarkMode}
-                                isOpen={false}
-                                isMobile={false}
-                            />
-                        </div>
+                    {/* Desktop Sidebar - visible on extra large screens */}
+                    <div className="hidden xl:block">
+                        <Sidebar
+                            isDarkMode={isDarkMode}
+                            isOpen={false}
+                            isMobile={false}
+                        />
+                    </div>
 
-                        {/* Mobile/Tablet/iPad Sidebar - overlay on smaller screens */}
-                        <div className="xl:hidden">
-                            <Sidebar
-                                isDarkMode={isDarkMode}
-                                isOpen={isMenuOpen}
-                                onClose={() => setIsMenuOpen(false)}
-                                isMobile={true}
-                            />
-                        </div>
+                    {/* Mobile/Tablet/iPad Sidebar - overlay on smaller screens */}
+                    <div className="xl:hidden">
+                        <Sidebar
+                            isDarkMode={isDarkMode}
+                            isOpen={isMenuOpen}
+                            onClose={() => setIsMenuOpen(false)}
+                            isMobile={true}
+                        />
+                    </div>
 
-                        {/* Main Content */}
+                    {/* Main Content with margin for fixed header and sidebar */}
+                    <div className="pt-16 xl:ml-64">
                         {children}
                     </div>
                 </>
             ) : (
-                <main className="min-h-[calc(100vh-4rem)]">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                        {children}
-                    </div>
-                </main>
+                <>
+                    <main className="pt-16 min-h-[calc(100vh-4rem)]">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                            {children}
+                        </div>
+                    </main>
+                    <Footer />
+                </>
             )}
-
-            <Footer />
         </div>
     );
 }
