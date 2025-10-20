@@ -38,6 +38,11 @@ export default function ProjectMoreMenu({ projectId, projectName, onDelete, isDe
         onDelete(projectId);
     };
 
+    const handleCancelDelete = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setShowDeleteDialog(false);
+    };
+
     const handleCloseMenu = (event: React.MouseEvent) => {
         event.stopPropagation();
         setIsOpen(false);
@@ -78,8 +83,20 @@ export default function ProjectMoreMenu({ projectId, projectName, onDelete, isDe
             </div>
 
             {/* Delete Confirmation Dialog */}
-            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+            <AlertDialog
+                open={showDeleteDialog}
+                onOpenChange={(open) => {
+                    if (!open && !isDeleting) {
+                        // Only allow closing when not deleting
+                        setShowDeleteDialog(false);
+                    }
+                }}
+            >
+                <AlertDialogContent
+                    onClick={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                >
                     <AlertDialogHeader>
                         <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
@@ -96,7 +113,7 @@ export default function ProjectMoreMenu({ projectId, projectName, onDelete, isDe
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={handleCancelDelete}
                             disabled={isDeleting}
                         >
                             Cancel
