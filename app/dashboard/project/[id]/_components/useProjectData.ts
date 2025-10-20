@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Project } from './types';
 
 // Format date to dd-mm-yyyy
@@ -92,5 +92,13 @@ export function useProjectData(projectId: string | string[]) {
         fetchProjectData();
     }, [projectId]);
 
-    return { project, isLoading, error };
+    // Function to update project locally without refetching
+    const updateProject = useCallback((updatedFields: Partial<Project>) => {
+        setProject(prev => ({
+            ...prev,
+            ...updatedFields,
+        }));
+    }, []);
+
+    return { project, isLoading, error, updateProject };
 }

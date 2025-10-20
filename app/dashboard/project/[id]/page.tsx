@@ -17,7 +17,7 @@ export default function ProjectOverviewPage() {
     const projectId = params.id;
 
     // Use custom hook for data fetching
-    const { project, isLoading, error } = useProjectData(projectId as string);
+    const { project, isLoading, error, updateProject } = useProjectData(projectId as string);
 
     // Mock data for sections (these should eventually come from API)
     const recentActivities: Activity[] = [
@@ -91,7 +91,7 @@ export default function ProjectOverviewPage() {
                 </div>
 
                 {/* Project Header */}
-                <ProjectHeader project={project} />
+                <ProjectHeader project={project} onProjectUpdate={updateProject} />
 
                 {/* Progress Section */}
                 <ProgressSection project={project} />
