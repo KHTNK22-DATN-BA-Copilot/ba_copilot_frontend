@@ -35,12 +35,15 @@ export function useProjectData(projectId: string | string[]) {
 
     useEffect(() => {
         const fetchProjectData = async () => {
-            if (!projectId) return;
+            if (!projectId) {
+                setError('Project ID is required');
+                return;
+            }
 
             setIsLoading(true);
-            try {
-                console.log(`🔄 Fetching project data for ID: ${projectId}`);
+            setError(null);
 
+            try {
                 const response = await fetch(`/api/projects/${projectId}`, {
                     method: 'GET',
                     headers: {
@@ -49,36 +52,38 @@ export function useProjectData(projectId: string | string[]) {
                     credentials: 'include',
                 });
 
+                const data = await response.json();
+
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    // Handle error response from API
+                    throw new Error(data.error || `Failed to fetch project: ${response.status}`);
                 }
 
-                const data = await response.json();
-                setProject(prev => ({
-                    ...prev,
-                    name: data.name,
-                    description: data.description,
-                    status: data.status,
-                    createdDate: formatDate(data.created_at),
-                    dueDate: formatDate(data.updated_at),
-                }));
-
-                // Print the response in terminal (console)
-                console.log('✅ Project data received:');
-                console.log(JSON.stringify(data, null, 2));
-                console.log('-------------------');
-                console.log('Project Details:');
-                console.log(`- ID: ${data.id}`);
-                console.log(`- Name: ${data.name}`);
-                console.log(`- Description: ${data.description}`);
-                console.log(`- Status: ${data.status}`);
-                console.log(`- Created At: ${data.created_at}`);
-                console.log(`- Updated At: ${data.updated_at}`);
-                console.log('-------------------');
+                // Update project state with fetched data
+                setProject({
+                    id: data.id || projectId,
+                    name: data.name || `Project ${projectId}`,
+                    description: data.description || "No description available",
+                    status: data.status || "active",
+                    progress: data.progress || 0,
+                    createdDate: data.created_at ? formatDate(data.created_at) : formatDate(new Date().toISOString()),
+                    dueDate: data.updated_at ? formatDate(data.updated_at) : formatDate(new Date().toISOString()),
+                    teamMembers: data.team_members || 1,
+                    completedTasks: data.completed_tasks || 0,
+                    totalTasks: data.total_tasks || 0,
+                });
 
             } catch (error) {
-                console.error('❌ Error fetching project data:', error);
-                setError(error instanceof Error ? error.message : 'Failed to fetch project');
+                console.error('Error fetching project:', error);
+                const errorMessage = error instanceof Error ? error.message : 'Failed to fetch project';
+                setError(errorMessage);
+
+                // Keep the default mock data if fetch fails
+                setProject(prev => ({
+                    ...prev,
+                    id: projectId,
+                    name: `Project ${projectId}`,
+                }));
             } finally {
                 setIsLoading(false);
             }
