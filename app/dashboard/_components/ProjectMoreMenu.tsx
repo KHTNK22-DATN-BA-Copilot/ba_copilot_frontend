@@ -23,6 +23,7 @@ export default function ProjectMoreMenu({ projectId, projectName, onDelete, isDe
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
     const handleToggleMenu = (event: React.MouseEvent) => {
+        event.preventDefault();
         event.stopPropagation();
         setIsOpen((prev) => !prev);
     };

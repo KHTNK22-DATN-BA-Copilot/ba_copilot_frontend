@@ -2,9 +2,9 @@ import { Card, CardContent } from "../../../components/ui/card";
 import { FolderOpen, Clock, TrendingUp, Users, Activity } from "lucide-react";
 
 
-export default function OverviewSection() {
+export default function OverviewSection({totalProjects}: {totalProjects?: number}) {
   const overviewCards = [
-    { id: 1, icon: FolderOpen, label: "Total Projects", value: "24", trend: "+3 this week" },
+    { id: 1, icon: FolderOpen, label: "Total Projects", value: totalProjects?.toString() || "0", trend: "+3 this week" },
     { id: 2, icon: Clock, label: "Active Tasks", value: "18", trend: "3 overdue" },
     { id: 3, icon: TrendingUp, label: "Completed", value: "156", trend: "+12 this month" },
     { id: 4, icon: Users, label: "Team Members", value: "8", trend: "2 online" },
