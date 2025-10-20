@@ -56,11 +56,14 @@ export async function GET(
     try {
         const { id } = await params;
 
+        console.log(`📡 [API Route] Fetching project with ID: ${id}`);
+
         // Get access token from cookies
         const cookieStore = await cookies();
         const accessToken = cookieStore.get("access_token");
 
         if (!accessToken) {
+            console.log('❌ [API Route] Unauthorized - No access token');
             return NextResponse.json(
                 { error: "Unauthorized" },
                 { status: 401 }
@@ -68,7 +71,10 @@ export async function GET(
         }
 
         // Call backend API to get project details
-        const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/projects/${id}`, {
+        const backendUrl = `${process.env.BACKEND_DOMAIN}/api/v1/projects/${id}`;
+        console.log(`🔄 [API Route] Calling backend: ${backendUrl}`);
+        
+        const res = await fetch(backendUrl, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${accessToken.value}`,
@@ -78,15 +84,19 @@ export async function GET(
         const response = await res.json();
 
         if (res.ok) {
+            console.log('✅ [API Route] Project data received from backend:');
+            console.log(JSON.stringify(response, null, 2));
+            console.log('-------------------');
             return NextResponse.json(response, { status: 200 });
         } else {
+            console.log(`❌ [API Route] Failed to fetch project: ${response.detail}`);
             return NextResponse.json(
                 { error: response.detail || "Failed to fetch project" },
                 { status: res.status }
             );
         }
     } catch (error) {
-        console.error("Error fetching project:", error);
+        console.error("❌ [API Route] Error fetching project:", error);
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }

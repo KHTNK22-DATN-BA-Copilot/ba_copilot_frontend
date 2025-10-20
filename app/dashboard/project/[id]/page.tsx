@@ -1,6 +1,8 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import {
     FileText,
@@ -24,10 +26,10 @@ export default function ProjectOverviewPage() {
     const router = useRouter();
     const projectId = params.id;
 
-    const project = {
+    const [project, setProject] = useState({
         id: projectId,
         name: `Project ${projectId}`,
-        description: "A comprehensive business analysis project for developing a modern web application with advanced features and integrations.",
+        description: "A comprehensive business analysis project...",
         status: "In Progress",
         progress: 65,
         createdDate: "Oct 1, 2025",
@@ -35,7 +37,61 @@ export default function ProjectOverviewPage() {
         teamMembers: 5,
         completedTasks: 24,
         totalTasks: 37,
-    };
+    });
+
+    // Fetch project data when component mounts
+    useEffect(() => {
+        const fetchProjectData = async () => {
+            if (!projectId) return;
+
+            try {
+                console.log(`🔄 Fetching project data for ID: ${projectId}`);
+
+                const response = await fetch(`/api/projects/${projectId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                setProject(prev => ({
+                    ...prev,
+                    name: data.name,
+                    description: data.description,
+                    status: data.status,
+                    createdDate: data.created_at,
+                    dueDate: data.updated_at,
+                }));
+                // Update other project fields as necessary
+
+                // Print the response in terminal (console)
+                console.log('✅ Project data received:');
+                console.log(JSON.stringify(data, null, 2));
+                console.log('-------------------');
+                console.log('Project Details:');
+                console.log(`- ID: ${data.id}`);
+                console.log(`- Name: ${data.name}`);
+                console.log(`- Description: ${data.description}`);
+                console.log(`- Status: ${data.status}`);
+                console.log(`- Created At: ${data.created_at}`);
+                console.log(`- Updated At: ${data.updated_at}`);
+                console.log('-------------------');
+
+            } catch (error) {
+                console.error('❌ Error fetching project data:', error);
+            }
+        };
+
+        fetchProjectData();
+    }, [projectId]);
+
+
 
     const recentActivities = [
         { id: 1, type: "srs", title: "SRS Document Updated", time: "2 hours ago", user: "John Doe" },
@@ -66,7 +122,7 @@ export default function ProjectOverviewPage() {
     };
 
     return (
-        <main className="flex-1 overflow-auto">
+        <main className="min-h-screen overflow-y-auto bg-gray-50 dark:bg-gray-900">
             <div className="p-6 max-w-7xl mx-auto space-y-6">
                 {/* Back Button for Mobile */}
                 <div className="xl:hidden mb-4">
@@ -150,7 +206,7 @@ export default function ProjectOverviewPage() {
                                     <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Due Date</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Updated At</p>
                                     <p className="font-semibold text-gray-900 dark:text-gray-100">{project.dueDate}</p>
                                 </div>
                             </div>
@@ -178,7 +234,7 @@ export default function ProjectOverviewPage() {
                                     <CheckCircle2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Completion</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
                                     <p className="font-semibold text-gray-900 dark:text-gray-100">{project.progress}%</p>
                                 </div>
                             </div>
