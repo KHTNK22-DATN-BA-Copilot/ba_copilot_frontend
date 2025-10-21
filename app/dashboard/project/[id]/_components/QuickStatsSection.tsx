@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { QuickStat } from './types';
-import { projectIcons, IconType } from './icons';
+import { projectIcons, IconType } from '@/components/icons/project-icons';
 
 interface QuickStatsSectionProps {
     stats: QuickStat[];

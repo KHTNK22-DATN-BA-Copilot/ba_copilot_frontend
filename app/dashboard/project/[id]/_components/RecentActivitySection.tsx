@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Activity } from './types';
-import { projectIcons, IconType } from './icons';
+import { projectIcons, IconType } from '@/components/icons/project-icons';
 
 interface RecentActivitySectionProps {
     activities: Activity[];
