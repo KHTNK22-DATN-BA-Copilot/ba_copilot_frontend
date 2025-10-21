@@ -10,6 +10,7 @@ import QuickStatsSection from './_components/QuickStatsSection';
 import RecentActivitySection from './_components/RecentActivitySection';
 import QuickActionsSection from './_components/QuickActionsSection';
 import TasksOverviewSection from './_components/TasksOverviewSection';
+import DeleteProjectSection from './_components/DeleteProjectSection';
 import { Activity, QuickStat, TaskOverview } from './_components/types';
 
 export default function ProjectOverviewPage() {
@@ -28,10 +29,10 @@ export default function ProjectOverviewPage() {
     ];
 
     const quickStats: QuickStat[] = [
-        { label: "Documents", value: "12", icon: "FileText", color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-100 dark:bg-blue-900/20" },
-        { label: "Wireframes", value: "8", icon: "Layout", color: "text-purple-600 dark:text-purple-400", bgColor: "bg-purple-100 dark:bg-purple-900/20" },
-        { label: "Diagrams", value: "15", icon: "BarChart3", color: "text-green-600 dark:text-green-400", bgColor: "bg-green-100 dark:bg-green-900/20" },
-        { label: "AI Chats", value: "23", icon: "MessageSquare", color: "text-orange-600 dark:text-orange-400", bgColor: "bg-orange-100 dark:bg-orange-900/20" },
+        { label: "Documents", value: "0", icon: "FileText" },
+        { label: "Wireframes", value: "0", icon: "Layout" },
+        { label: "Diagrams", value: "0", icon: "BarChart3" },
+        { label: "AI Chats", value: "0", icon: "MessageSquare" },
     ];
 
     const tasksOverview: TaskOverview = {
@@ -111,10 +112,15 @@ export default function ProjectOverviewPage() {
 
                     {/* Quick Actions & Tasks */}
                     <div className="space-y-6">
-                        <QuickActionsSection projectId={projectId as string | string[]} />
                         <TasksOverviewSection tasks={tasksOverview} />
                     </div>
                 </div>
+
+                {/* Delete Project Section - Danger Zone */}
+                <DeleteProjectSection
+                    projectId={projectId as string}
+                    projectName={project.name}
+                />
             </div>
         </main>
     );

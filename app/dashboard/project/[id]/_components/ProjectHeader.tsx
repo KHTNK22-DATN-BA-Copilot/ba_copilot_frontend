@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Pencil } from 'lucide-react';
 import { Project } from './types';
 import EditProjectDialog from './EditProjectDialog';
 
@@ -36,10 +37,11 @@ export default function ProjectHeader({ project, onProjectUpdate }: ProjectHeade
                         <p className="text-gray-600 dark:text-gray-400">{project.description}</p>
                     </div>
                     <Button
-                        variant="outline"
-                        className="ml-4"
+                        size="sm"
+                        className="ml-4 cursor-pointer"
                         onClick={() => setIsEditDialogOpen(true)}
                     >
+                        <Pencil />
                         Edit Project
                     </Button>
                 </div>
