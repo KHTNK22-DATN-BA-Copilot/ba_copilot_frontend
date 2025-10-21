@@ -23,8 +23,8 @@ export interface QuickStat {
     label: string;
     value: string;
     icon: any;
-    color: string;
-    bgColor: string;
+    color?: string;
+    bgColor?: string;
 }
 
 export interface TaskOverview {

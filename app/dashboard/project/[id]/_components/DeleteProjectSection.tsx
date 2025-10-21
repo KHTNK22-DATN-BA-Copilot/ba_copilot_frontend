@@ -1,8 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -13,39 +12,38 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Trash2, AlertTriangle } from "lucide-react";
-import { deleteUserAccount } from "./utils";
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Trash2, AlertTriangle } from 'lucide-react';
 
-interface DeleteAccountDialogProps {
-    userEmail: string;
+interface DeleteProjectSectionProps {
+    projectId: string;
+    projectName: string;
 }
 
-export default function DeleteAccountDialog({ userEmail }: DeleteAccountDialogProps) {
-    const [isOpen, setIsOpen] = useState(false);
-    const [isChecked, setIsChecked] = useState(false);
+export default function DeleteProjectSection({ projectId, projectName }: DeleteProjectSectionProps) {
+    const router = useRouter();
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
 
     const handleDelete = async () => {
-        if (!isChecked) return;
-
         setIsDeleting(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}`, {
+                method: 'DELETE',
+            });
 
-        const result = await deleteUserAccount();
+            if (!response.ok) {
+                throw new Error('Failed to delete project');
+            }
 
-        if (result.success) {
-            alert("Account deleted successfully");
-            window.location.href = "/login";
-        } else {
-            alert(result.message || "Failed to delete account. Please try again.");
+            // Redirect to dashboard after successful deletion
+            router.push('/dashboard');
+        } catch (error) {
+            console.error('Error deleting project:', error);
+            alert('Failed to delete project. Please try again.');
             setIsDeleting(false);
-        }
-    };
-
-    const handleOpenChange = (open: boolean) => {
-        setIsOpen(open);
-        if (!open) {
-            setIsChecked(false);
+            setIsOpen(false);
         }
     };
 
@@ -60,80 +58,65 @@ export default function DeleteAccountDialog({ userEmail }: DeleteAccountDialogPr
 
             {/* Content */}
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                {/* Delete Account Row */}
+                {/* Delete Project Row */}
                 <div className="px-4 sm:px-6 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-6">
                     <div className="flex-1">
                         <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-1">
-                            Delete this account
+                            Delete this project
                         </h3>
                         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                            Once you delete your account, there is no going back. Please be certain.
+                            Once you delete a project, there is no going back. Please be certain.
                         </p>
                     </div>
 
                     {/* Delete Button with Confirmation Dialog */}
-                    <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
+                    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
                         <AlertDialogTrigger asChild>
                             <Button
                                 variant="outline"
                                 size="default"
                                 className="gap-2 text-red-600 dark:text-red-400 border-red-300 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-700 dark:hover:text-red-300 shrink-0 w-full sm:w-auto"
                             >
-                                Delete this account
+                                Delete this project
                             </Button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent className="sm:max-w-md max-w-[calc(100%-2rem)] mx-4">
+                        <AlertDialogContent className="sm:max-w-lg w-[calc(100%-2rem)] mx-auto bg-gray-900 border-gray-800">
                             <AlertDialogHeader>
-                                <AlertDialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400 text-base sm:text-lg">
-                                    <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                                    Are you absolutely sure?
+                                <AlertDialogTitle className="flex items-start gap-3 text-red-500 dark:text-red-400 text-base sm:text-xl font-semibold">
+                                    <AlertTriangle className="w-5 h-5 sm:w-7 sm:h-7 flex-shrink-0 mt-0.5" />
+                                    <span>Are you absolutely sure?</span>
                                 </AlertDialogTitle>
-                                <AlertDialogDescription className="text-left space-y-2 text-xs sm:text-sm">
-                                    <p>
-                                        This action cannot be undone. This will permanently delete the account{' '}
-                                        <span className="font-semibold text-gray-900 dark:text-white break-all">
-                                            {userEmail}
+                                <AlertDialogDescription className="text-left space-y-2 sm:space-y-3 text-sm sm:text-base text-gray-300 dark:text-gray-300 pt-2">
+                                    <p className="text-gray-200 dark:text-gray-200">
+                                        This action cannot be undone. This will permanently delete the project{' '}
+                                        <span className="font-semibold text-white break-words">
+                                            &quot;{projectName}&quot;
                                         </span>
                                         .
                                     </p>
-                                    <p className="text-red-600 dark:text-red-400 font-medium">
+                                    <p className="text-red-400 dark:text-red-400 font-semibold">
                                         All associated data including:
                                     </p>
-                                    <ul className="list-disc list-inside space-y-1 pl-2">
-                                        <li>All projects and documents</li>
-                                        <li>SRS documents and wireframes</li>
-                                        <li>AI conversations history</li>
-                                        <li>Account settings and preferences</li>
+                                    <ul className="list-disc list-inside space-y-1 sm:space-y-1.5 pl-1 text-gray-300 dark:text-gray-300">
+                                        <li>SRS documents</li>
+                                        <li>Wireframes and diagrams</li>
+                                        <li>AI conversations</li>
+                                        <li>Project settings and history</li>
                                     </ul>
-                                    <p className="font-medium">will be permanently removed from our servers.</p>
+                                    <p className="font-medium text-gray-200 dark:text-gray-200">will be permanently removed from our servers.</p>
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
-
-                            <div className="py-3 sm:py-4">
-                                <div className="flex items-start space-x-2">
-                                    <Checkbox
-                                        id="confirm-delete"
-                                        checked={isChecked}
-                                        onCheckedChange={(checked: boolean) => setIsChecked(checked)}
-                                        className="mt-0.5"
-                                    />
-                                    <label
-                                        htmlFor="confirm-delete"
-                                        className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-tight peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                                    >
-                                        I understand that I won't be able to recover my account.
-                                    </label>
-                                </div>
-                            </div>
-
-                            <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
-                                <AlertDialogCancel disabled={isDeleting} className="w-full sm:w-auto">
+                            <AlertDialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2 pt-2 sm:pt-4">
+                                <AlertDialogCancel
+                                    disabled={isDeleting}
+                                    className="w-full sm:w-auto bg-gray-700 hover:bg-gray-600 text-white border-gray-600 order-2 sm:order-1"
+                                >
                                     Cancel
                                 </AlertDialogCancel>
                                 <AlertDialogAction
                                     onClick={handleDelete}
-                                    disabled={!isChecked || isDeleting}
-                                    className="bg-red-600 hover:bg-red-700 focus-visible:ring-red-600/50 w-full sm:w-auto"
+                                    disabled={isDeleting}
+                                    className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white focus-visible:ring-red-600/50 font-medium order-1 sm:order-2"
                                 >
                                     {isDeleting ? (
                                         <>
@@ -162,7 +145,7 @@ export default function DeleteAccountDialog({ userEmail }: DeleteAccountDialogPr
                                     ) : (
                                         <>
                                             <Trash2 className="w-4 h-4 mr-2" />
-                                            Delete this account
+                                            Delete this project
                                         </>
                                     )}
                                 </AlertDialogAction>

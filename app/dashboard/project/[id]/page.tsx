@@ -10,6 +10,7 @@ import QuickStatsSection from './_components/QuickStatsSection';
 import RecentActivitySection from './_components/RecentActivitySection';
 import QuickActionsSection from './_components/QuickActionsSection';
 import TasksOverviewSection from './_components/TasksOverviewSection';
+import DeleteProjectSection from './_components/DeleteProjectSection';
 import { Activity, QuickStat, TaskOverview } from './_components/types';
 
 export default function ProjectOverviewPage() {
@@ -28,10 +29,10 @@ export default function ProjectOverviewPage() {
     ];
 
     const quickStats: QuickStat[] = [
-        { label: "Documents", value: "12", icon: "FileText", color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-100 dark:bg-blue-900/20" },
-        { label: "Wireframes", value: "8", icon: "Layout", color: "text-purple-600 dark:text-purple-400", bgColor: "bg-purple-100 dark:bg-purple-900/20" },
-        { label: "Diagrams", value: "15", icon: "BarChart3", color: "text-green-600 dark:text-green-400", bgColor: "bg-green-100 dark:bg-green-900/20" },
-        { label: "AI Chats", value: "23", icon: "MessageSquare", color: "text-orange-600 dark:text-orange-400", bgColor: "bg-orange-100 dark:bg-orange-900/20" },
+        { label: "Documents", value: "0", icon: "FileText" },
+        { label: "Wireframes", value: "0", icon: "Layout" },
+        { label: "Diagrams", value: "0", icon: "BarChart3" },
+        { label: "AI Chats", value: "0", icon: "MessageSquare" },
     ];
 
     const tasksOverview: TaskOverview = {
@@ -66,9 +67,9 @@ export default function ProjectOverviewPage() {
 
     return (
         <main className="min-h-screen overflow-y-auto bg-gray-50 dark:bg-gray-900">
-            <div className="p-6 max-w-7xl mx-auto space-y-6">
+            <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
                 {/* Back Button for Mobile */}
-                <div className="xl:hidden mb-4">
+                <div className="xl:hidden">
                     <Link
                         href="/dashboard"
                         className="inline-flex items-center space-x-2 p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
@@ -86,7 +87,7 @@ export default function ProjectOverviewPage() {
                                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
                             />
                         </svg>
-                        <span>Back to Dashboard</span>
+                        <span className="text-sm sm:text-base">Back to Dashboard</span>
                     </Link>
                 </div>
 
@@ -103,18 +104,23 @@ export default function ProjectOverviewPage() {
                 <QuickStatsSection stats={quickStats} />
 
                 {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                     {/* Recent Activity */}
                     <div className="lg:col-span-2">
                         <RecentActivitySection activities={recentActivities} />
                     </div>
 
                     {/* Quick Actions & Tasks */}
-                    <div className="space-y-6">
-                        <QuickActionsSection projectId={projectId as string | string[]} />
+                    <div className="space-y-4 sm:space-y-6">
                         <TasksOverviewSection tasks={tasksOverview} />
                     </div>
                 </div>
+
+                {/* Delete Project Section - Danger Zone */}
+                <DeleteProjectSection
+                    projectId={projectId as string}
+                    projectName={project.name}
+                />
             </div>
         </main>
     );
