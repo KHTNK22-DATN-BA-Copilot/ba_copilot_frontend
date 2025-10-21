@@ -67,9 +67,9 @@ export default function ProjectOverviewPage() {
 
     return (
         <main className="min-h-screen overflow-y-auto bg-gray-50 dark:bg-gray-900">
-            <div className="p-6 max-w-7xl mx-auto space-y-6">
+            <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
                 {/* Back Button for Mobile */}
-                <div className="xl:hidden mb-4">
+                <div className="xl:hidden">
                     <Link
                         href="/dashboard"
                         className="inline-flex items-center space-x-2 p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
@@ -87,7 +87,7 @@ export default function ProjectOverviewPage() {
                                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
                             />
                         </svg>
-                        <span>Back to Dashboard</span>
+                        <span className="text-sm sm:text-base">Back to Dashboard</span>
                     </Link>
                 </div>
 
@@ -104,14 +104,14 @@ export default function ProjectOverviewPage() {
                 <QuickStatsSection stats={quickStats} />
 
                 {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                     {/* Recent Activity */}
                     <div className="lg:col-span-2">
                         <RecentActivitySection activities={recentActivities} />
                     </div>
 
                     {/* Quick Actions & Tasks */}
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                         <TasksOverviewSection tasks={tasksOverview} />
                     </div>
                 </div>

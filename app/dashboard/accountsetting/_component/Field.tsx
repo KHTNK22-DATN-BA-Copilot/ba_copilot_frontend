@@ -19,9 +19,9 @@ export function Field({
     const isErrorMode = state === "error";
 
     return (
-        <div className="sm:flex sm:justify-between sm:items-center py-2">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 gap-1 sm:gap-2">
             <div className="flex items-center gap-x-2">
-                <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     {label}
                 </Label>
             </div>
@@ -31,15 +31,15 @@ export function Field({
                         type={label === "Email" ? "email" : "text"}
                         value={value}
                         onChange={(e) => onChange(e.target.value)}
-                        className="max-w-xs"
+                        className="w-full sm:max-w-xs"
                         aria-label={label}
                     />
                     {(isErrorMode && label === "Email") && (
-                        <p className="text-red-500 text-sm">{message}</p>
+                        <p className="text-red-500 text-xs sm:text-sm">{message}</p>
                     )}
                 </div>
             ) : (
-                <p className="truncate max-w-xs">{value}</p>
+                <p className="truncate w-full sm:max-w-xs text-sm sm:text-base text-gray-600 dark:text-gray-300">{value}</p>
             )}
         </div>
     );

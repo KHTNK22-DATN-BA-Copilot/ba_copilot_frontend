@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, Globe, Lock, Users, Copy, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type VisibilityOption = "public" | "private" | "team";
 
@@ -71,10 +72,6 @@ export default function VisibilitySettings() {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-gray-600 dark:text-gray-400">
-        Control who can see your profile information and activity.
-      </p>
-
       {/* Profile URL - Responsive Layout */}
       <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap sm:min-w-[100px]">
@@ -100,7 +97,7 @@ export default function VisibilitySettings() {
           </button>
         </div>
       </div>
-      
+
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -128,32 +125,28 @@ export default function VisibilitySettings() {
               <button
                 key={option.value}
                 onClick={() => handleSelect(option.value)}
-                className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 first:rounded-t-lg last:rounded-b-lg ${
-                  selectedVisibility === option.value 
-                    ? 'bg-blue-50 dark:bg-blue-900/20 border-l-2 border-l-blue-500' 
-                    : ''
-                }`}
+                className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 first:rounded-t-lg last:rounded-b-lg ${selectedVisibility === option.value
+                  ? 'bg-blue-50 dark:bg-blue-900/20 border-l-2 border-l-blue-500'
+                  : ''
+                  }`}
               >
-                <div className={`${
-                  selectedVisibility === option.value 
-                    ? 'text-blue-600 dark:text-blue-400' 
-                    : 'text-gray-500 dark:text-gray-400'
-                }`}>
+                <div className={`${selectedVisibility === option.value
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : 'text-gray-500 dark:text-gray-400'
+                  }`}>
                   {option.icon}
                 </div>
                 <div>
-                  <div className={`text-sm font-medium ${
-                    selectedVisibility === option.value 
-                      ? 'text-blue-900 dark:text-blue-100' 
-                      : 'text-gray-900 dark:text-gray-100'
-                  }`}>
+                  <div className={`text-sm font-medium ${selectedVisibility === option.value
+                    ? 'text-blue-900 dark:text-blue-100'
+                    : 'text-gray-900 dark:text-gray-100'
+                    }`}>
                     {option.label}
                   </div>
-                  <div className={`text-xs ${
-                    selectedVisibility === option.value 
-                      ? 'text-blue-700 dark:text-blue-300' 
-                      : 'text-gray-500 dark:text-gray-400'
-                  }`}>
+                  <div className={`text-xs ${selectedVisibility === option.value
+                    ? 'text-blue-700 dark:text-blue-300'
+                    : 'text-gray-500 dark:text-gray-400'
+                    }`}>
                     {option.description}
                   </div>
                 </div>
@@ -170,9 +163,16 @@ export default function VisibilitySettings() {
 
       {/* Optional: Add save button if you want explicit save action */}
       <div className="flex justify-end">
-        <button className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200">
+        <Button
+          size="sm"
+          onClick={() => {
+            // Add API call to save visibility settings
+            console.log("Saving visibility settings...");
+          }}
+          className="cursor-pointer"
+        >
           Save Changes
-        </button>
+        </Button>
       </div>
     </div>
   );
