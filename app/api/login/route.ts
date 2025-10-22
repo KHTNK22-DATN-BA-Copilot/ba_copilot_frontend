@@ -18,11 +18,19 @@ export async function POST(request: NextRequest) {
     const response = await res.json();
     if (res.ok) {
         const accessToken = response.access_token;
+        const refreshToken = response.refresh_token;
         (await cookies()).set("access_token", accessToken, {
             httpOnly: true,
             sameSite: "lax",
             expires: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
         });
+        (await cookies()).set("refresh_token", refreshToken, {
+            httpOnly: true,
+            sameSite: "lax",
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        });
+
+
         return NextResponse.json(
             { message: "Login successfully" },
             { status: res.status }

@@ -275,14 +275,7 @@ export default function ProjectsSection({
                                             </p>
                                         </div>
 
-                                        <ProjectMoreMenu
-                                            projectId={item.id}
-                                            projectName={`Project ${item.name}`}
-                                            onDelete={() => handleDeleteProject(item.id)}
-                                            isDeleting={
-                                                deletingProjectId === item.id
-                                            }
-                                        />
+                                        
                                     </div>
                                 </div>
                             </div>
