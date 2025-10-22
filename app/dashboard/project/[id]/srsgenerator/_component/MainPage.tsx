@@ -41,6 +41,7 @@ export default function SRSGeneratorPage() {
         });
         const data = await response.json();
         console.log("Generated SRS Document: ", data);
+        setLoading(false)
     };
 
     return (

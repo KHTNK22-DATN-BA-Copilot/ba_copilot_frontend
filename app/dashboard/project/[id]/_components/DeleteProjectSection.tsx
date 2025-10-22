@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -12,16 +12,19 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Trash2, AlertTriangle } from 'lucide-react';
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Trash2, AlertTriangle } from "lucide-react";
 
 interface DeleteProjectSectionProps {
     projectId: string;
     projectName: string;
 }
 
-export default function DeleteProjectSection({ projectId, projectName }: DeleteProjectSectionProps) {
+export default function DeleteProjectSection({
+    projectId,
+    projectName,
+}: DeleteProjectSectionProps) {
     const router = useRouter();
     const [isDeleting, setIsDeleting] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
@@ -30,18 +33,18 @@ export default function DeleteProjectSection({ projectId, projectName }: DeleteP
         setIsDeleting(true);
         try {
             const response = await fetch(`/api/projects/${projectId}`, {
-                method: 'DELETE',
+                method: "DELETE",
             });
 
             if (!response.ok) {
-                throw new Error('Failed to delete project');
+                throw new Error("Failed to delete project");
             }
 
             // Redirect to dashboard after successful deletion
-            router.push('/dashboard');
+            router.push("/dashboard");
         } catch (error) {
-            console.error('Error deleting project:', error);
-            alert('Failed to delete project. Please try again.');
+            console.error("Error deleting project:", error);
+            alert("Failed to delete project. Please try again.");
             setIsDeleting(false);
             setIsOpen(false);
         }
@@ -65,7 +68,8 @@ export default function DeleteProjectSection({ projectId, projectName }: DeleteP
                             Delete this project
                         </h3>
                         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                            Once you delete a project, there is no going back. Please be certain.
+                            Once you delete a project, there is no going back.
+                            Please be certain.
                         </p>
                     </div>
 
@@ -75,48 +79,56 @@ export default function DeleteProjectSection({ projectId, projectName }: DeleteP
                             <Button
                                 variant="outline"
                                 size="default"
-                                className="gap-2 text-red-600 dark:text-red-400 border-red-300 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-700 dark:hover:text-red-300 shrink-0 w-full sm:w-auto"
+                                className="gap-2 cursor-pointer text-red-600 dark:text-red-400 border-red-300 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-700 dark:hover:text-red-300 shrink-0 w-full sm:w-auto"
                             >
                                 Delete this project
                             </Button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent className="sm:max-w-lg w-[calc(100%-2rem)] mx-auto bg-gray-900 border-gray-800">
+                        <AlertDialogContent className="sm:max-w-lg w-[calc(100%-2rem)] mx-auto">
                             <AlertDialogHeader>
                                 <AlertDialogTitle className="flex items-start gap-3 text-red-500 dark:text-red-400 text-base sm:text-xl font-semibold">
                                     <AlertTriangle className="w-5 h-5 sm:w-7 sm:h-7 flex-shrink-0 mt-0.5" />
                                     <span>Are you absolutely sure?</span>
                                 </AlertDialogTitle>
-                                <AlertDialogDescription className="text-left space-y-2 sm:space-y-3 text-sm sm:text-base text-gray-300 dark:text-gray-300 pt-2">
-                                    <p className="text-gray-200 dark:text-gray-200">
-                                        This action cannot be undone. This will permanently delete the project{' '}
-                                        <span className="font-semibold text-white break-words">
-                                            &quot;{projectName}&quot;
-                                        </span>
-                                        .
-                                    </p>
-                                    <p className="text-red-400 dark:text-red-400 font-semibold">
-                                        All associated data including:
-                                    </p>
-                                    <ul className="list-disc list-inside space-y-1 sm:space-y-1.5 pl-1 text-gray-300 dark:text-gray-300">
-                                        <li>SRS documents</li>
-                                        <li>Wireframes and diagrams</li>
-                                        <li>AI conversations</li>
-                                        <li>Project settings and history</li>
-                                    </ul>
-                                    <p className="font-medium text-gray-200 dark:text-gray-200">will be permanently removed from our servers.</p>
+                                <AlertDialogDescription className="text-left space-y-2 sm:space-y-3 text-sm sm:text-base pt-2" asChild>
+                                    <div>
+                                        <p className="">
+                                            This action cannot be undone. This
+                                            will permanently delete the project{" "}
+                                            <span className="font-semibold break-words">
+                                                &quot;{projectName}&quot;
+                                            </span>
+                                            .
+                                        </p>
+                                        <p className="text-red-400 dark:text-red-400 font-semibold">
+                                            All associated data including:
+                                        </p>
+                                        <ul className="list-disc list-inside space-y-1 sm:space-y-1.5 pl-1">
+                                            <li>SRS documents</li>
+                                            <li>Wireframes and diagrams</li>
+                                            <li>AI conversations</li>
+                                            <li>
+                                                Project settings and history
+                                            </li>
+                                        </ul>
+                                        <p className="font-medium">
+                                            will be permanently removed from our
+                                            servers.
+                                        </p>
+                                    </div>
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2 pt-2 sm:pt-4">
                                 <AlertDialogCancel
                                     disabled={isDeleting}
-                                    className="w-full sm:w-auto bg-gray-700 hover:bg-gray-600 text-white border-gray-600 order-2 sm:order-1"
+                                    className="w-full sm:w-auto cursor-pointer  order-2 sm:order-1"
                                 >
                                     Cancel
                                 </AlertDialogCancel>
                                 <AlertDialogAction
                                     onClick={handleDelete}
                                     disabled={isDeleting}
-                                    className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white focus-visible:ring-red-600/50 font-medium order-1 sm:order-2"
+                                    className="w-full cursor-pointer sm:w-auto bg-red-600 hover:bg-red-700 text-white focus-visible:ring-red-600/50 font-medium order-1 sm:order-2"
                                 >
                                     {isDeleting ? (
                                         <>
