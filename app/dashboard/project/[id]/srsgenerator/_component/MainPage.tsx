@@ -1,21 +1,21 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 
 import FileUpload from "./FileUpload";
 import ProjectOverview from "./ProjectOverview";
 import Requirements from "./Requirements";
 import Diagrams from "./Diagrams";
 
-import { FcDocument } from "react-icons/fc";
 import { useSRSGeneratorDataStore } from "@/context/SRSGeneratorContext";
 import { useParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { useState } from "react";
+import { useFileDataStore } from "@/context/FileContext";
 
 export default function SRSGeneratorPage() {
-    const { diagrams, requirements, projectOverview, constrain, files } =
+    const { diagrams, requirements, projectOverview, constrain } =
         useSRSGeneratorDataStore();
+    const { files } = useFileDataStore();
     const [loading, setLoading] = useState(false);
 
     const params = useParams();

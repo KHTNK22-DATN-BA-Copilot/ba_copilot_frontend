@@ -1,12 +1,12 @@
 'use client';
 import { useState, useRef } from 'react';
-import { useSRSGeneratorDataStore } from '@/context/SRSGeneratorContext';
+import { useFileDataStore } from '@/context/FileContext';
 import { File } from 'lucide-react';
 
 export default function FileUpload() {
     const [isDragOver, setIsDragOver] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const {files, handleFiles, removeFile} = useSRSGeneratorDataStore()
+    const {files, handleFiles, removeFile} = useFileDataStore()
 
 
     const handleDragOver = (e: React.DragEvent) => {
