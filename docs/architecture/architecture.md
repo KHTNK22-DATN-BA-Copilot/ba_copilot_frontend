@@ -1,187 +1,421 @@
-
 # Kiến trúc Frontend — BA Copilot
-
-  
 
 Tài liệu này mô tả kiến trúc phía frontend cho dự án BA Copilot, dựa trên cấu trúc thư mục hiện có trong repository. Mục tiêu là cung cấp mô hình thành phần, luồng dữ liệu, và khuyến nghị về quản lý trạng thái, routing, testing và triển khai.
 
-  
-
 ## Tổng quan thư mục chính
 
-  
+### Core Application Structure
 
-- [app/layout.tsx](app/layout.tsx) — root layout của ứng dụng (theme, global styles).
+- [`app/layout.tsx`](../../app/layout.tsx) — root layout của ứng dụng (theme, global styles, providers)
+- [`app/page.tsx`](../../app/page.tsx) — trang landing page/home
+- [`app/globals.css`](../../app/globals.css) — global styles và CSS variables
+- [`middleware.ts`](../../middleware.ts) — Next.js middleware cho authentication và route protection
 
-- [app/page.tsx](app/page.tsx) — trang chủ.
+### Authentication Routes
 
-- [app/(auth)/layout.tsx](<app/(auth)/layout.tsx>) — layout cho nhóm route xác thực.
+- [`app/(auth)/layout.tsx`](../../app/(auth)/layout.tsx) — layout cho nhóm route xác thực
+- [`app/(auth)/login/`](../../app/(auth)/login/) — trang đăng nhập
+- [`app/(auth)/register/`](../../app/(auth)/register/) — trang đăng ký
+- [`app/(auth)/forgot-password/`](../../app/(auth)/forgot-password/) — quên mật khẩu
+- [`app/(auth)/verify-email/`](../../app/(auth)/verify-email/) — xác thực email
+- [`app/(auth)/verify-success/`](../../app/(auth)/verify-success/) — thông báo xác thực thành công
 
-- [app/dashboard/layout.tsx](app/dashboard/layout.tsx) — layout cho dashboard (`DashboardLayout`).
+### Dashboard & Main Application
 
-- [app/(generator)/wireframegenerator/page.tsx](<app/(generator)/wireframegenerator/page.tsx>) — một trang generator mẫu (`WireframeGeneratorPage`).
+- [`app/dashboard/layout.tsx`](../../app/dashboard/layout.tsx) — layout chính với sidebar và header
+- [`app/dashboard/page.tsx`](../../app/dashboard/page.tsx) — trang dashboard overview
+- [`app/dashboard/_components/`](../../app/dashboard/_components/) — components dùng riêng cho dashboard
+- [`app/dashboard/project/[id]/`](../../app/dashboard/project/[id]/) — dynamic routes cho project details
+- [`app/dashboard/project/[id]/srsgenerator/`](../../app/dashboard/project/[id]/srsgenerator/) — SRS Generator feature
+- [`app/dashboard/accountsetting/`](../../app/dashboard/accountsetting/) — cài đặt tài khoản
 
-- [components/layout/Sidebar.tsx](components/layout/Sidebar.tsx), [components/layout/Header.tsx](components/layout/Header.tsx), [components/layout/Footer.tsx](components/layout/Footer.tsx) — các component layout tái sử dụng.
+### API Routes (Backend for Frontend - BFF Pattern)
 
-- [components/ui/button.tsx](components/ui/button.tsx) và các UI primitives trong [components/ui/](components/ui) — hệ thống thành phần UI (Shadcn/Radix).
+- [`app/api/login/route.ts`](../../app/api/login/route.ts) — proxy login request
+- [`app/api/register/route.ts`](../../app/api/register/route.ts) — proxy register request
+- [`app/api/logout/route.ts`](../../app/api/logout/route.ts) — handle logout
+- [`app/api/me/route.ts`](../../app/api/me/route.ts) — lấy thông tin user hiện tại
+- [`app/api/forgot-password/route.ts`](../../app/api/forgot-password/route.ts) — reset password
+- [`app/api/projects/route.ts`](../../app/api/projects/route.ts) — quản lý projects
+- [`app/api/srs-generate/route.ts`](../../app/api/srs-generate/route.ts) — generate SRS document
 
-- [lib/user.ts](lib/user.ts), [lib/utils.ts](lib/utils.ts) — helper và abstraction gọi API / xử lý dữ liệu.
+### Shared Components
 
--  `public/` — assets tĩnh (logo, ảnh).
+- [`components/layout/`](../../components/layout/) — layout components
+  - [`Sidebar.tsx`](../../components/layout/Sidebar.tsx) — navigation sidebar
+  - [`Header.tsx`](../../components/layout/Header.tsx) — top header với user menu
+  - [`Footer.tsx`](../../components/layout/Footer.tsx) — footer
+- [`components/ui/`](../../components/ui/) — UI primitives (Shadcn/Radix-based)
+  - [`button.tsx`](../../components/ui/button.tsx)
+  - [`input.tsx`](../../components/ui/input.tsx)
+  - [`dialog.tsx`](../../components/ui/dialog.tsx)
+  - [`card.tsx`](../../components/ui/card.tsx)
+  - [`select.tsx`](../../components/ui/select.tsx)
+  - [`textarea.tsx`](../../components/ui/textarea.tsx)
+  - [`checkbox.tsx`](../../components/ui/checkbox.tsx)
+  - [`badge.tsx`](../../components/ui/badge.tsx)
+  - [`progress.tsx`](../../components/ui/progress.tsx)
+  - [`label.tsx`](../../components/ui/label.tsx)
+  - [`input-otp.tsx`](../../components/ui/input-otp.tsx)
+  - [`alert-dialog.tsx`](../../components/ui/alert-dialog.tsx)
+- [`components/icons/`](../../components/icons/) — icon components
+  - [`index.ts`](../../components/icons/index.ts)
+  - [`project-icons.tsx`](../../components/icons/project-icons.tsx)
 
--  `docs/` — tài liệu và luồng nghiệp vụ (ví dụ [docs/flow/srs_generator_flow.md](docs/flow/srs_generator_flow.md), [docs/project-plan/fe-project-plan.md](docs/project-plan/fe-project-plan.md)).
+### State Management
 
--  `docker-compose.yml` & `Dockerfile` — phát triển/containerization.
+- [`context/FileContext.tsx`](../../context/FileContext.tsx) — quản lý trạng thái file uploads
+- [`context/SRSGeneratorContext.tsx`](../../context/SRSGeneratorContext.tsx) — quản lý trạng thái các sections trong SRS Generator
 
-  
+### Business Logic & Utilities
+
+- [`lib/user.ts`](../../lib/user.ts) — user-related utilities và API calls
+- [`lib/projects.ts`](../../lib/projects.ts) — project-related utilities và API calls
+- [`lib/utils.ts`](../../lib/utils.ts) — shared utility functions (cn, formatters, validators)
+
+### Configuration & Setup
+
+- [`next.config.ts`](../../next.config.ts) — Next.js configuration
+- [`tsconfig.json`](../../tsconfig.json) — TypeScript configuration
+- [`components.json`](../../components.json) — Shadcn UI configuration
+- [`eslint.config.mjs`](../../eslint.config.mjs) — ESLint rules
+- [`.prettierrc`](../../.prettierrc) — Prettier formatting
+- [`postcss.config.mjs`](../../postcss.config.mjs) — PostCSS config
+- [`tailwind.config.ts`](../../tailwind.config.ts) — Tailwind CSS configuration (implied)
+
+### Docker & Deployment
+
+- [`docker-compose.yml`](../../docker-compose.yml) — local development container setup
+- [`Dockerfile`](../../Dockerfile) — production container image
+
+### Documentation
+
+- [`docs/`](../../docs/) — comprehensive documentation
+  - [`docs/architecture/architecture.md`](../../docs/architecture/architecture.md) — tài liệu này
+  - [`docs/flow/srs_generator_flow.md`](../../docs/flow/srs_generator_flow.md) — luồng nghiệp vụ SRS Generator
+  - [`docs/project-plan/fe-project-plan.md`](../../docs/project-plan/fe-project-plan.md) — kế hoạch phát triển frontend
+  - [`docs/prd/product-requirements-document.md`](../../docs/prd/product-requirements-document.md) — PRD
+  - [`docs/usecase/use-case-specification.md`](../../docs/usecase/use-case-specification.md) — use cases
+  - [`docs/test/`](../../docs/test/) — test documentation và test cases
+    - [`docs/test/dashboard/`](../../docs/test/dashboard/)
+    - [`docs/test/login/`](../../docs/test/login/)
+    - [`docs/test/register/`](../../docs/test/register/)
+    - [`docs/test/forget-password/`](../../docs/test/forget-password/)
+    - [`docs/test/user-profile/`](../../docs/test/user-profile/)
+
+### Static Assets
+
+- [`public/`](../../public/) — static files (images, icons, fonts)
 
 ## Mô hình kiến trúc (layers)
 
-  
+### 1. Presentation Layer (Pages & Layouts)
 
-1. Presentation (Pages & Layouts)
+Các route và page components nằm trong [`app/`](../../app/) sử dụng Next.js 15 App Router:
 
-- Các route logic nằm trong `app/` (Next.js App Router). Ví dụ: [`DashboardLayout`](app/dashboard/layout.tsx), [`WireframeGeneratorPage`](<app/(generator)/wireframegenerator/page.tsx>).
+- **Route Groups**: `(auth)` cho authentication flow
+- **Dynamic Routes**: `[id]` cho project-specific pages
+- **Nested Layouts**: layout hierarchy từ root → dashboard → feature-specific
+- **Server Components**: mặc định, client components khi cần interactivity
 
-2. UI Components
+### 2. UI Components Layer
 
-- Thư viện UI (components/ui/_) và các component bố cục (components/layout/_).
+- **Primitives**: [`components/ui/`](../../components/ui/) — base components từ Shadcn UI
+- **Layout Components**: [`components/layout/`](../../components/layout/) — reusable layout pieces
+- **Feature Components**: trong `_components/` của mỗi feature (ví dụ: [`app/dashboard/project/[id]/srsgenerator/_component/`](../../app/dashboard/project/[id]/srsgenerator/_component/))
+- **Icons**: [`components/icons/`](../../components/icons/) — centralized icon management
 
-3. State & Data layer
+### 3. State Management Layer
 
-- Store/clients (ví dụ Zustand / React Context / TanStack Query). Helpers tại [lib/](lib).
+- **React Context**:
 
-4. API layer
+  - [`FileContext`](../../context/FileContext.tsx) — file upload state
+  - [`SRSGeneratorContext`](../../context/SRSGeneratorContext.tsx) — SRS form sections state
+- **Server State**: TanStack Query / React Query (recommended cho data fetching)
+- **Local State**: useState/useReducer trong components
+- **URL State**: searchParams cho filters, tabs, pagination
 
-- Calls tới backend qua các API route / SDK, triển khai ở [lib/utils.ts](lib/utils.ts) và API client dùng trong server actions hoặc client fetch.
+### 4. API Layer (BFF Pattern)
 
-5. Assets & Config
+API routes trong [`app/api/`](../../app/api/) hoạt động như Backend-for-Frontend:
 
--  `public/`, `.env`/`.env.sample`, `next.config.ts`, `docker-compose.yml`.
+- Proxy requests tới backend API
+- Handle cookie-based authentication (access_token)
+- Transform data nếu cần
+- Error handling và logging
+- Ví dụ: [`app/api/srs-generate/route.ts`](../../app/api/srs-generate/route.ts)
 
-  
+### 5. Business Logic Layer
+
+Helpers và utilities trong [`lib/`](../../lib/):
+
+- [`lib/user.ts`](../../lib/user.ts) — user operations
+- [`lib/projects.ts`](../../lib/projects.ts) — project CRUD
+- [`lib/utils.ts`](../../lib/utils.ts) — shared utilities (cn, validators, formatters)
+
+### 6. Configuration & Assets
+
+- Environment variables: [`.env`](../../.env), [`.env.sample`](../../.env.sample)
+- Static assets: [`public/`](../../public/)
+- Build configs: [`next.config.ts`](../../next.config.ts), [`tsconfig.json`](../../tsconfig.json)
 
 ## Luồng dữ liệu chính (sequence)
 
-  
-
 ```mermaid
+sequenceDiagram
+    participant User
+    participant Page as Page Component
+    participant Context as React Context
+    participant API as API Route (/app/api)
+    participant Backend as Backend API
+    participant Cookie as Cookie Store
 
-flowchart  LR
-
-  
-
-subgraph  FE
-
-U[User Interaction]
-
-P[Page / Route]
-
-C[UI Components]
-
-S[State Store / Cache]
-
-end
-
-  
-
-subgraph  BE
-
-L[Lib API Helpers]
-
-API[Backend]
-
-end
-
-  
-
-U  -->  P
-
-P  -->  C
-
-C  -->|read/write| S
-
-P  -->|server action / fetch| L
-
-L  -->  API
-
-API  -->  L
-
-L  -->  S
-
-S  -->  C
+    User->>Page: Interaction (click, input)
+    Page->>Context: Read/Update State
+    Page->>API: fetch('/api/srs-generate')
+    API->>Cookie: Get access_token
+    Cookie-->>API: access_token
+    API->>Backend: POST with Bearer token
+    Backend-->>API: JSON response
+    API->>API: Transform data
+    API-->>Page: NextResponse.json()
+    Page->>Context: Update state
+    Context-->>Page: Re-render
+    Page-->>User: Updated UI
 ```
-
-  
 
 ## Luồng điều hướng và cấu trúc
 
-  
-
 ```mermaid
-
-graph  TD
-
-Home["/ (app/page.tsx)"]
-
-Auth["/(auth) (app/(auth)/layout.tsx)"]
-
-Login["/login"]
-
-Register["/register"]
-
-Dashboard["/dashboard (app/dashboard/page.tsx)"]
-
-Generator["/wireframegenerator (app/(generator)/wireframegenerator/page.tsx)"]
-
-  
-
-Home  -->  Auth
-
-Auth  -->  Login
-
-Auth  -->  Register
-
-Home  -->  Dashboard
-
-Dashboard  -->  Generator
-
+graph TD
+    Root["/  (Landing)"]
+    Auth["/(auth)"]
+    Login["/login"]
+    Register["/register"]
+    ForgotPwd["/forgot-password"]
+    VerifyEmail["/verify-email"]
+    Dashboard["/dashboard"]
+    NewProject["/new-project"]
+    ProjectDetail["/dashboard/project/[id]"]
+    SRSGen["/dashboard/project/[id]/srsgenerator"]
+    AccountSetting["/dashboard/accountsetting"]
+    
+    Root --> Auth
+    Root --> Dashboard
+    Auth --> Login
+    Auth --> Register
+    Auth --> ForgotPwd
+    Auth --> VerifyEmail
+    Dashboard --> NewProject
+    Dashboard --> ProjectDetail
+    Dashboard --> AccountSetting
+    ProjectDetail --> SRSGen
 ```
-
-  
 
 ## Quản lý trạng thái và dữ liệu
 
-- Dùng TanStack Query / React Query cho dữ liệu fetch từ server (caching, revalidation). Tích hợp ở layer lib (ví dụ implement API calls trong lib/user.ts).
+### Client State
 
-- Dùng Context hoặc Zustand cho UI state (menu mở/đóng, theme) — ví dụ isDarkMode/isMenuOpen được quản lý trong app/dashboard/layout.tsx.
+- **React Context**:
+  - [`FileDataStoreProvider`](../../context/FileContext.tsx) — quản lý files upload trong SRS Generator
+  - [`SrsDataStoreProvider`](../../context/SRSGeneratorContext.tsx) — quản lý form sections (Project Overview, Functional Requirements, etc.)
+- **Local Component State**: useState cho UI state (modals, toggles, form inputs)
 
-- Sử dụng builder/DTO trong lib khi cần (để tạo model user giống pattern trong repo).
+### Server State (recommended)
 
-  
+- **TanStack Query** (cần setup) cho:
+  - Projects list
+  - User profile
+  - SRS documents
+  - Caching, revalidation, optimistic updates
 
-## Authentication & Protected routes
+### URL State
 
-- Route nhóm (auth) chứa các trang xác thực; các trang dashboard cần kiểm tra session/token trước khi render. Implement redirect/guard tại server-side hoặc client-side tùy case. Tham khảo docs/project-plan/fe-project-plan.md cho yêu cầu Auth.
+- Search params cho filters, tabs, document selection
+- Ví dụ: `?tabs=recent-documents&doc=123` trong [`srsgenerator/page.tsx`](../../app/dashboard/project/[id]/srsgenerator/page.tsx)
 
-  
+### Form State
 
-## Component & UI system
+- React Hook Form (recommended) hoặc controlled components
+- Validation với Zod schemas
 
-- Tập trung các primitives trong components/ui/. Các pages chỉ compose các primitives này và tránh logic fetch nặng trong UI component.
+## Authentication Flow
 
-- Layouts: header/sidebar/footer ở [components/layout/*] nhằm đảm bảo consistency.
+### Cookie-based Authentication
 
-  
+1. User login qua [`/api/login`](../../app/api/login/route.ts)
+2. Backend trả về access_token
+3. API route set cookie `access_token` (httpOnly)
+4. Middleware ([`middleware.ts`](../../middleware.ts)) kiểm tra cookie
+5. Protected routes redirect nếu không có token
+6. API routes đọc token từ cookie để gọi backend
 
-## Testing
+### Protected Routes
 
-- Test UI components với Testing Library nếu cần. Văn bản test cases tham khảo docs/test/dashboard/dashboard.md.
+- Middleware check authentication cho `/dashboard/*` routes
+- Redirect to `/login` nếu chưa đăng nhập
+- Server-side protection ngay từ đầu
 
-  
+## Component Architecture
 
-## Deployment / Dev workflow
+### Component Hierarchy
 
-- Local dev: docker-compose.yml phục vụ container dev; npm run dev (mapped port 3000).
+```bash
+app/layout.tsx (Root Providers)
+└── app/dashboard/layout.tsx (Dashboard Shell)
+    ├── components/layout/Sidebar.tsx
+    ├── components/layout/Header.tsx
+    └── app/dashboard/project/[id]/srsgenerator/page.tsx
+        ├── FileDataStoreProvider
+        └── SrsDataStoreProvider
+            ├── MainPage (Create new tab)
+            ├── Template (Template tab)
+            ├── RecentDocument (Recent tab)
+            └── DocumentViewer (View mode)
+```
 
-- Build & production: Next.js build pipeline; kiểm tra env vars (.env) trước deploy. Tham khảo README.md và next.config.ts.
+### Component Patterns
+
+- **Server Components**: mặc định cho pages và layouts
+- **Client Components**: `'use client'` cho interactive UI
+- **Composition**: compose từ primitives trong [`components/ui/`](../../components/ui/)
+- **Co-location**: feature-specific components trong `_components/` folders
+
+## API Integration
+
+### BFF Pattern
+
+Tất cả API calls đi qua [`app/api/*`](../../app/api/) routes:
+
+```typescript
+// Example: app/api/srs-generate/route.ts
+export async function POST(request: NextRequest) {
+    const access_token = (await cookies()).get('access_token')?.value
+    const formData = await request.formData();
+    
+    const response = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/srs/generate`, {
+        method: "POST",
+        headers: {
+            'Authorization': `Bearer ${access_token}`,
+        },
+        body: formData
+    })
+    
+    const data = await response.json()
+    return NextResponse.json(data);
+}
+```
+
+### Environment Variables
+
+- `BACKEND_DOMAIN`: URL của backend API
+- `NEXT_PUBLIC_*`: public variables accessible in browser
+
+## Testing Strategy
+
+### Test Documentation
+
+Tham khảo [`docs/test/`](../../docs/test/) cho test cases:
+
+- Dashboard: [`docs/test/dashboard/`](../../docs/test/dashboard/)
+- Login: [`docs/test/login/`](../../docs/test/login/)
+- Register: [`docs/test/register/`](../../docs/test/register/)
+- Forgot Password: [`docs/test/forget-password/`](../../docs/test/forget-password/)
+- User Profile: [`docs/test/user-profile/`](../../docs/test/user-profile/)
+
+### Recommended Testing Tools
+
+- **Unit Tests**: Jest + React Testing Library
+- **Integration Tests**: Playwright / Cypress
+- **Component Tests**: Storybook (optional)
+- **E2E Tests**: Playwright với test scenarios trong docs/test
+
+## Deployment & Dev Workflow
+
+### Local Development
+
+```bash
+# Install dependencies
+npm install
+
+# Run dev server
+npm run dev
+
+# Docker development
+docker-compose up
+```
+
+### Build & Production
+
+```bash
+# Build production bundle
+npm run build
+
+# Start production server
+npm start
+
+# Docker production build
+docker build -t ba-copilot-frontend .
+```
+
+### Environment Setup
+
+1. Copy [`.env.sample`](../../.env.sample) to `.env`
+2. Configure `BACKEND_DOMAIN` và các variables khác
+3. Ensure backend API is running
+4. Run `npm run dev`
+
+### Docker Deployment
+
+- [`Dockerfile`](../../Dockerfile) cho production image
+- [`docker-compose.yml`](../../docker-compose.yml) cho local development
+- Multi-stage build để optimize image size
+
+## Best Practices & Conventions
+
+### Code Organization
+
+- Feature-based structure trong `app/` routes
+- Shared components trong `components/`
+- Business logic trong `lib/`
+- Type definitions co-located hoặc trong `types/`
+
+### Naming Conventions
+
+- PascalCase cho components: `Button.tsx`, `UserProfile.tsx`
+- camelCase cho utilities: `formatDate.ts`, `validateEmail.ts`
+- kebab-case cho routes: `/forgot-password`, `/account-setting`
+
+### Performance
+
+- Server Components by default
+- Dynamic imports cho heavy components
+- Image optimization với next/image
+- Code splitting tự động với Next.js
+
+### Accessibility
+
+- Semantic HTML
+- ARIA labels where needed
+- Keyboard navigation support
+- Focus management
+
+## Next Steps & Recommendations
+
+1. **Setup TanStack Query** cho data fetching và caching
+2. **Implement Error Boundaries** cho error handling
+3. **Add Loading States** với Suspense boundaries
+4. **Setup Storybook** cho component documentation
+5. **Add E2E Tests** với Playwright
+6. **Optimize Bundle Size** với bundle analyzer
+7. **Setup CI/CD** với GitHub Actions hoặc GitLab CI
+8. **Add Performance Monitoring** với Vercel Analytics hoặc alternatives
+
+## References
+
+- Project Plan: [`docs/project-plan/fe-project-plan.md`](../../docs/project-plan/fe-project-plan.md)
+- SRS Generator Flow: [`docs/flow/srs_generator_flow.md`](../../docs/flow/srs_generator_flow.md)
+- PRD: [`docs/prd/product-requirements-document.md`](../../docs/prd/product-requirements-document.md)
+- Use Cases: [`docs/usecase/use-case-specification.md`](../../docs/usecase/use-case-specification.md)
+- Next.js Documentation: <https://nextjs.org/docs>
+- Shadcn UI: <https://ui.shadcn.com/>

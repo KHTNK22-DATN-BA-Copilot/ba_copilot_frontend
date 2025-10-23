@@ -1,10 +1,13 @@
 import { Metadata } from "next";
-import { SrsDataStoreProvider } from "@/context/SRSGeneratorContext";
+
 import MainPage from "@/app/dashboard/project/[id]/srsgenerator/_component/MainPage";
 import RecentDocument from "./_component/RecentDocment";
 import Link from "next/link";
 import Template from "./_component/Template";
 import DocumentViewer from "./_component/DocumentViewer";
+
+import { SrsDataStoreProvider } from "@/context/SRSGeneratorContext";
+import { FileDataStoreProvider } from "@/context/FileContext";
 
 export const metadata: Metadata = {
     title: "SRS Generator - BA Copilot",
@@ -23,7 +26,7 @@ export default async function SRSGeneratorPage({
     const doc = (await searchParams).doc;
     const { id } = await params;
     return (
-        <>
+        <FileDataStoreProvider>
             <SrsDataStoreProvider>
                 <div className="flex w-full flex-col sm:flex-row sm:w-fit p-1 rounded-2xl bg-gray-300 dark:bg-gray-700 justify-between mb-7">
                     <Link
@@ -67,6 +70,6 @@ export default async function SRSGeneratorPage({
                     <MainPage/>
                 )}
             </SrsDataStoreProvider>
-        </>
+        </FileDataStoreProvider>
     );
 }

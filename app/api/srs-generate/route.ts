@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
     const access_token = (await cookies()).get('access_token')?.value
     const formData = await request.formData();
+    console.log(formData)
 
     const SrsGenerateFetch = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/srs/generate`, {
         method: "POST",
@@ -17,5 +18,5 @@ export async function POST(request: NextRequest) {
     console.log(data)
     
 
-    return NextResponse.json(data);
+    return NextResponse.json(1);
 }
