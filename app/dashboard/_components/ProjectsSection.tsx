@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import ProjectMoreMenu from "./ProjectMoreMenu";
 import { redirect } from "next/navigation";
+import { getDay } from "@/lib/utils";
 
 type ProjectsSectionProps = {
     isOpenFilter: boolean;
@@ -12,16 +13,7 @@ type ProjectsSectionProps = {
     isLoading?: boolean;
     projects: any[];
 };
-function getDay(createdAt: string) {
-    const createdDate = new Date(createdAt);
-    const now = new Date();
 
-    const diffTime = Math.abs(now.getTime() - createdDate.getTime());
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-    const displayText = diffDays === 0 ? "Today" : `${diffDays} days ago`;
-    return displayText;
-}
 
 // Skeleton component for project cards
 const ProjectCardSkeleton = () => (

@@ -1,12 +1,45 @@
-'use client'
+"use client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download } from "lucide-react";
-import { redirect } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 
-export default function DocumentViewer({projectId}: {projectId: string}) {
+export default function DocumentViewer({ projectId }: { projectId: string }) {
+    const param = useSearchParams();
+    const document_id = param.get("doc") || "srs-document";
+    const [content, setContent] = useState("");
+
+    useEffect(() => {
+        const fetchDocument = async () => {
+            const res = await fetch(`/api/srs-generate/doc`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ project_id: projectId, document_id }),
+            });
+            if (!res.ok) {
+                throw new Error("Failed to fetch document");
+            }
+            const data = await res.json();
+            console.log(data);
+            setContent(data.content);
+        };
+        fetchDocument();
+    }, []);
+
     return (
         <div className="w-full">
-            <Button variant="ghost" className="mb-4 lg:mb-0 cursor-pointer" onClick={() => redirect(`/dashboard/project/${projectId}/srsgenerator?tabs=recent-documents`)}>
+            <Button
+                variant="ghost"
+                className="mb-4 lg:mb-0 cursor-pointer"
+                onClick={() =>
+                    redirect(
+                        `/dashboard/project/${projectId}/srsgenerator?tabs=recent-documents`
+                    )
+                }
+            >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">Back to documents</span>
                 <span className="sm:hidden">Back</span>
@@ -29,11 +62,13 @@ export default function DocumentViewer({projectId}: {projectId: string}) {
                                 </span>
                             </div>
                         </div>
-                    
+
                         <div className="flex items-center gap-2 shrink-0">
                             <Button className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm px-3 py-2">
                                 <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-                                <span className="hidden sm:block">Download</span>
+                                <span className="hidden sm:block">
+                                    Download
+                                </span>
                             </Button>
                         </div>
                     </div>
@@ -54,26 +89,7 @@ export default function DocumentViewer({projectId}: {projectId: string}) {
                         </div>
 
                         <div className="prose max-w-none">
-                            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
-                                1. Introduction
-                            </h1>
-
-                            <div className="text-gray-700 dark:text-gray-300 leading-relaxed space-y-3 sm:space-y-4 text-sm sm:text-base">
-                                <p>
-                                    This document outlines the Software
-                                    Requirements Specification (SRS) for the
-                                    E-Commerce Platform. The platform aims to
-                                    provide a comprehensive online shopping
-                                    experience with features including product
-                                    browsing, cart management, secure checkout,
-                                    and order tracking.
-                                </p>
-                                <p>
-                                    The system is designed to support both
-                                    customers and administrators, with distinct
-                                    interfaces for each user type.
-                                </p>
-                            </div>
+                            <ReactMarkdown>{content}</ReactMarkdown>
                         </div>
                     </div>
                 </div>
