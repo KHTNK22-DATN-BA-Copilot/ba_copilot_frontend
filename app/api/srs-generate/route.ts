@@ -15,7 +15,8 @@ export async function POST(request: NextRequest) {
     })
 
     const data = await SrsGenerateFetch.json()
-    console.log(data)
+    const document_id = data.document_id;
+    console.log(document_id)
     
 
     return NextResponse.json(1);

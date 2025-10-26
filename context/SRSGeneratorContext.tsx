@@ -30,8 +30,8 @@ type DataStoreType = {
     projectOverview: ProjectOverviewProps;
     handleProjectOverview: (data: ProjectOverviewProps) => void;
     
-    requirements: RequirementsProps[];
-    handleRequirements: (action: actionType) => void;
+    requirements: string;
+    handleRequirements: (value: string) => void;
     
     diagrams: diagramOptionsProps[];
     handleDiagrams: (id: string) => void;
@@ -61,23 +61,9 @@ export function SrsDataStoreProvider({
     };
 
     //-----------------------------Requirements State---------------------------------
-    const [requirements, setRequirements] = useState<RequirementsProps[]>([]);
-    const handleRequirements: DataStoreType["handleRequirements"] = (action) => {
-        switch (action.actionState) {
-            case "add":
-                setRequirements((prev) => [...prev, action.data]);
-                break;
-            case "update":
-                setRequirements((prev) =>
-                    prev.map((req) => (req.id === action.data.id ? action.data : req))
-                );
-                break;
-            case "delete":
-                setRequirements((prev) =>
-                    prev.filter((req) => req.id !== action.id)
-                );
-                break;
-        }
+    const [requirements, setRequirements] = useState<string>("");
+    const handleRequirements: DataStoreType["handleRequirements"] = (value) => {
+        setRequirements(value);
     };
     const [constrain, setConstrain] = useState<string>("");
     const handleConstrain: DataStoreType["handleConstrain"] = (value) => {

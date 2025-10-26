@@ -7,7 +7,7 @@ import Requirements from "./Requirements";
 import Diagrams from "./Diagrams";
 
 import { useSRSGeneratorDataStore } from "@/context/SRSGeneratorContext";
-import { useParams } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useFileDataStore } from "@/context/FileContext";
@@ -27,8 +27,8 @@ export default function SRSGeneratorPage() {
         formData.append("project_name", projectOverview.projectName as string);
 
         //update this description variable, know that in requirements is an array of object, each object include id name and type, I want to fill the name field
-        const requirementNames = requirements.map((req) => req.name).join("\n");
-        const description = `${projectOverview.description}\n\nRequirements:\n${requirementNames}\n\n`;
+
+        const description = `Project Description: ${projectOverview.description}\n\nRequirements:\n${requirements}\n\nConstraints & Assumptions:\n${constrain}`
         formData.append("description", description as string);
 
         files.forEach((f) => {
@@ -42,6 +42,7 @@ export default function SRSGeneratorPage() {
         const data = await response.json();
         console.log("Generated SRS Document: ", data);
         setLoading(false)
+        redirect(`/dashboard/project/${projectId}/srsgenerator?tabs=recent-documents&doc=${data.document_id}`);
     };
 
     return (
