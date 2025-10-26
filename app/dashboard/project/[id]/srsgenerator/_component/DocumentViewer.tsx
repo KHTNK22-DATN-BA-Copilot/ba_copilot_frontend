@@ -23,11 +23,35 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                 throw new Error("Failed to fetch document");
             }
             const data = await res.json();
-            console.log(data);
             setContent(data.content);
         };
         fetchDocument();
     }, []);
+
+    const DownloadFile = async () => {
+        try {
+            const res = await fetch(`/api/srs-generate/download`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ project_id: projectId, document_id })
+            });
+            if (!res.ok) {
+                throw new Error("Failed to download document");
+            }
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "document.md";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     return (
         <div className="w-full">
@@ -64,7 +88,7 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0">
-                            <Button className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm px-3 py-2">
+                            <Button className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm px-3 py-2" onClick={DownloadFile}>
                                 <Download className="h-3 w-3 sm:h-4 sm:w-4" />
                                 <span className="hidden sm:block">
                                     Download
