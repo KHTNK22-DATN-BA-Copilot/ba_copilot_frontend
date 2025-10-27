@@ -26,7 +26,11 @@ export default function WireframeGeneratorMain() {
     const [selectedDevice, setSelectedDevice] = useState<
         "desktop" | "tablet" | "mobile"
     >("desktop");
+    const [selectedPageType, setSelectedPageType] = useState<string>("dashboard");
     const [loading, setLoading] = useState(false);
+    const [name, setName] = useState<string>("");
+    const [description, setDescription] = useState<string>("");
+
 
     const pageTypes = [
         { id: "landing", name: "Landing Page" },
@@ -52,6 +56,12 @@ export default function WireframeGeneratorMain() {
     const handleGenerateWireframe = async () => {
         setLoading(true);
         // Add your generation logic here
+
+        const formData = new FormData();
+        formData.append("device_type", selectedDevice);
+        formData.append("page_type", selectedPageType);
+        formData.append("name", name);
+        formData.append("description", description); // You can add description here
         setTimeout(() => {
             setLoading(false);
         }, 2000);
@@ -224,6 +234,7 @@ export default function WireframeGeneratorMain() {
                                             key={type.id}
                                             value={type.id}
                                         >
+                                            setSelectedPageType(type.id)
                                             {type.name}
                                         </SelectItem>
                                     ))}
