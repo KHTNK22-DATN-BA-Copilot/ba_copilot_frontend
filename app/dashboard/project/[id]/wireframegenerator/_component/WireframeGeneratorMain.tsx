@@ -30,6 +30,9 @@ export default function WireframeGeneratorMain() {
     const [loading, setLoading] = useState(false);
     const [name, setName] = useState<string>("");
     const [description, setDescription] = useState<string>("");
+    const [components, setComponents] = useState<string>("");
+    const [colorScheme, setColorScheme] = useState<string>("light");
+    const [style, setStyle] = useState<string>("modern");
 
 
     const pageTypes = [
@@ -57,11 +60,19 @@ export default function WireframeGeneratorMain() {
         setLoading(true);
         // Add your generation logic here
 
-        const formData = new FormData();
-        formData.append("device_type", selectedDevice);
-        formData.append("page_type", selectedPageType);
-        formData.append("name", name);
-        formData.append("description", description); // You can add description here
+        const formData = new FormData()
+        formData.append("device_type", selectedDevice)
+        formData.append("page_type", selectedPageType)
+        formData.append("name", name)
+        formData.append("description", description)
+        formData.append("components", components)
+        formData.append("color_scheme", colorScheme)
+        formData.append("style", style)
+
+
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`)
+        }
         setTimeout(() => {
             setLoading(false);
         }, 2000);
@@ -149,14 +160,14 @@ export default function WireframeGeneratorMain() {
                         <button
                             onClick={() => setSelectedDevice("desktop")}
                             className={`p-6 border-2 rounded-lg transition-all group ${selectedDevice === "desktop"
-                                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400"
-                                    : "border-gray-200 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50 dark:hover:border-blue-400 dark:hover:bg-blue-900/20"
+                                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400"
+                                : "border-gray-200 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50 dark:hover:border-blue-400 dark:hover:bg-blue-900/20"
                                 }`}
                         >
                             <Monitor
                                 className={`w-8 h-8 mx-auto mb-2 ${selectedDevice === "desktop"
-                                        ? "text-blue-600 dark:text-blue-400"
-                                        : "text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400"
+                                    ? "text-blue-600 dark:text-blue-400"
+                                    : "text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400"
                                     }`}
                             />
                             <p className="text-sm text-center font-medium text-gray-900 dark:text-gray-100">
@@ -169,14 +180,14 @@ export default function WireframeGeneratorMain() {
                         <button
                             onClick={() => setSelectedDevice("tablet")}
                             className={`p-6 border-2 rounded-lg transition-all group ${selectedDevice === "tablet"
-                                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400"
-                                    : "border-gray-200 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50 dark:hover:border-blue-400 dark:hover:bg-blue-900/20"
+                                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400"
+                                : "border-gray-200 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50 dark:hover:border-blue-400 dark:hover:bg-blue-900/20"
                                 }`}
                         >
                             <Tablet
                                 className={`w-8 h-8 mx-auto mb-2 ${selectedDevice === "tablet"
-                                        ? "text-blue-600 dark:text-blue-400"
-                                        : "text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400"
+                                    ? "text-blue-600 dark:text-blue-400"
+                                    : "text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400"
                                     }`}
                             />
                             <p className="text-sm text-center font-medium text-gray-900 dark:text-gray-100">
@@ -189,14 +200,14 @@ export default function WireframeGeneratorMain() {
                         <button
                             onClick={() => setSelectedDevice("mobile")}
                             className={`p-6 border-2 rounded-lg transition-all group ${selectedDevice === "mobile"
-                                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400"
-                                    : "border-gray-200 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50 dark:hover:border-blue-400 dark:hover:bg-blue-900/20"
+                                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400"
+                                : "border-gray-200 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50 dark:hover:border-blue-400 dark:hover:bg-blue-900/20"
                                 }`}
                         >
                             <Smartphone
                                 className={`w-8 h-8 mx-auto mb-2 ${selectedDevice === "mobile"
-                                        ? "text-blue-600 dark:text-blue-400"
-                                        : "text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400"
+                                    ? "text-blue-600 dark:text-blue-400"
+                                    : "text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400"
                                     }`}
                             />
                             <p className="text-sm text-center font-medium text-gray-900 dark:text-gray-100">
@@ -223,29 +234,30 @@ export default function WireframeGeneratorMain() {
                     </div>
 
                     <div className="space-y-2">
-                            <Label htmlFor="page-type">Page Type</Label>
-                            <Select defaultValue="dashboard">
-                                <SelectTrigger id="page-type">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {pageTypes.map((type) => (
-                                        <SelectItem
-                                            key={type.id}
-                                            value={type.id}
-                                        >
-                                            setSelectedPageType(type.id)
-                                            {type.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+                        <Label htmlFor="page-type">Page Type</Label>
+                        <Select defaultValue="dashboard" value={selectedPageType} onValueChange={(value) => setSelectedPageType(value)}>
+                            <SelectTrigger id="page-type">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {pageTypes.map((type) => (
+                                    <SelectItem
+                                        key={type.id}
+                                        value={type.id}
+                                    >
+                                        {type.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
 
                     <div className="space-y-2">
                         <Label htmlFor="wireframe-name">Wireframe Name</Label>
                         <Input
                             id="wireframe-name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
                             placeholder="E.g., Admin Dashboard"
                             className="dark:bg-gray-700 dark:border-gray-600"
                         />
@@ -272,6 +284,8 @@ export default function WireframeGeneratorMain() {
                             </Label>
                             <textarea
                                 id="description"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
                                 className="w-full min-h-32 p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 resize-none text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                                 placeholder="E.g., Create a dashboard with a sidebar navigation, top header with search bar, cards showing key metrics, and a data table below..."
                             />
@@ -283,6 +297,8 @@ export default function WireframeGeneratorMain() {
                             </Label>
                             <Input
                                 id="components"
+                                value={components}
+                                onChange={(e) => setComponents(e.target.value)}
                                 placeholder="E.g., navigation, search, cards, table, charts"
                                 className="dark:bg-gray-700 dark:border-gray-600"
                             />
@@ -293,7 +309,7 @@ export default function WireframeGeneratorMain() {
                                 <Label htmlFor="color-scheme">
                                     Color Scheme
                                 </Label>
-                                <Select defaultValue="light">
+                                <Select defaultValue="light" value={colorScheme} onValueChange={(v) => setColorScheme(v)}>
                                     <SelectTrigger id="color-scheme">
                                         <SelectValue />
                                     </SelectTrigger>
@@ -312,7 +328,7 @@ export default function WireframeGeneratorMain() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="style">Style</Label>
-                                <Select defaultValue="modern">
+                                <Select defaultValue="modern" value={style} onValueChange={(v) => setStyle(v)}>
                                     <SelectTrigger id="style">
                                         <SelectValue />
                                     </SelectTrigger>
