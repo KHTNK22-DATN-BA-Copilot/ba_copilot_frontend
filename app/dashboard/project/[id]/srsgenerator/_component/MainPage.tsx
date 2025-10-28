@@ -42,7 +42,7 @@ export default function SRSGeneratorPage() {
         const data = await response.json();
         console.log("Generated SRS Document: ", data);
         setLoading(false)
-        redirect(`/dashboard/project/${projectId}/srsgenerator?tabs=recent-documents&doc=${data.document_id}`);
+        redirect(`/dashboard/project/${projectId}/srsgenerator?tabs=recent-documents&doc=${data}`);
     };
 
     return (
