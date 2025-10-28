@@ -19,5 +19,5 @@ export async function POST(request: NextRequest) {
     console.log(document_id)
     
 
-    return NextResponse.json(1);
+    return NextResponse.json(document_id);
 }
