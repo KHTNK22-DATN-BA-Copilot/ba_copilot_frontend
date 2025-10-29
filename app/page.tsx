@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 
 export default async function Home() {
-    const refreshToken = (await cookies()).get("refresh_token")?.value; 
+    const refreshToken = (await cookies()).get("refresh_token")?.value;
 
     return (
         <div className="min-h-screen ">
@@ -34,10 +34,15 @@ export default async function Home() {
                         <div className="space-y-6 max-w-4xl mx-auto">
                             <p className="text-2xl sm:text-3xl md:text-4xl font-semibold text-slate-700 dark:text-slate-200 leading-tight">
                                 Welcome to the future of
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-blue-600"> Business Analysis</span>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-blue-600">
+                                    {" "}
+                                    Business Analysis
+                                </span>
                             </p>
                             <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-                                Harness the power of AI to revolutionize your workflow, enhance productivity, and unlock deeper insights than ever before.
+                                Harness the power of AI to revolutionize your
+                                workflow, enhance productivity, and unlock
+                                deeper insights than ever before.
                             </p>
                         </div>
                     </div>
@@ -52,24 +57,34 @@ export default async function Home() {
                             <div className="absolute inset-0 bg-gradient-to-r from-violet-700 via-blue-700 to-cyan-600 opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                             <span className="relative z-10 flex items-center justify-center gap-2">
                                 {refreshToken ? "Dashboard" : "Get Started"}
-                                <ArrowRight/>
+                                <ArrowRight />
                             </span>
                         </Link>
 
-                        <Link
-                            href="/login"
-                            className="group px-10 py-5 text-lg font-bold bg-white/10 dark:bg-slate-800/50 backdrop-blur-xl border-2 border-slate-200 dark:border-slate-600 hover:border-violet-400 dark:hover:border-violet-400 text-slate-700 dark:text-slate-200 rounded-2xl shadow-xl transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
-                        >
-                            <span className="flex items-center justify-center gap-2">
-                                Sign In
-                                <svg className="w-5 h-5 transform group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                                </svg>
-                            </span>
-                        </Link>
+                        {refreshToken ? (
+                            <Link
+                                href="/login"
+                                className="group px-10 py-5 text-lg font-bold bg-white/10 dark:bg-slate-800/50 backdrop-blur-xl border-2 border-slate-200 dark:border-slate-600 hover:border-violet-400 dark:hover:border-violet-400 text-slate-700 dark:text-slate-200 rounded-2xl shadow-xl transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
+                            >
+                                <span className="flex items-center justify-center gap-2">
+                                    Sign In
+                                    <svg
+                                        className="w-5 h-5 transform group-hover:rotate-12 transition-transform duration-300"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                                        />
+                                    </svg>
+                                </span>
+                            </Link>
+                        ): (null)}
                     </div>
-
-
 
                     {/* Bottom CTA */}
                     <div className="pt-16 pb-8">

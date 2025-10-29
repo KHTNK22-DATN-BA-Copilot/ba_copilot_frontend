@@ -9,7 +9,6 @@ export const metadata: Metadata = {
 
 export default async function DashboardPage() {
     const projects = await getAllProjects(); 
-    console.log('Fetched projects:', projects);
     return (
         <MainContent projects={projects} />
     );
