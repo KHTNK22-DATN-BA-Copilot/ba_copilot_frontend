@@ -56,10 +56,6 @@ export function AIGenerationForm() {
                                 </Select>
                             </div>
                         </div>
-
-                        <Button className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600">
-                            Generate Diagram
-                        </Button>
                     </div>
                 </div>
             </div>

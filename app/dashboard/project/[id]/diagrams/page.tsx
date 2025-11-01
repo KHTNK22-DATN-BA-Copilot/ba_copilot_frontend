@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { PageHeader } from './_components/PageHeader';
@@ -7,8 +8,11 @@ import { CreateNewDiagramSection } from './_components/CreateNewDiagramSection';
 import { DiagramDetail } from './_components/DiagramDetail';
 import { RecentDiagramsList } from './_components/RecentDiagramsList';
 import { useDiagramManager } from './_lib/hooks';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 export default function ProjectDiagramsPage() {
+    const [loading, setLoading] = useState(false);
     const params = useParams();
     const searchParams = useSearchParams();
     const projectId = params.id;
@@ -20,6 +24,11 @@ export default function ProjectDiagramsPage() {
         selectDiagram,
         deselectDiagram,
     } = useDiagramManager();
+
+    const handleGenerateDiagram = () => {
+        // Logic to generate a new diagram
+        console.log('Generate Diagram button clicked');
+    }
 
     return (
         <main className="flex-1 overflow-auto">
@@ -66,7 +75,26 @@ export default function ProjectDiagramsPage() {
                         />
                     </div>
                 ) : (
-                    <CreateNewDiagramSection />
+                    <div>
+                        <CreateNewDiagramSection />
+                        {/* Generate Button - Only shows on Create New tab */}
+                        <div className="w-full flex justify-center mt-8">
+                            <Button
+                                className="mx-auto cursor-pointer sm:w-auto inline-flex items-center justify-center px-6 py-3 text-sm font-medium rounded-lg transition-colors duration-200"
+                                onClick={handleGenerateDiagram}
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <div className="animate-spin h-5 w-5 border-2 border-white dark:border-gray-700 border-t-transparent rounded-full"></div>
+                                ) : (
+                                    <>
+                                        <Plus className="text-white dark:text-black" />
+                                        Generate Diagram
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
                 )}
             </div>
         </main>
