@@ -24,7 +24,7 @@ export function DiagramDetail({ diagram, onBack }: DiagramDetailProps) {
             {/* Diagram Header */}
             <div className="col-span-12">
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8 transition-colors duration-300">
-                    <div className="flex items-start justify-between flex-col sm:flex-row gap-4">
+                    <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
                         <div className="flex items-start gap-4">
                             <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
                                 <Workflow className="w-6 h-6 text-blue-600 dark:text-blue-400" />

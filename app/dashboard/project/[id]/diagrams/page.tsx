@@ -10,6 +10,7 @@ import { RecentDiagramsList } from './_components/RecentDiagramsList';
 import { useDiagramManager } from './_lib/hooks';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import RecentDiagramsFilter from './_components/RecentDiagramsFilter';
 
 export default function ProjectDiagramsPage() {
     const [loading, setLoading] = useState(false);
@@ -68,7 +69,7 @@ export default function ProjectDiagramsPage() {
                     />
                 ) : isRecentTab ? (
                     <div className="mb-12">
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Recent Diagrams</h2>
+                        <RecentDiagramsFilter />
                         <RecentDiagramsList
                             diagrams={diagrams}
                             onSelectDiagram={selectDiagram}
