@@ -18,7 +18,6 @@ export default function Sidebar({ isDarkMode, isOpen = false, onClose, isMobile 
     const { id } = useParams()
     const [isCollapsed, setIsCollapsed] = useState(false);
 
-    console.log("params", id)
 
     // Generate navigation items with dynamic project ID
     const getNavigationItems = () => [

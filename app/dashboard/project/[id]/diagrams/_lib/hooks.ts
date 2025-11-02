@@ -9,14 +9,15 @@ export interface UseDiagramManagerReturn {
     deselectDiagram: () => void;
     addDiagram: (diagram: Diagram) => void;
     deleteDiagram: (id: number) => void;
+    setDiagrams: (newDiagrams: Diagram[]) => void;
 }
 
 /**
  * Custom hook for managing diagram state and operations
  * Handles selection, adding, and deleting diagrams
  */
-export function useDiagramManager(): UseDiagramManagerReturn {
-    const [diagrams, setDiagrams] = useState<Diagram[]>(SAMPLE_DIAGRAMS);
+export function useDiagramManager(diagramList: Diagram[] = []): UseDiagramManagerReturn {
+    const [diagrams, setDiagrams] = useState<Diagram[]>(diagramList);
     const [selectedDiagramId, setSelectedDiagramId] = useState<number | null>(null);
 
     const selectedDiagram = diagrams.find(d => d.id === selectedDiagramId);
@@ -42,6 +43,7 @@ export function useDiagramManager(): UseDiagramManagerReturn {
 
     return {
         diagrams,
+        setDiagrams,
         selectedDiagramId,
         selectedDiagram,
         selectDiagram,

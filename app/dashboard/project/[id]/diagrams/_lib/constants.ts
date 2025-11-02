@@ -15,6 +15,11 @@ export interface Diagram {
     markdown: string;
 }
 
+export type OverviewType = {
+    title: string;
+    description: string;
+}
+
 export const DIAGRAM_TYPES: DiagramType[] = [
     { id: "usecase", name: "Usecase Diagram", icon: Workflow },
     { id: "class", name: "Class Diagram", icon: Database },

@@ -61,7 +61,7 @@ export default async function Home() {
                             </span>
                         </Link>
 
-                        {refreshToken ? (
+                        {!refreshToken ? (
                             <Link
                                 href="/login"
                                 className="group px-10 py-5 text-lg font-bold bg-white/10 dark:bg-slate-800/50 backdrop-blur-xl border-2 border-slate-200 dark:border-slate-600 hover:border-violet-400 dark:hover:border-violet-400 text-slate-700 dark:text-slate-200 rounded-2xl shadow-xl transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
