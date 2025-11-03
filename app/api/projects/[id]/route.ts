@@ -136,7 +136,6 @@ export async function GET(
         const response = await res.json();
 
         if (res.ok) {
-            console.log("Project updated successfully:", response);
 
             return NextResponse.json(response, { status: 200 });
         } else {
