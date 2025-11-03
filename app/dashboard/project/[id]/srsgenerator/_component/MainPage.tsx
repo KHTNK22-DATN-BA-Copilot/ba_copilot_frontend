@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 
-import FileUpload from "./FileUpload";
+import FileUpload from "@/components/file/FileUpload";
 import ProjectOverview from "./ProjectOverview";
 import Requirements from "./Requirements";
 import Diagrams from "./Diagrams";
@@ -47,9 +47,9 @@ export default function SRSGeneratorPage() {
 
     return (
         <div className="col-span-12">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8 mb-8 transition-colors duration-300">
-                <FileUpload />
-            </div>
+                
+            <FileUpload description="Upload any documents related to your project for AI analysis"/>
+            
 
             <div className="col-span-12">
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8 mb-8 transition-colors duration-300">

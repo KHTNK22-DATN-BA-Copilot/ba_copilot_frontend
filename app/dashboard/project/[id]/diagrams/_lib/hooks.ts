@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { Diagram, SAMPLE_DIAGRAMS } from './constants';
+import { Diagram, DiagramType, SAMPLE_DIAGRAMS } from './constants';
+import { DIAGRAM_TYPES } from './constants';
 
 export interface UseDiagramManagerReturn {
     diagrams: Diagram[];
@@ -9,14 +10,17 @@ export interface UseDiagramManagerReturn {
     deselectDiagram: () => void;
     addDiagram: (diagram: Diagram) => void;
     deleteDiagram: (id: number) => void;
+    setDiagrams: (newDiagrams: Diagram[]) => void;
+    diagramTypes: string;
+    setDiagaramTypes: (typeId: string) => void;
 }
 
 /**
  * Custom hook for managing diagram state and operations
  * Handles selection, adding, and deleting diagrams
  */
-export function useDiagramManager(): UseDiagramManagerReturn {
-    const [diagrams, setDiagrams] = useState<Diagram[]>(SAMPLE_DIAGRAMS);
+export function useDiagramManager(diagramList: Diagram[] = []): UseDiagramManagerReturn {
+    const [diagrams, setDiagrams] = useState<Diagram[]>(diagramList);
     const [selectedDiagramId, setSelectedDiagramId] = useState<number | null>(null);
 
     const selectedDiagram = diagrams.find(d => d.id === selectedDiagramId);
@@ -40,13 +44,19 @@ export function useDiagramManager(): UseDiagramManagerReturn {
         }
     }, [selectedDiagramId, deselectDiagram]);
 
+    const [diagramTypes, setDiagaramTypes] = useState<string>("usecase");
+
     return {
         diagrams,
+        setDiagrams,
         selectedDiagramId,
         selectedDiagram,
         selectDiagram,
         deselectDiagram,
         addDiagram,
         deleteDiagram,
+        diagramTypes,
+        setDiagaramTypes
     };
 }
+
