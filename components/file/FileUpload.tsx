@@ -26,7 +26,7 @@ export default function FileUpload({description}: {description: string}) {
         if (dropped.length > 0) {
             // filter valid files same as before
             const validFiles = Array.from(dropped).filter(file => {
-                const validTypes = ['.pdf', '.doc', '.docx', '.txt'];
+                const validTypes = ['.pdf', '.doc', '.docx', '.txt', '.md'];
                 const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
                 return validTypes.includes(fileExtension) && file.size <= 10 * 1024 * 1024; // 10MB
             });
@@ -43,7 +43,7 @@ export default function FileUpload({description}: {description: string}) {
         if (filesList && filesList.length > 0) {
             // filter valid files same as before
             const validFiles = Array.from(filesList).filter(file => {
-                const validTypes = ['.pdf', '.doc', '.docx', '.txt'];
+                const validTypes = ['.pdf', '.doc', '.docx', '.txt', '.md'];
                 const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
                 return validTypes.includes(fileExtension) && file.size <= 10 * 1024 * 1024; // 10MB
             });
@@ -92,7 +92,7 @@ export default function FileUpload({description}: {description: string}) {
                         ref={fileInputRef}
                         type="file"
                         className="hidden"
-                        accept=".pdf,.doc,.docx,.txt"
+                        accept=".pdf,.doc,.docx,.txt, .md"
                         multiple
                         onChange={handleFileInputChange}
                     />

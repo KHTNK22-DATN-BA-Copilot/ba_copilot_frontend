@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { redirect, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { PageHeader } from "./_components/PageHeader";
 import { CreateNewDiagramSection } from "./_components/CreateNewDiagramSection";
@@ -13,25 +13,47 @@ import { Plus } from "lucide-react";
 import RecentDiagramsFilter from "./_components/RecentDiagramsFilter";
 
 import { useFileDataStore } from "@/context/FileContext";
-import { Diagram, OverviewType } from "@/app/dashboard/project/[id]/diagrams/_lib/constants";
+import {
+    Diagram,
+    OverviewType,
+} from "@/app/dashboard/project/[id]/diagrams/_lib/constants";
 import { getAllDiagrams } from "@/lib/projects";
+import { DIAGRAM_TYPES } from "@/app/dashboard/project/[id]/diagrams/_lib/constants";
 
 export default function ProjectDiagramsPage() {
-    const [loading, setLoading] = useState(false);
-    const [overview, setOverview] = useState<OverviewType>({ title: "", description: "" });
+    //Parameters
     const params = useParams();
-    const searchParams = useSearchParams();
     const projectId = params.id;
+    const searchParams = useSearchParams();
+
+    //State
+    const [loading, setLoading] = useState(false);
+    const [overview, setOverview] = useState<OverviewType>({
+        title: "",
+        description: "",
+    });
+
+    //Check tab
     const isRecentTab = searchParams.get("tabs") === "recent";
 
-    const { diagrams, selectedDiagram, selectDiagram, deselectDiagram, setDiagrams } =
-        useDiagramManager();
+    //section hooks
+    const {
+        diagrams,
+        selectedDiagram,
+        selectDiagram,
+        deselectDiagram,
+        setDiagrams,
+        diagramTypes,
+        setDiagaramTypes,
+    } = useDiagramManager();
     const { files } = useFileDataStore();
 
     useEffect(() => {
         async function fetchData() {
             try {
-                const data: Diagram[] = await getAllDiagrams(projectId);
+                const data: Diagram[] = await getAllDiagrams(
+                    projectId as string
+                );
                 setDiagrams(data);
             } catch (error) {
                 console.error(error);
@@ -44,13 +66,16 @@ export default function ProjectDiagramsPage() {
 
     const handleGenerateDiagram = async () => {
         // Logic to generate a new diagram
-        console.log("Generate Diagram button clicked");
+
+        //filter lai loai diagram
+        const diagramTypesChoose = DIAGRAM_TYPES.filter((type) => type.id === diagramTypes)[0].id as string
+    
         const formData = new FormData();
 
         formData.append("project_id", projectId as string);
-        formData.append("style", "modern");
         formData.append("description", overview.description);
         formData.append("title", overview.title);
+        formData.append("diagram_type", diagramTypesChoose);
 
         files.forEach((f) => {
             formData.append("files", f.file);
@@ -61,6 +86,7 @@ export default function ProjectDiagramsPage() {
         });
         const data = await res.json();
         console.log("Diagram generation response:", data)
+        redirect(`/dashboard/project/${projectId}/diagrams?tabs=recent`)
     };
 
     return (
@@ -111,7 +137,12 @@ export default function ProjectDiagramsPage() {
                     </div>
                 ) : (
                     <div>
-                        <CreateNewDiagramSection overview={overview} setOverview={setOverview} />
+                        <CreateNewDiagramSection
+                            overview={overview}
+                            setOverview={setOverview}
+                            diagramTypes={diagramTypes}
+                            setDiagramTypes={setDiagaramTypes}
+                        />
                         {/* Generate Button - Only shows on Create New tab */}
                         <div className="w-full flex justify-center mt-8">
                             <Button

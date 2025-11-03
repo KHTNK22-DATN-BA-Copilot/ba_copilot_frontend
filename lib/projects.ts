@@ -32,7 +32,6 @@ export async function getAllDiagrams(projectId: any): Promise<Diagram[]> {
         throw new Error("Failed to fetch diagrams");
     }   
     const data = await res.json();
-    console.log("Diagrams data:", data);
 
     const diagrams: Diagram[] = data.diagrams.map((diagram: any) => ({
         id: diagram.diagram_id,

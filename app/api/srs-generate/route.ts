@@ -19,3 +19,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(document_id);
 }
+
+export async function PUT(request: NextRequest) {
+    const access_token = (await cookies()).get('access_token')?.value
+    if (!access_token) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const reqBody = await request.json();
+    return NextResponse.json({ message: "PUT method not implemented yet" });
+}

@@ -8,9 +8,8 @@ export async function POST(req: NextRequest) {
     }
 
     const formData = await req.formData();
-    console.log("Received form data:", formData);
     const res = await fetch(
-        `${process.env.BACKEND_DOMAIN}/api/v1/diagram/usecase/generate`,
+        `${process.env.BACKEND_DOMAIN}/api/v1/diagram/generate`,
         {
             method: "POST",
             headers: {

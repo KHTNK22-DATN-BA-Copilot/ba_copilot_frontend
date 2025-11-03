@@ -13,6 +13,7 @@ import { useSRS } from "@/hooks/use-srs-doc";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { Textarea } from "@/components/ui/textarea";
+import { ca } from "zod/v4/locales";
 
 export default function DocumentViewer({ projectId }: { projectId: string }) {
     const param = useSearchParams();
@@ -48,6 +49,23 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
             console.error(error);
         }
     };
+
+    const updateDocument = async () => {
+        try {
+            const res = await fetch(`/api/srs-generate`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ project_id: projectId, document_id, content }),
+            });
+            const data = await res.json();
+            console.log("Document updated:", data); 
+        }
+        catch (error) {
+            console.error(error);
+        }
+    }
 
     return (
         <div className="w-full">
@@ -114,9 +132,11 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                                         variant="default"
                                         onClick={() => {
                                             // Add save functionality here
-                                            console.log('Saving content:', content);
+                                            updateDocument();
                                         }}
                                         className="w-fit"
+                                        disabled={content.trim() === data?.content.trim()}
+                                        
                                     >
                                         Save Changes
                                     </Button>

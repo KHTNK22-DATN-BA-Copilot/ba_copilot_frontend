@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { Diagram, SAMPLE_DIAGRAMS } from './constants';
+import { Diagram, DiagramType, SAMPLE_DIAGRAMS } from './constants';
+import { DIAGRAM_TYPES } from './constants';
 
 export interface UseDiagramManagerReturn {
     diagrams: Diagram[];
@@ -10,6 +11,8 @@ export interface UseDiagramManagerReturn {
     addDiagram: (diagram: Diagram) => void;
     deleteDiagram: (id: number) => void;
     setDiagrams: (newDiagrams: Diagram[]) => void;
+    diagramTypes: string;
+    setDiagaramTypes: (typeId: string) => void;
 }
 
 /**
@@ -41,6 +44,8 @@ export function useDiagramManager(diagramList: Diagram[] = []): UseDiagramManage
         }
     }, [selectedDiagramId, deselectDiagram]);
 
+    const [diagramTypes, setDiagaramTypes] = useState<string>("usecase");
+
     return {
         diagrams,
         setDiagrams,
@@ -50,5 +55,8 @@ export function useDiagramManager(diagramList: Diagram[] = []): UseDiagramManage
         deselectDiagram,
         addDiagram,
         deleteDiagram,
+        diagramTypes,
+        setDiagaramTypes
     };
 }
+
