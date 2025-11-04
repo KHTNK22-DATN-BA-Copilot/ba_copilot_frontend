@@ -101,7 +101,7 @@ export default function ProjectDiagramsPage() {
             // Hide dialog and redirect
             setShowGeneratingDialog(false);
             setLoading(false);
-            redirect(`/dashboard/project/${projectId}/diagrams?tabs=recent`);
+            redirect(`/dashboard/project/${projectId}/diagrams?tabs=recent-documents&doc=${data}`);
         } catch (error) {
             console.error("Error generating diagram:", error);
             setShowGeneratingDialog(false);

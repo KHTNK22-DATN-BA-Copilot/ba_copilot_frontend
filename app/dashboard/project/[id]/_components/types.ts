@@ -9,6 +9,7 @@ export interface Project {
     teamMembers: number;
     completedTasks: number;
     totalTasks: number;
+    priority?: 'low' | 'medium' | 'high';
 }
 
 export interface Activity {
