@@ -13,7 +13,7 @@ import { useSRS } from "@/hooks/use-srs-doc";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { Textarea } from "@/components/ui/textarea";
-import { ca } from "zod/v4/locales";
+import ChatBot from "@/components/chat-bot/ChatBot";
 
 export default function DocumentViewer({ projectId }: { projectId: string }) {
     const param = useSearchParams();
@@ -21,6 +21,7 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
     const { data, error, isLoading } = useSRS(projectId, document_id);
     const [content, setContent] = useState("");
     const [edit, setEdit] = useState(false);
+
     useEffect(() => {
         setContent(data?.content);
     }, [data?.content]);
@@ -57,25 +58,26 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ project_id: projectId, document_id, content }),
+                body: JSON.stringify({
+                    project_id: projectId,
+                    document_id,
+                    content,
+                }),
             });
             const data = await res.json();
-            console.log("Document updated:", data); 
-        }
-        catch (error) {
+            console.log("Document updated:", data);
+        } catch (error) {
             console.error(error);
         }
-    }
+    };
 
     return (
-        <div className="w-full">
+        <div className="w-full relative">
             <Button
                 variant="ghost"
                 className="mb-4 lg:mb-0 cursor-pointer"
                 onClick={() =>
-                    redirect(
-                        `/dashboard/project/${projectId}/srsgenerator?tabs=recent-documents`
-                    )
+                    redirect(`/dashboard/project/${projectId}/srsgenerator`)
                 }
             >
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -117,26 +119,23 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1">
-
-                {/* Split View Mode */}
+            <div className="flex-1 relative">
                 <div className="p-2 sm:p-4 lg:p-6">
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 lg:p-8">
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-2">
-                            <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">
-                                
-                            </h2>
+                            <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white"></h2>
                             <div className="flex items-center gap-2">
                                 {edit && (
                                     <Button
                                         variant="default"
                                         onClick={() => {
-                                            // Add save functionality here
                                             updateDocument();
                                         }}
                                         className="w-fit"
-                                        disabled={content.trim() === data?.content.trim()}
-                                        
+                                        disabled={
+                                            content.trim() ===
+                                            data?.content.trim()
+                                        }
                                     >
                                         Save Changes
                                     </Button>
@@ -153,7 +152,6 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
 
                         {edit ? (
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                {/* Editor Panel */}
                                 <div className="flex flex-col">
                                     <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Editor
@@ -168,7 +166,6 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                                     />
                                 </div>
 
-                                {/* Preview Panel */}
                                 <div className="flex flex-col">
                                     <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Live Preview
@@ -188,23 +185,20 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                                 </div>
                             </div>
                         ) : (
-                            <>
-
-                                <div className={`markdown-body`}>
-                                    <ReactMarkdown
-                                        remarkPlugins={[
-                                            remarkGfm,
-                                            remarkBreaks,
-                                        ]}
-                                    >
-                                        {data?.content || ""}
-                                    </ReactMarkdown>
-                                </div>
-                            </>
+                            <div className="markdown-body">
+                                <ReactMarkdown
+                                    remarkPlugins={[remarkGfm, remarkBreaks]}
+                                >
+                                    {data?.content || ""}
+                                </ReactMarkdown>
+                            </div>
                         )}
                     </div>
                 </div>
             </div>
+
+            {/* Chatbot Icon */}
+            <ChatBot assisstanceName="Document AI Assistant"/>
         </div>
     );
 }

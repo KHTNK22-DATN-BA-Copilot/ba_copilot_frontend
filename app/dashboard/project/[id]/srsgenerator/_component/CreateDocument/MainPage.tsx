@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import FileUpload from "@/components/file/FileUpload";
 import ProjectOverview from "./ProjectOverview";
 import Requirements from "./Requirements";
-import Diagrams from "./Diagrams";
 
 import { useSRSGeneratorDataStore } from "@/context/SRSGeneratorContext";
 import { redirect, useParams } from "next/navigation";

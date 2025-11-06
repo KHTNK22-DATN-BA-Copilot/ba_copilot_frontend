@@ -11,6 +11,7 @@ import { useDiagramManager } from "./_lib/hooks";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import RecentDiagramsFilter from "./_components/RecentDiagramsFilter";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useFileDataStore } from "@/context/FileContext";
 import {
@@ -68,8 +69,10 @@ export default function ProjectDiagramsPage() {
         // Logic to generate a new diagram
 
         //filter lai loai diagram
-        const diagramTypesChoose = DIAGRAM_TYPES.filter((type) => type.id === diagramTypes)[0].id as string
-    
+        const diagramTypesChoose = DIAGRAM_TYPES.filter(
+            (type) => type.id === diagramTypes
+        )[0].id as string;
+
         const formData = new FormData();
 
         formData.append("project_id", projectId as string);
@@ -80,13 +83,13 @@ export default function ProjectDiagramsPage() {
         files.forEach((f) => {
             formData.append("files", f.file);
         });
-        const res = await fetch('/api/diagram', {
-            method: 'POST',
+        const res = await fetch("/api/diagram", {
+            method: "POST",
             body: formData,
         });
         const data = await res.json();
-        console.log("Diagram generation response:", data)
-        redirect(`/dashboard/project/${projectId}/diagrams?tabs=recent`)
+        console.log("Diagram generation response:", data);
+        redirect(`/dashboard/project/${projectId}/diagrams?tabs=recent`);
     };
 
     return (
@@ -95,72 +98,58 @@ export default function ProjectDiagramsPage() {
                 {/* Page Header */}
                 <PageHeader projectId={projectId} />
 
-                {/* Tab Navigation - Hidden when diagram is selected */}
-                {!selectedDiagram && (
-                    <div className="flex w-full flex-col sm:flex-row sm:w-fit p-1 rounded-2xl bg-gray-300 dark:bg-gray-700 justify-between mb-7">
-                        <Link
-                            href={`/dashboard/project/${projectId}/diagrams`}
-                            className={`p-2 rounded-2xl font-semibold text-sm ${
-                                !isRecentTab
-                                    ? "bg-white dark:bg-gray-800 dark:text-white"
-                                    : "dark:text-gray-300"
-                            }`}
-                        >
-                            Create New
-                        </Link>
-                        <Link
-                            href={`/dashboard/project/${projectId}/diagrams?tabs=recent`}
-                            className={`p-2 rounded-2xl font-semibold text-sm ${
-                                isRecentTab
-                                    ? "bg-white dark:bg-gray-800 dark:text-white"
-                                    : "dark:text-gray-300"
-                            }`}
-                        >
-                            Recent Diagrams
-                        </Link>
-                    </div>
-                )}
-
-                {/* Content */}
-                {selectedDiagram ? (
+                {!selectedDiagram ? (
+                    <Tabs defaultValue="main-page">
+                        <TabsList>
+                            <TabsTrigger value="main-page">
+                                Create New
+                            </TabsTrigger>
+                            <TabsTrigger value="recent">
+                                Recent Diagrams
+                            </TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="main-page" asChild>
+                            <div>
+                                <CreateNewDiagramSection
+                                    overview={overview}
+                                    setOverview={setOverview}
+                                    diagramTypes={diagramTypes}
+                                    setDiagramTypes={setDiagaramTypes}
+                                />
+                                {/* Generate Button - Only shows on Create New tab */}
+                                <div className="w-full flex justify-center mt-8">
+                                    <Button
+                                        className="mx-auto cursor-pointer sm:w-auto inline-flex items-center justify-center px-6 py-3 text-sm font-medium rounded-lg transition-colors duration-200"
+                                        onClick={handleGenerateDiagram}
+                                        disabled={loading}
+                                    >
+                                        {loading ? (
+                                            <div className="animate-spin h-5 w-5 border-2 border-white dark:border-gray-700 border-t-transparent rounded-full"></div>
+                                        ) : (
+                                            <>
+                                                <Plus className="text-white dark:text-black" />
+                                                Generate Diagram
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                            </div>
+                        </TabsContent>
+                        <TabsContent value="recent" asChild>
+                            <div>
+                                <RecentDiagramsFilter />
+                                <RecentDiagramsList
+                                    diagrams={diagrams}
+                                    onSelectDiagram={selectDiagram}
+                                />
+                            </div>
+                        </TabsContent>
+                    </Tabs>
+                ) : (
                     <DiagramDetail
                         diagram={selectedDiagram}
                         onBack={deselectDiagram}
                     />
-                ) : isRecentTab ? (
-                    <div className="mb-12">
-                        <RecentDiagramsFilter />
-                        <RecentDiagramsList
-                            diagrams={diagrams}
-                            onSelectDiagram={selectDiagram}
-                        />
-                    </div>
-                ) : (
-                    <div>
-                        <CreateNewDiagramSection
-                            overview={overview}
-                            setOverview={setOverview}
-                            diagramTypes={diagramTypes}
-                            setDiagramTypes={setDiagaramTypes}
-                        />
-                        {/* Generate Button - Only shows on Create New tab */}
-                        <div className="w-full flex justify-center mt-8">
-                            <Button
-                                className="mx-auto cursor-pointer sm:w-auto inline-flex items-center justify-center px-6 py-3 text-sm font-medium rounded-lg transition-colors duration-200"
-                                onClick={handleGenerateDiagram}
-                                disabled={loading}
-                            >
-                                {loading ? (
-                                    <div className="animate-spin h-5 w-5 border-2 border-white dark:border-gray-700 border-t-transparent rounded-full"></div>
-                                ) : (
-                                    <>
-                                        <Plus className="text-white dark:text-black" />
-                                        Generate Diagram
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </div>
                 )}
             </div>
         </main>
