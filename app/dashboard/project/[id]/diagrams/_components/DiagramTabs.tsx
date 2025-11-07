@@ -1,4 +1,3 @@
-// ...existing code...
 "use client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,7 +20,9 @@ const stripYamlFrontMatter = (s: string) => {
     const withoutComments = s.replace(/^\s*%.*\n/gm, "");
 
     // Xoá YAML front-matter (cho phép có khoảng trắng trước ---)
-    const cleaned = withoutComments.replace(/^\s*---\s*\r?\n[\s\S]*?\r?\n\s*---\s*\r?\n?/, "").trim();
+    const cleaned = withoutComments
+        .replace(/^\s*---\s*\r?\n[\s\S]*?\r?\n\s*---\s*\r?\n?/, "")
+        .trim();
 
     return cleaned;
 };
@@ -63,30 +64,43 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
             ref.current.querySelectorAll<HTMLDivElement>(".mermaid")
         );
 
-        blocks.forEach(async (block, idx) => {
-            const raw = block.textContent ?? "";
-            // first strip possible front-matter (even if it's indented)
-            const withoutYaml = stripYamlFrontMatter(raw);
-            // then remove common indentation so mermaid sees clean, left-aligned text
-            const cleaned = dedent(withoutYaml);
-            const id = `mermaid-${Date.now()}-${idx}-${Math.floor(
-                Math.random() * 1000
-            )}`;
-            console.log(cleaned)
+        (async () => {
+            for (const [idx, block] of blocks.entries()) {
+                if (!block || !block.isConnected) continue;
 
-            try {
-                const { svg } = await mermaid.render(id, cleaned);
-                const wrapper = document.createElement("div");
-                wrapper.innerHTML = svg;
-                block.replaceWith(wrapper);
-            } catch (err) {
-                console.error("Mermaid render error:", err, {
-                    raw,
-                    withoutYaml,
-                    cleaned,
-                });
+                const raw = block.textContent ?? "";
+                const withoutYaml = stripYamlFrontMatter(raw);
+                const cleaned = dedent(withoutYaml);
+
+                const uniq =
+                    typeof crypto !== "undefined" && crypto.randomUUID
+                        ? crypto.randomUUID()
+                        : `${Date.now()}-${idx}-${Math.floor(
+                              Math.random() * 1000
+                          )}`;
+                const id = `mermaid-${uniq}`;
+
+                try {
+                    // await so mermaid internal DOM ops don't race across many concurrent calls
+                    const { svg } = await mermaid.render(id, cleaned);
+
+                    // check again that element still in DOM (user may have edited/removed it)
+                    if (!block.isConnected) continue;
+
+                    // safer: set innerHTML of the existing container instead of replaceWith,
+                    // avoids "node to be removed is not a child" errors when mermaid manipulates nodes.
+                    block.innerHTML = svg;
+                    block.classList.remove("mermaid");
+                } catch (err) {
+                    console.error("Mermaid render error:", err, {
+                        raw,
+                        withoutYaml,
+                        cleaned,
+                        id,
+                    });
+                }
             }
-        });
+        })();
     }, [content]);
 
     return (
@@ -153,7 +167,9 @@ export function DiagramTabs({ diagram }: DiagramTabsProps) {
                                     updateDiagram();
                                 }}
                                 className="w-fit"
-                                disabled={content.trim() === diagram.markdown.trim()}
+                                disabled={
+                                    content.trim() === diagram.markdown.trim()
+                                }
                             >
                                 Save Changes
                             </Button>

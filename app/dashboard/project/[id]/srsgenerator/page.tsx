@@ -1,10 +1,9 @@
 import { Metadata } from "next";
 
-import MainPage from "@/app/dashboard/project/[id]/srsgenerator/_component/MainPage";
-import RecentDocument from "./_component/RecentDocment";
-import Link from "next/link";
-import Template from "./_component/Template";
-import DocumentViewer from "./_component/DocumentViewer";
+import MainPage from "@/app/dashboard/project/[id]/srsgenerator/_component/CreateDocument/MainPage";
+import RecentDocument from "./_component/DocumentOverview/RecentDocment";
+import DocumentViewer from "./_component/DocumentOverview/DocumentViewer";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { SrsDataStoreProvider } from "@/context/SRSGeneratorContext";
 import { FileDataStoreProvider } from "@/context/FileContext";
@@ -28,46 +27,26 @@ export default async function SRSGeneratorPage({
     return (
         <FileDataStoreProvider>
             <SrsDataStoreProvider>
-                <div className="flex w-full flex-col sm:flex-row sm:w-fit p-1 rounded-2xl bg-gray-300 dark:bg-gray-700 justify-between mb-7">
-                    <Link
-                        href={`/dashboard/project/${id}/srsgenerator`}
-                        className={`p-2 rounded-2xl font-semibold text-sm ${
-                            tabs === undefined
-                                ? "bg-white dark:bg-gray-800 dark:text-white"
-                                : "dark:text-gray-300"
-                        }`}
-                    >
-                        Create new
-                    </Link>
-                    <Link
-                        href={`/dashboard/project/${id}/srsgenerator?tabs=template`}
-                        className={`p-2 rounded-2xl font-semibold text-sm ${
-                            tabs === "template"
-                                ? "bg-white dark:bg-gray-800 dark:text-white"
-                                : "dark:text-gray-300"
-                        }`}
-                    >
-                        Template
-                    </Link>
-                    <Link
-                        href={`/dashboard/project/${id}/srsgenerator?tabs=recent-documents`}
-                        className={`p-2 rounded-2xl font-semibold text-sm ${
-                            tabs === "recent-documents"
-                                ? "bg-white dark:bg-gray-800 dark:text-white"
-                                : "dark:text-gray-300"
-                        }`}
-                    >
-                        Recent Documents
-                    </Link>
-                </div>
                 {doc ? (
-                    <DocumentViewer projectId={id}/>
-                ) : tabs === "recent-documents" ? (
-                    <RecentDocument id={id} />
-                ) : tabs === "template" ? (
-                    <Template />
+                    <DocumentViewer projectId={id} />
                 ) : (
-                    <MainPage/>
+                    <Tabs defaultValue="main-page">
+                        <TabsList>
+                            <TabsTrigger value="main-page">
+                                Create new
+                            </TabsTrigger>
+                            <TabsTrigger value="template">Template</TabsTrigger>
+                            <TabsTrigger value="recent-documents">
+                                Recent Documents
+                            </TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="main-page">
+                            <MainPage />
+                        </TabsContent>
+                        <TabsContent value="recent-documents">
+                            <RecentDocument id={id} />
+                        </TabsContent>
+                    </Tabs>
                 )}
             </SrsDataStoreProvider>
         </FileDataStoreProvider>
