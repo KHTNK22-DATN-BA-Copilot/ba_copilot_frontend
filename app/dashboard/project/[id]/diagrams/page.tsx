@@ -11,6 +11,7 @@ import { useDiagramManager } from "./_lib/hooks";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import RecentDiagramsFilter from "./_components/RecentDiagramsFilter";
+import { GeneratingDialog } from "./_components/GeneratingDialog";
 
 import { useFileDataStore } from "@/context/FileContext";
 import {
@@ -28,6 +29,7 @@ export default function ProjectDiagramsPage() {
 
     //State
     const [loading, setLoading] = useState(false);
+    const [showGeneratingDialog, setShowGeneratingDialog] = useState(false);
     const [overview, setOverview] = useState<OverviewType>({
         title: "",
         description: "",
@@ -65,32 +67,54 @@ export default function ProjectDiagramsPage() {
     }, [projectId]);
 
     const handleGenerateDiagram = async () => {
-        // Logic to generate a new diagram
+        try {
+            // Show loading state and dialog
+            setLoading(true);
+            setShowGeneratingDialog(true);
 
-        //filter lai loai diagram
-        const diagramTypesChoose = DIAGRAM_TYPES.filter((type) => type.id === diagramTypes)[0].id as string
-    
-        const formData = new FormData();
+            // Filter diagram type
+            const diagramTypesChoose = DIAGRAM_TYPES.filter((type) => type.id === diagramTypes)[0].id as string;
 
-        formData.append("project_id", projectId as string);
-        formData.append("description", overview.description);
-        formData.append("title", overview.title);
-        formData.append("diagram_type", diagramTypesChoose);
+            const formData = new FormData();
 
-        files.forEach((f) => {
-            formData.append("files", f.file);
-        });
-        const res = await fetch('/api/diagram', {
-            method: 'POST',
-            body: formData,
-        });
-        const data = await res.json();
-        console.log("Diagram generation response:", data)
-        redirect(`/dashboard/project/${projectId}/diagrams?tabs=recent`)
+            formData.append("project_id", projectId as string);
+            formData.append("description", overview.description);
+            formData.append("title", overview.title);
+            formData.append("diagram_type", diagramTypesChoose);
+
+            files.forEach((f) => {
+                formData.append("files", f.file);
+            });
+
+            const res = await fetch('/api/diagram', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!res.ok) {
+                throw new Error('Failed to generate diagram');
+            }
+
+            const data = await res.json();
+            console.log("Diagram generation response:", data);
+
+            // Hide dialog and redirect
+            setShowGeneratingDialog(false);
+            setLoading(false);
+            redirect(`/dashboard/project/${projectId}/diagrams?tabs=recent-documents&doc=${data}`);
+        } catch (error) {
+            console.error("Error generating diagram:", error);
+            setShowGeneratingDialog(false);
+            setLoading(false);
+            // TODO: Show error toast/notification
+        }
     };
 
     return (
         <main className="flex-1 overflow-auto">
+            {/* Generating Dialog */}
+            <GeneratingDialog open={showGeneratingDialog} />
+
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Page Header */}
                 <PageHeader projectId={projectId} />
@@ -100,21 +124,19 @@ export default function ProjectDiagramsPage() {
                     <div className="flex w-full flex-col sm:flex-row sm:w-fit p-1 rounded-2xl bg-gray-300 dark:bg-gray-700 justify-between mb-7">
                         <Link
                             href={`/dashboard/project/${projectId}/diagrams`}
-                            className={`p-2 rounded-2xl font-semibold text-sm ${
-                                !isRecentTab
-                                    ? "bg-white dark:bg-gray-800 dark:text-white"
-                                    : "dark:text-gray-300"
-                            }`}
+                            className={`p-2 rounded-2xl font-semibold text-sm ${!isRecentTab
+                                ? "bg-white dark:bg-gray-800 dark:text-white"
+                                : "dark:text-gray-300"
+                                }`}
                         >
                             Create New
                         </Link>
                         <Link
                             href={`/dashboard/project/${projectId}/diagrams?tabs=recent`}
-                            className={`p-2 rounded-2xl font-semibold text-sm ${
-                                isRecentTab
-                                    ? "bg-white dark:bg-gray-800 dark:text-white"
-                                    : "dark:text-gray-300"
-                            }`}
+                            className={`p-2 rounded-2xl font-semibold text-sm ${isRecentTab
+                                ? "bg-white dark:bg-gray-800 dark:text-white"
+                                : "dark:text-gray-300"
+                                }`}
                         >
                             Recent Diagrams
                         </Link>

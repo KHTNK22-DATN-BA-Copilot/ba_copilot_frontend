@@ -8,7 +8,7 @@ export async function PUT(
     try {
         const { id } = await params;
         const body = await request.json();
-        const { name, description, status, settings } = body;
+        const { name, description, status, due_date, project_priority, team_size, settings } = body;
 
         // Get access token from cookies
         const cookieStore = await cookies();
@@ -21,12 +21,16 @@ export async function PUT(
             );
         }
 
-        // Build request body - only include fields that are provided
-        const updateData: any = {};
-        if (name !== undefined) updateData.name = name;
-        if (description !== undefined) updateData.description = description;
-        if (status !== undefined) updateData.status = status;
-        if (settings !== undefined) updateData.settings = settings;
+        // Build request body - include all fields as required by backend
+        const updateData = {
+            name,
+            description,
+            status,
+            due_date,
+            project_priority,
+            team_size,
+            settings,
+        };
 
         // Call backend API to update project
         const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/projects/${id}`, {
