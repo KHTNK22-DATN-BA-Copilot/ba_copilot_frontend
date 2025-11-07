@@ -1,11 +1,10 @@
-// ...existing code...
 "use client";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { Diagram } from "../_lib/constants";
 import ReactMarkdown from "react-markdown";
 import mermaid from "mermaid";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import remarkGfm from "remark-gfm";
 
 interface DiagramTabsProps {
@@ -21,7 +20,9 @@ const stripYamlFrontMatter = (s: string) => {
     const withoutComments = s.replace(/^\s*%.*\n/gm, "");
 
     // Xoá YAML front-matter (cho phép có khoảng trắng trước ---)
-    const cleaned = withoutComments.replace(/^\s*---\s*\r?\n[\s\S]*?\r?\n\s*---\s*\r?\n?/, "").trim();
+    const cleaned = withoutComments
+        .replace(/^\s*---\s*\r?\n[\s\S]*?\r?\n\s*---\s*\r?\n?/, "")
+        .trim();
 
     return cleaned;
 };
@@ -63,30 +64,43 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
             ref.current.querySelectorAll<HTMLDivElement>(".mermaid")
         );
 
-        blocks.forEach(async (block, idx) => {
-            const raw = block.textContent ?? "";
-            // first strip possible front-matter (even if it's indented)
-            const withoutYaml = stripYamlFrontMatter(raw);
-            // then remove common indentation so mermaid sees clean, left-aligned text
-            const cleaned = dedent(withoutYaml);
-            const id = `mermaid-${Date.now()}-${idx}-${Math.floor(
-                Math.random() * 1000
-            )}`;
-            console.log(cleaned)
+        (async () => {
+            for (const [idx, block] of blocks.entries()) {
+                if (!block || !block.isConnected) continue;
 
-            try {
-                const { svg } = await mermaid.render(id, cleaned);
-                const wrapper = document.createElement("div");
-                wrapper.innerHTML = svg;
-                block.replaceWith(wrapper);
-            } catch (err) {
-                console.error("Mermaid render error:", err, {
-                    raw,
-                    withoutYaml,
-                    cleaned,
-                });
+                const raw = block.textContent ?? "";
+                const withoutYaml = stripYamlFrontMatter(raw);
+                const cleaned = dedent(withoutYaml);
+
+                const uniq =
+                    typeof crypto !== "undefined" && crypto.randomUUID
+                        ? crypto.randomUUID()
+                        : `${Date.now()}-${idx}-${Math.floor(
+                              Math.random() * 1000
+                          )}`;
+                const id = `mermaid-${uniq}`;
+
+                try {
+                    // await so mermaid internal DOM ops don't race across many concurrent calls
+                    const { svg } = await mermaid.render(id, cleaned);
+
+                    // check again that element still in DOM (user may have edited/removed it)
+                    if (!block.isConnected) continue;
+
+                    // safer: set innerHTML of the existing container instead of replaceWith,
+                    // avoids "node to be removed is not a child" errors when mermaid manipulates nodes.
+                    block.innerHTML = svg;
+                    block.classList.remove("mermaid");
+                } catch (err) {
+                    console.error("Mermaid render error:", err, {
+                        raw,
+                        withoutYaml,
+                        cleaned,
+                        id,
+                    });
+                }
             }
-        });
+        })();
     }, [content]);
 
     return (
@@ -121,61 +135,90 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
 };
 
 export function DiagramTabs({ diagram }: DiagramTabsProps) {
-    console.log("Rendering DiagramTabs with diagram:", diagram.markdown);
+    const [edit, setEdit] = useState(false);
+    const [content, setContent] = useState(diagram.markdown);
+
+    useEffect(() => {
+        setContent(diagram.markdown);
+    }, [diagram.markdown]);
+
+    const updateDiagram = async () => {
+        try {
+            // TODO: Implement API call to update diagram
+            console.log("Updating diagram with content:", content);
+            // Add your API call here
+        } catch (error) {
+            console.error("Failed to update diagram:", error);
+        }
+    };
+
     return (
-        <Tabs defaultValue="preview">
-            <div className="flex w-full flex-col sm:flex-row sm:w-fit p-1 rounded-2xl bg-gray-300 dark:bg-gray-700 justify-between mb-7">
-                <TabsList className="bg-transparent">
-                    <TabsTrigger
-                        value="preview"
-                        className="p-2 rounded-2xl font-semibold text-sm data-[state=active]:bg-white data-[state=active]:dark:bg-gray-800 data-[state=active]:dark:text-white dark:text-gray-300"
-                    >
-                        Preview
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="edit"
-                        className="p-2 rounded-2xl font-semibold text-sm data-[state=active]:bg-white data-[state=active]:dark:bg-gray-800 data-[state=active]:dark:text-white dark:text-gray-300"
-                    >
-                        Edit
-                    </TabsTrigger>
-                </TabsList>
+        <div className="p-2 sm:p-4 lg:p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 lg:p-8">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-2">
+                    <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">
+                        Diagram View
+                    </h2>
+                    <div className="flex items-center gap-2">
+                        {edit && (
+                            <Button
+                                variant="default"
+                                onClick={() => {
+                                    updateDiagram();
+                                }}
+                                className="w-fit"
+                                disabled={
+                                    content.trim() === diagram.markdown.trim()
+                                }
+                            >
+                                Save Changes
+                            </Button>
+                        )}
+                        <Button
+                            variant="outline"
+                            onClick={() => setEdit(!edit)}
+                            className="w-fit"
+                        >
+                            {edit ? "Preview Only" : "Split View"}
+                        </Button>
+                    </div>
+                </div>
+
+                {edit ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {/* Editor Panel */}
+                        <div className="flex flex-col">
+                            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Editor
+                            </h3>
+                            <Textarea
+                                value={content}
+                                onChange={(e) => setContent(e.target.value)}
+                                className="flex-1 w-full p-4 text-sm font-mono border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[500px]"
+                                placeholder="Edit your diagram markdown here..."
+                            />
+                        </div>
+
+                        {/* Preview Panel */}
+                        <div className="flex flex-col">
+                            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Live Preview
+                            </h3>
+                            <div className="flex-1 overflow-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 p-4 min-h-[500px]">
+                                <div className="w-full">
+                                    <MarkdownWithMermaid content={content} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 sm:p-8 min-h-[400px] flex items-center justify-center">
+                        <div className="w-full">
+                            <MarkdownWithMermaid content={diagram.markdown} />
+                        </div>
+                    </div>
+                )}
             </div>
-
-            <TabsContent value="preview" className="mt-6">
-                <div className="col-span-12">
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8 transition-colors duration-300">
-                        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-8 min-h-96 flex items-center justify-center">
-                            <div className="text-center space-y-4 w-full">
-                                <MarkdownWithMermaid
-                                    content={diagram.markdown}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </TabsContent>
-
-            <TabsContent value="edit" className="mt-6">
-                <div className="col-span-12">
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8 transition-colors duration-300">
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                    Markdown Source
-                                </h3>
-                                <Button variant="outline" size="sm">
-                                    Save Changes
-                                </Button>
-                            </div>
-                            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 min-h-96 font-mono text-sm">
-                                <pre className="whitespace-pre-wrap text-gray-900 dark:text-gray-100">
-                                    {diagram.markdown}
-                                </pre>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </TabsContent>
-        </Tabs>
+        </div>
     );
 }

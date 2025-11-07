@@ -52,7 +52,10 @@ export default function EditProjectDialog({
                 body: JSON.stringify({
                     name: name.trim(),
                     description: description.trim(),
-                    status: project.status, // Keep current status
+                    status: "active", // Keep current status
+                    due_date: "2025-11-04T07:17:02.118Z",
+                    project_priority: 'low',
+                    team_size: 1,
                     settings: {}, // Send empty settings object (or keep existing if available)
                 }),
             });
