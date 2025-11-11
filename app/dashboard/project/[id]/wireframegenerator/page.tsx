@@ -1,7 +1,9 @@
 import { Metadata } from "next";
 import WireframeGeneratorMain from "./_component/WireframeGeneratorMain";
 import RecentWireframes from "./_component/RecentWireframes";
-import Link from "next/link";
+import { FileDataStoreProvider } from "@/context/FileContext";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import WireframeOverview from "./_component/WireframeOverview";
 
 export const metadata: Metadata = {
     title: "Wireframe Generator - BA Copilot",
@@ -13,39 +15,35 @@ export default async function WireframeGeneratorPage({
     searchParams,
     params,
 }: {
-    searchParams: { tabs?: string };
+    searchParams: { wireframe_id?: string };
     params: { id: string };
 }) {
-    const { tabs } = await searchParams;
-    const { id } = await params;
+
+    const project_id = (await params).id;
+    const wireframe_id = (await searchParams).wireframe_id;
+
+    if (wireframe_id) {
+        return (
+            <WireframeOverview project_id={project_id} wireframe_id={wireframe_id}/>
+        )
+    }
 
     return (
-        <>
-            <div className="flex w-full flex-col sm:flex-row sm:w-fit p-1 rounded-2xl bg-gray-300 dark:bg-gray-700 justify-between mb-7">
-                <Link
-                    href={`/dashboard/project/${id}/wireframegenerator`}
-                    className={`p-2 rounded-2xl font-semibold text-sm ${tabs === undefined
-                            ? "bg-white dark:bg-gray-800 dark:text-white"
-                            : "dark:text-gray-300"
-                        }`}
-                >
-                    Create new
-                </Link>
-                <Link
-                    href={`/dashboard/project/${id}/wireframegenerator?tabs=recent-wireframes`}
-                    className={`p-2 rounded-2xl font-semibold text-sm ${tabs === "recent-wireframes"
-                            ? "bg-white dark:bg-gray-800 dark:text-white"
-                            : "dark:text-gray-300"
-                        }`}
-                >
+        <Tabs defaultValue={"create-new"}>
+            <TabsList>
+                <TabsTrigger value="create-new">Create new</TabsTrigger>
+                <TabsTrigger value="recent-wireframes">
                     Recent Wireframes
-                </Link>
-            </div>
-            {tabs === "recent-wireframes" ? (
-                <RecentWireframes />
-            ) : (
-                <WireframeGeneratorMain />
-            )}
-        </>
+                </TabsTrigger>
+            </TabsList>
+            <TabsContent value="create-new">
+                <FileDataStoreProvider>
+                    <WireframeGeneratorMain project_id={project_id} />
+                </FileDataStoreProvider>
+            </TabsContent>
+            <TabsContent value="recent-wireframes">
+                <RecentWireframes project_id={project_id} />
+            </TabsContent>
+        </Tabs>
     );
 }

@@ -1,10 +1,10 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { Layout, Download, Eye } from "lucide-react";
+import { cookies } from "next/headers";
+import Link from "next/link";
+import { getDay } from "@/lib/utils";
 
-export default function RecentWireframes() {
-    const recentWireframes = [
+const recentWireframes = [
         {
             id: 1,
             name: "Dashboard Layout",
@@ -28,13 +28,24 @@ export default function RecentWireframes() {
         },
     ];
 
+export default async function RecentWireframes({project_id}: {project_id: string}) {
+    const access_token = (await cookies()).get("access_token")?.value;
+    const res = await fetch (`${process.env.BACKEND_DOMAIN}/api/v1/wireframe/list/${project_id}`, {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${access_token}`,
+        }
+    })
+    const list = (await res.json()).wireframes;
+
+    
     return (
         <div className="col-span-12">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8 transition-colors duration-300">
                 <div className="space-y-4">
-                    {recentWireframes.map((wireframe) => (
-                        <div
-                            key={wireframe.id}
+                    {list.map((wireframe: any) => (
+                        <Link href={`/dashboard/project/${project_id}/wireframegenerator?wireframe_id=${wireframe.wireframe_id}`}
+                            key={wireframe.wireframe_id}
                             className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow gap-4"
                         >
                             <div className="flex items-center gap-4">
@@ -43,15 +54,10 @@ export default function RecentWireframes() {
                                 </div>
                                 <div>
                                     <p className="font-medium text-gray-900 dark:text-gray-100">
-                                        {wireframe.name}
+                                        {wireframe.title}
                                     </p>
                                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                                        {wireframe.type} •{" "}
-                                        {wireframe.pages}{" "}
-                                        {wireframe.pages === 1
-                                            ? "page"
-                                            : "pages"}{" "}
-                                        • {wireframe.date}
+                                        {getDay(wireframe.created_at)}
                                     </p>
                                 </div>
                             </div>
@@ -71,7 +77,7 @@ export default function RecentWireframes() {
                                     <Download className="w-4 h-4" />
                                 </Button>
                             </div>
-                        </div>
+                        </Link>
                     ))}
                 </div>
             </div>
