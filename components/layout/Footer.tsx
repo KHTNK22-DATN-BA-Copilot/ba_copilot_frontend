@@ -1,6 +1,8 @@
 import { EnvelopeIcon, MapPinIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link';
 import Image from 'next/image';
+import { Button } from '../ui/button';
+import { Send } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -24,14 +26,45 @@ export default function Footer() {
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Company</h4>
-              <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                <li><Link href="#">About</Link></li>
-                <li><Link href="#">asfdfadgasdg</Link></li>
-                <li><Link href="#">Careers</Link></li>
-              </ul>
+              <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Stay Updated
+              </h4>
+
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                Subscribe to our newsletter
+              </p>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  // TODO: handle subscribe logic
+                }}
+                className="flex items-center space-x-2"
+              >
+                <input
+                  type="email"
+                  required
+                  placeholder="name@company.com"
+                  className="
+                              w-full px-3 py-2 text-sm rounded-md
+                              bg-gray-200/60 dark:bg-gray-800/60
+                              text-gray-700 dark:text-gray-300
+                              placeholder-gray-500 dark:placeholder-gray-500
+                              border border-gray-300 dark:border-gray-700
+                              focus:ring-2 focus:ring-blue-500 focus:outline-none
+                            "
+                />
+
+                <Button
+                  type="submit"
+                  className=" px-4 py-2 text-sm font-medium rounded-md  "
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </form>
             </div>
-            <div className="flex flex-col items-start space-y-3">
+
+            <div className="flex flex-col items-end text-right space-y-3">
               {/* Main Logo */}
               <Image
                 src="/ic_ba_copilot.svg"
@@ -85,7 +118,7 @@ export default function Footer() {
 
 
           </div>
-          <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400">
+          <div className="mt-8 pt-8 border-t border-gray-200 text-center dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400">
             <p>&copy; 2025 BA Copilot. All rights reserved.</p>
           </div>
         </div>
