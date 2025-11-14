@@ -14,6 +14,7 @@ import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { Textarea } from "@/components/ui/textarea";
 import ChatBot from "@/components/chat-bot/ChatBot";
+import { ChatWithAI } from "@/components/chat-bot/ChatWithAI";
 
 export default function DocumentViewer({ projectId }: { projectId: string }) {
     const param = useSearchParams();
@@ -151,7 +152,15 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                         </div>
 
                         {edit ? (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                {/*Chat to update document */}
+                                <div className="flex flex-col">
+                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 h-6">
+                                        Chat
+                                    </h3>
+                                    <ChatWithAI />
+
+                                </div>
                                 <div className="flex flex-col">
                                     <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Editor
@@ -185,20 +194,24 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                                 </div>
                             </div>
                         ) : (
-                            <div className="markdown-body">
-                                <ReactMarkdown
-                                    remarkPlugins={[remarkGfm, remarkBreaks]}
-                                >
-                                    {data?.content || ""}
-                                </ReactMarkdown>
+                            <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
+                                <ChatWithAI />
+                                <div className="markdown-body">
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm, remarkBreaks]}
+                                    >
+                                        {data?.content || ""}
+                                    </ReactMarkdown>
+                                </div>
                             </div>
+
                         )}
                     </div>
                 </div>
             </div>
 
             {/* Chatbot Icon */}
-            <ChatBot assisstanceName="Document AI Assistant"/>
+            <ChatBot assisstanceName="Document AI Assistant" />
         </div>
     );
 }

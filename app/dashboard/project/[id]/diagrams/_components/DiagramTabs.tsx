@@ -6,7 +6,7 @@ import ReactMarkdown from "react-markdown";
 import mermaid from "mermaid";
 import { useEffect, useRef, useState } from "react";
 import remarkGfm from "remark-gfm";
-import { ChatWithAI } from "./ChatWithAI";
+import { ChatWithAI } from "../../../../../../components/chat-bot/ChatWithAI";
 
 interface DiagramTabsProps {
     diagram: Diagram;
