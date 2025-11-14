@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Download, Share2, Workflow } from 'lucide-react';
-import { Diagram } from '../_lib/constants';
+import { Diagram } from '../../_lib/constants';
 
 interface RecentDiagramsListProps {
     diagrams: Diagram[];
