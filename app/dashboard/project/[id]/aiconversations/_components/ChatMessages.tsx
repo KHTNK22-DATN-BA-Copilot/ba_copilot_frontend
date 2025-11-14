@@ -40,12 +40,12 @@ export function ChatMessages({
                         </div>
 
                         {/* Suggestion Cards */}
-                        <div className="col-span-12">
+                        <div className="col-span-12 max-w-11/12 mx-auto">
                             <div className="grid grid-cols-2 gap-3">
                                 {suggestions.map((suggestion, i) => (
                                     <Card
                                         key={i}
-                                        className="h-full p-4 cursor-pointer hover:shadow-lg hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200 bg-gray-700 dark:bg-gray-700 border border-gray-600 dark:border-gray-600"
+                                        className="h-full p-4 cursor-pointer max-w-80 hover:shadow-lg hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200 bg-gray-700 dark:bg-gray-700 border border-gray-600 dark:border-gray-600"
                                         onClick={() => onSuggestionClick(suggestion)}
                                     >
                                         <p className="text-sm text-gray-200 dark:text-gray-200">
