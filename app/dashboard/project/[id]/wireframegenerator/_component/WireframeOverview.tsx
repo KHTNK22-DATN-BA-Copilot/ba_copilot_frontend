@@ -4,6 +4,8 @@ import { ArrowLeft, Eye, SplitSquareHorizontal } from "lucide-react";
 import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useWireframe } from "@/hooks/use-wireframe";
+import { Textarea } from "@/components/ui/textarea";
+import ChatBot from "@/components/chat-bot/ChatBot";
 
 export default function WireframeOverview({
     project_id,
@@ -98,7 +100,8 @@ export default function WireframeOverview({
                                     CSS
                                 </button>
                             </div>
-                            <textarea
+                            <Textarea
+                                spellCheck={false}
                                 className="flex-1 p-4 font-mono text-sm resize-none focus:outline-none"
                                 value={activeTab === "html" ? html : css}
                                 onChange={(e) =>
@@ -137,6 +140,7 @@ export default function WireframeOverview({
                     </div>
                 )}
             </div>
+            <ChatBot assisstanceName="Wireframe assisstance"/>
         </div>
     );
 }
