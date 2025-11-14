@@ -66,9 +66,9 @@ export default function ProjectAIConversationsPage() {
     };
 
     return (
-        <div className="grid grid-cols-12 h-full w-full bg-gray-900 dark:bg-gray-900 overflow-hidden">
+        <div className="grid grid-cols-12 h-full w-full overflow-hidden">
             {/* Main Chat Area */}
-            <div className="col-span-12 lg:col-span-9 xl:col-span-10 order-2 lg:order-1 flex flex-col h-full min-h-0 bg-gray-800 dark:bg-gray-800 relative">
+            <div className="col-span-12 lg:col-span-9 xl:col-span-10 order-2 lg:order-1 flex flex-col h-full min-h-0 relative">
                 {/* Chat Messages - scrollable */}
                 <div className="flex-1 overflow-y-auto min-h-0">
                     <ChatMessages
@@ -88,7 +88,7 @@ export default function ProjectAIConversationsPage() {
             </div>
 
             {/* Sidebar - responsive columns */}
-            <div className="hidden lg:flex lg:col-span-3 xl:col-span-2 order-1 lg:order-2 h-full flex-col overflow-hidden border-l border-gray-800/60">
+            <div className="hidden lg:flex lg:col-span-3 xl:col-span-2 order-1 lg:order-2 h-full flex-col overflow-hidden border-l">
                 <ConversationSidebar
                     onNewConversation={handleNewConversation}
                 />

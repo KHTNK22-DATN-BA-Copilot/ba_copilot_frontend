@@ -13,7 +13,7 @@ interface ChatInputProps {
 
 export function ChatInput({ value, onChange, onSend, disabled }: ChatInputProps) {
     return (
-        <div className="flex-shrink-0 border-t border-gray-700 dark:border-gray-700 bg-gray-800 dark:bg-gray-800 p-4 sticky bottom-0 left-0 w-full z-10">
+        <div className="flex-shrink-0 border-t border-gray-700 dark:border-gray-700 p-4 sticky bottom-0 left-0 w-full z-10">
             <div className="max-w-4xl mx-auto">
                 <div className="flex items-end gap-3">
                     <div className="flex-1">

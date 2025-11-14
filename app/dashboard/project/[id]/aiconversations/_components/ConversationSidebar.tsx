@@ -24,7 +24,7 @@ export function ConversationSidebar({
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const sidebarContent = (
-        <div className="h-full flex flex-col bg-gray-900 dark:bg-gray-900 border-r border-gray-700 dark:border-gray-700">
+        <div className="h-full flex flex-col border-r border-gray-700 dark:border-gray-700">
             <div className="p-4 border-b border-gray-700 dark:border-gray-700">
                 <Button
                     onClick={onNewConversation}
@@ -43,7 +43,7 @@ export function ConversationSidebar({
                     Array.from({ length: 5 }).map((_, i) => (
                         <button
                             key={i}
-                            className="w-full text-left px-3 py-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-800 text-sm flex items-center gap-3 transition-all duration-200 group"
+                            className="w-full text-left px-3 py-3 rounded-lg text-sm flex items-center gap-3 transition-all duration-200 group"
                             onClick={() => onSelectConversation?.(i + 1)}
                         >
                             <MessageSquare className="w-4 h-4 text-gray-500 dark:text-gray-500 group-hover:text-blue-400 transition-colors" />
@@ -56,7 +56,7 @@ export function ConversationSidebar({
                     conversations.map((conv) => (
                         <button
                             key={conv.id}
-                            className="w-full text-left px-3 py-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-800 text-sm flex items-center gap-3 transition-all duration-200 group"
+                            className="w-full text-left px-3 py-3 rounded-lg text-sm flex items-center gap-3 transition-all duration-200 group"
                             onClick={() => onSelectConversation?.(conv.id)}
                         >
                             <MessageSquare className="w-4 h-4 text-gray-500 dark:text-gray-500 group-hover:text-blue-400 transition-colors" />

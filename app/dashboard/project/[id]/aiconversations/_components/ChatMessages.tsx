@@ -21,7 +21,7 @@ export function ChatMessages({
     onSuggestionClick,
 }: ChatMessagesProps) {
     return (
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-4  scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent scrollbar-thumb-rounded-full">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent scrollbar-thumb-rounded-full">
             {messages.length === 1 && (
                 <div className="max-w-5xl mx-auto">
                     <div className="grid grid-cols-12 gap-4 sm:gap-6">
@@ -45,7 +45,7 @@ export function ChatMessages({
                                 {suggestions.map((suggestion, i) => (
                                     <Card
                                         key={i}
-                                        className="h-full p-4 cursor-pointer max-w-80 hover:shadow-lg hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200 bg-gray-700 dark:bg-gray-700 border border-gray-600 dark:border-gray-600"
+                                        className="h-full p-4 cursor-pointer max-w-80 hover:shadow-lg hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200 border border-gray-600 dark:border-gray-600"
                                         onClick={() => onSuggestionClick(suggestion)}
                                     >
                                         <p className="text-sm text-gray-200 dark:text-gray-200">
@@ -72,7 +72,7 @@ export function ChatMessages({
                         <div
                             className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3 shadow-sm ${message.role === "user"
                                 ? "bg-blue-600 text-white rounded-br-none"
-                                : "bg-gray-700 dark:bg-gray-700 text-gray-100 dark:text-gray-100 rounded-bl-none"
+                                : "text-gray-100 dark:text-gray-100 rounded-bl-none"
                                 }`}
                         >
                             <p className="text-sm whitespace-pre-wrap break-words">
