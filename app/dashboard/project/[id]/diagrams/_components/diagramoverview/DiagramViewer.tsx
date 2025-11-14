@@ -135,7 +135,7 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
     );
 };
 
-export function DiagramOverview({ diagram }: DiagramTabsProps) {
+export function DiagramViewer({ diagram }: DiagramTabsProps) {
     const [edit, setEdit] = useState(false);
     const [content, setContent] = useState(diagram.markdown);
 

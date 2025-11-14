@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download, Share2, Workflow } from 'lucide-react';
 import { Diagram } from '../../_lib/constants';
-import { DiagramOverview } from './DiagramOverview';
+import { DiagramViewer } from './DiagramViewer';
 import ChatBot from '@/components/chat-bot/ChatBot';
 
 interface DiagramDetailProps {
@@ -52,7 +52,7 @@ export function DiagramDetail({ diagram, onBack }: DiagramDetailProps) {
             </div>
 
             {/* Diagram Tabs */}
-            <DiagramOverview diagram={diagram} />
+            <DiagramViewer diagram={diagram} />
             <ChatBot assisstanceName="Diagram AI Assistant" />
         </div>
     );
