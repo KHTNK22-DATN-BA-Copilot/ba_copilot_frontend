@@ -4,6 +4,7 @@ import { ArrowLeft, Eye, SplitSquareHorizontal } from "lucide-react";
 import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useWireframe } from "@/hooks/use-wireframe";
+import { ChatWithAI } from "@/components/chat-bot/ChatWithAI";
 
 export default function WireframeOverview({
     project_id,
@@ -74,49 +75,68 @@ export default function WireframeOverview({
             <div className="flex-1 flex gap-4 overflow-hidden">
                 {isSplitView ? (
                     <>
-                        {/* Code Editor */}
-                        <div className="flex-1 flex flex-col border rounded-lg overflow-hidden bg-white shadow-lg">
-                            <div className="flex border-b bg-gray-50">
-                                <button
-                                    className={`px-6 py-3 font-medium transition-colors ${
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            {/* Code Editor */}
+                            <div className="overflow-auto">
+                                <ChatWithAI />
+                            </div>
+                            {/* Code Editor */}
+                            <div className="flex-1 flex flex-col border rounded-lg overflow-auto bg-white shadow-lg">
+                                <div className="flex border-b bg-gray-50">
+                                    <button
+                                        className={`px-6 py-3 font-medium transition-colors ${activeTab === "html"
+                                            ? "bg-blue-500 text-white"
+                                            : "text-gray-600 hover:bg-gray-100"
+                                            }`}
+                                        onClick={() => setActiveTab("html")}
+                                    >
+                                        HTML
+                                    </button>
+                                    <button
+                                        className={`px-6 py-3 font-medium transition-colors ${activeTab === "css"
+                                            ? "bg-blue-500 text-white"
+                                            : "text-gray-600 hover:bg-gray-100"
+                                            }`}
+                                        onClick={() => setActiveTab("css")}
+                                    >
+                                        CSS
+                                    </button>
+                                </div>
+                                <textarea
+                                    className="flex-1 p-4 font-mono text-sm resize-none focus:outline-none "
+                                    value={activeTab === "html" ? html : css}
+                                    onChange={(e) =>
                                         activeTab === "html"
-                                            ? "bg-blue-500 text-white"
-                                            : "text-gray-600 hover:bg-gray-100"
-                                    }`}
-                                    onClick={() => setActiveTab("html")}
-                                >
-                                    HTML
-                                </button>
-                                <button
-                                    className={`px-6 py-3 font-medium transition-colors ${
-                                        activeTab === "css"
-                                            ? "bg-blue-500 text-white"
-                                            : "text-gray-600 hover:bg-gray-100"
-                                    }`}
-                                    onClick={() => setActiveTab("css")}
-                                >
-                                    CSS
-                                </button>
+                                            ? setHtml(e.target.value)
+                                            : setCss(e.target.value)
+                                    }
+                                    placeholder={`Enter ${activeTab.toUpperCase()} code here...`}
+                                />
                             </div>
-                            <textarea
-                                className="flex-1 p-4 font-mono text-sm resize-none focus:outline-none"
-                                value={activeTab === "html" ? html : css}
-                                onChange={(e) =>
-                                    activeTab === "html"
-                                        ? setHtml(e.target.value)
-                                        : setCss(e.target.value)
-                                }
-                                placeholder={`Enter ${activeTab.toUpperCase()} code here...`}
-                            />
-                        </div>
 
-                        {/* Live Preview */}
-                        <div className="flex-1 border rounded-lg overflow-hidden bg-white shadow-lg">
-                            <div className="bg-gray-50 px-4 py-3 border-b">
-                                <span className="font-medium text-gray-700">
-                                    Live Preview
-                                </span>
+                            {/* Live Preview */}
+                            <div className="flex-1 border rounded-lg overflow-auto bg-white shadow-lg">
+                                <div className="bg-gray-50 px-4 py-3 border-b">
+                                    <span className="font-medium text-gray-700">
+                                        Live Preview
+                                    </span>
+                                </div>
+                                <iframe
+                                    srcDoc={srcDoc}
+                                    title="preview"
+                                    sandbox="allow-scripts"
+                                    className="w-full h-full border-0"
+                                />
                             </div>
+                        </div>
+                    </>
+                ) : (
+                    // Full Preview Only
+                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
+                        <div className="overflow-auto">
+                            <ChatWithAI />
+                        </div>
+                        <div className="flex-1 border rounded-lg overflow-auto bg-white shadow-lg">
                             <iframe
                                 srcDoc={srcDoc}
                                 title="preview"
@@ -124,16 +144,6 @@ export default function WireframeOverview({
                                 className="w-full h-full border-0"
                             />
                         </div>
-                    </>
-                ) : (
-                    // Full Preview Only
-                    <div className="flex-1 border rounded-lg overflow-hidden bg-white shadow-lg">
-                        <iframe
-                            srcDoc={srcDoc}
-                            title="preview"
-                            sandbox="allow-scripts"
-                            className="w-full h-full border-0"
-                        />
                     </div>
                 )}
             </div>

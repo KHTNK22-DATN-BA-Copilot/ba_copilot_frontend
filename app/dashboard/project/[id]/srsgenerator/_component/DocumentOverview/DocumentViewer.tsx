@@ -195,15 +195,19 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
-                                <ChatWithAI />
-                                <div className="markdown-body">
-                                    <ReactMarkdown
-                                        remarkPlugins={[remarkGfm, remarkBreaks]}
-                                    >
+                                {/* Cột 1 */}
+                                <div className="overflow-auto">
+                                    <ChatWithAI />
+                                </div>
+
+                                {/* Cột 2 */}
+                                <div className="markdown-body overflow-auto">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
                                         {data?.content || ""}
                                     </ReactMarkdown>
                                 </div>
                             </div>
+
 
                         )}
                     </div>
