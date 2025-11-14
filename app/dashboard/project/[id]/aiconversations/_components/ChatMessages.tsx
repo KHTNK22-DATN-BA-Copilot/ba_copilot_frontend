@@ -28,8 +28,8 @@ export function ChatMessages({
 
                         {/* Welcome Header */}
                         <div className="col-span-12 text-center space-y-3 mb-4">
-                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 mb-4 shadow-lg">
-                                <Sparkles className="w-8 h-8 text-white" />
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 shadow-lg bg-gradient-to-br from-blue-400 to-purple-500 dark:from-blue-500 dark:to-purple-700">
+                                <Sparkles className="w-8 h-8 text-black dark:text-gray-100" />
                             </div>
                             <h2 className="text-2xl sm:text-3xl font-bold text-gray-100 dark:text-gray-100">
                                 AI Business Analyst Assistant
@@ -45,10 +45,10 @@ export function ChatMessages({
                                 {suggestions.map((suggestion, i) => (
                                     <Card
                                         key={i}
-                                        className="h-full p-4 cursor-pointer max-w-80 hover:shadow-lg hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200 border border-gray-600 dark:border-gray-600"
+                                        className="h-full p-4 cursor-pointer max-w-80 hover:shadow-lg hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-200 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700"
                                         onClick={() => onSuggestionClick(suggestion)}
                                     >
-                                        <p className="text-sm text-gray-200 dark:text-gray-200">
+                                        <p className="text-sm text-gray-800 dark:text-gray-200">
                                             {suggestion}
                                         </p>
                                     </Card>
@@ -72,7 +72,7 @@ export function ChatMessages({
                         <div
                             className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3 shadow-sm ${message.role === "user"
                                 ? "bg-blue-600 text-white rounded-br-none"
-                                : "text-gray-100 dark:text-gray-100 rounded-bl-none"
+                                : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none border border-gray-200 dark:border-gray-600"
                                 }`}
                         >
                             <p className="text-sm whitespace-pre-wrap break-words">

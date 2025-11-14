@@ -24,7 +24,7 @@ export function ConversationSidebar({
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const sidebarContent = (
-        <div className="h-full flex flex-col border-r border-gray-700 dark:border-gray-700">
+        <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900 border-r border-gray-300 dark:border-gray-700">
             <div className="p-4 border-b border-gray-700 dark:border-gray-700">
                 <Button
                     onClick={onNewConversation}
