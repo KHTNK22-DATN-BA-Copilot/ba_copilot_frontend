@@ -184,55 +184,51 @@ export function DiagramViewer({ diagram }: DiagramTabsProps) {
                 </div>
             </div>
 
-            {edit ? (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    {/* Chat to update diagram */}
-                    <div>
-                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 h-6">
-                            Chat
-                        </h3>
-                        <ChatWithAI />
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
+                {/* Chat to update diagram */}
+                <div className="overflow-auto">
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 h-6">
+                        Chat
+                    </h3>
+                    <ChatWithAI />
 
-                    </div>
-                    {/* Editor Panel */}
-                    <div className="flex flex-col">
-                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Editor
-                        </h3>
-                        <Textarea
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            className="flex-1 w-full p-4 text-sm font-mono border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[500px]"
-                            placeholder="Edit your diagram markdown here..."
-                        />
-                    </div>
+                </div>
+                {edit ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-auto">
 
-                    {/* Preview Panel */}
-                    <div className="flex flex-col">
-                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Live Preview
-                        </h3>
-                        <div className="flex-1 overflow-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 p-4 min-h-[500px]">
-                            <div className="w-full">
-                                <MarkdownWithMermaid content={content} />
+                        {/* Editor Panel */}
+                        <div className="flex flex-col">
+                            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Editor
+                            </h3>
+                            <Textarea
+                                value={content}
+                                onChange={(e) => setContent(e.target.value)}
+                                className="flex-1 w-full p-4 text-sm font-mono border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[500px]"
+                                placeholder="Edit your diagram markdown here..."
+                            />
+                        </div>
+
+                        {/* Preview Panel */}
+                        <div className="flex flex-col">
+                            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Live Preview
+                            </h3>
+                            <div className="flex-1 overflow-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 p-4 min-h-[500px]">
+                                <div className="w-full">
+                                    <MarkdownWithMermaid content={content} />
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
-                    {/* Chat to update diagram */}
-                    <div className="overflow-auto">
-                        <ChatWithAI />
-                    </div>
+                ) : (
                     <div className="bg-gray-50 overflow-auto dark:bg-gray-900 rounded-lg p-4 sm:p-8 min-h-[400px] flex items-center justify-center">
                         <div className="w-full">
                             <MarkdownWithMermaid content={diagram.markdown} />
                         </div>
                     </div>
-                </div>
-
-            )}
+                )}
+            </div>
         </div>
     );
 }

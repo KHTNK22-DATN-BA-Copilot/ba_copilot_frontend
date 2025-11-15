@@ -72,14 +72,13 @@ export default function WireframeOverview({
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 flex gap-4 overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
+                <div className="overflow-auto">
+                    <ChatWithAI />
+                </div>
                 {isSplitView ? (
                     <>
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                            {/* Code Editor */}
-                            <div className="overflow-auto">
-                                <ChatWithAI />
-                            </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-auto">
                             {/* Code Editor */}
                             <div className="flex-1 flex flex-col border rounded-lg overflow-auto bg-white shadow-lg">
                                 <div className="flex border-b bg-gray-50">
@@ -131,19 +130,13 @@ export default function WireframeOverview({
                         </div>
                     </>
                 ) : (
-                    // Full Preview Only
-                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
-                        <div className="overflow-auto">
-                            <ChatWithAI />
-                        </div>
-                        <div className="flex-1 border rounded-lg overflow-auto bg-white shadow-lg">
-                            <iframe
-                                srcDoc={srcDoc}
-                                title="preview"
-                                sandbox="allow-scripts"
-                                className="w-full h-full border-0"
-                            />
-                        </div>
+                    <div className="flex-1 border rounded-lg overflow-auto bg-white shadow-lg">
+                        <iframe
+                            srcDoc={srcDoc}
+                            title="preview"
+                            sandbox="allow-scripts"
+                            className="w-full h-full border-0"
+                        />
                     </div>
                 )}
             </div>

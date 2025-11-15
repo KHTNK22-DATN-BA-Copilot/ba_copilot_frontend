@@ -151,66 +151,62 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                             </div>
                         </div>
 
-                        {edit ? (
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                                {/*Chat to update document */}
-                                <div className="flex flex-col">
-                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 h-6">
-                                        Chat
-                                    </h3>
-                                    <ChatWithAI onContentUpdate={(newContent) => setContent(newContent)} />
+                        <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
+                            {/*Chat to update document */}
+                            <div className="flex flex-col overflow-auto">
+                                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 h-6">
+                                    Chat
+                                </h3>
+                                <ChatWithAI onContentUpdate={(newContent) => setContent(newContent)} />
 
-                                </div>
-                                {/* Editor and Preview */}
-                                <div className="flex flex-col">
-                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Editor
-                                    </h3>
-                                    <Textarea
-                                        value={content}
-                                        onChange={(e) =>
-                                            setContent(e.target.value)
-                                        }
-                                        className="flex-1 w-full p-4 text-sm font-mono border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="Edit your markdown content here..."
-                                    />
-                                </div>
+                            </div>
+                            {edit ? (
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-auto">
 
-                                <div className="flex flex-col">
-                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Live Preview
-                                    </h3>
-                                    <div className="flex-1 overflow-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 p-4">
-                                        <div className="markdown-body">
-                                            <ReactMarkdown
-                                                remarkPlugins={[
-                                                    remarkGfm,
-                                                    remarkBreaks,
-                                                ]}
-                                            >
-                                                {content}
-                                            </ReactMarkdown>
+                                    {/* Editor and Preview */}
+                                    <div className="flex flex-col">
+                                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Editor
+                                        </h3>
+                                        <Textarea
+                                            value={content}
+                                            onChange={(e) =>
+                                                setContent(e.target.value)
+                                            }
+                                            className="flex-1 w-full p-4 text-sm font-mono border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Edit your markdown content here..."
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col">
+                                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Live Preview
+                                        </h3>
+                                        <div className="flex-1 overflow-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 p-4">
+                                            <div className="markdown-body">
+                                                <ReactMarkdown
+                                                    remarkPlugins={[
+                                                        remarkGfm,
+                                                        remarkBreaks,
+                                                    ]}
+                                                >
+                                                    {content}
+                                                </ReactMarkdown>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
-                                {/* Chat to update document */}
-                                <div className="overflow-auto">
-                                    <ChatWithAI onContentUpdate={(newContent) => setContent(newContent)} />
-                                </div>
-
-                                {/* preview only */}
+                            ) : (
                                 <div className="markdown-body overflow-auto">
                                     <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
                                         {content || data?.content || ""}
                                     </ReactMarkdown>
                                 </div>
-                            </div>
+                            )
+                            }
+                        </div>
 
 
-                        )}
                     </div>
                 </div>
             </div>
