@@ -158,9 +158,10 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                                     <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 h-6">
                                         Chat
                                     </h3>
-                                    <ChatWithAI />
+                                    <ChatWithAI onContentUpdate={(newContent) => setContent(newContent)} />
 
                                 </div>
+                                {/* Editor and Preview */}
                                 <div className="flex flex-col">
                                     <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Editor
@@ -195,15 +196,15 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
-                                {/* Cột 1 */}
+                                {/* Chat to update document */}
                                 <div className="overflow-auto">
-                                    <ChatWithAI />
+                                    <ChatWithAI onContentUpdate={(newContent) => setContent(newContent)} />
                                 </div>
 
-                                {/* Cột 2 */}
+                                {/* preview only */}
                                 <div className="markdown-body overflow-auto">
                                     <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
-                                        {data?.content || ""}
+                                        {content || data?.content || ""}
                                     </ReactMarkdown>
                                 </div>
                             </div>
