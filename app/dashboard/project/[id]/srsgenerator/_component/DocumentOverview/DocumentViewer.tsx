@@ -80,21 +80,6 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
 
     return (
         <div className="w-full relative">
-
-
-            {/* Header with title and actions */}
-            {/* <div className="flex-1">
-                <div className="p-1">
-                    <div className="flex flex-col sm:flex-row bg-white dark:bg-gray-800 justify-between rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 lg:p-4 gap-4 sm:gap-0">
-                        
-
-                        
-
-                    </div>
-                </div>
-            </div> */}
-
-            {/* Main Content Area */}
             <div className="flex-1 bg-white border border-gray-200 dark:border-gray-700 rounded-xl px-1 pb-2 pt-1 relative">
                 <div className="pt-3 px-1">
                     <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center mb-4 sm:mb-6 gap-2">
@@ -124,17 +109,7 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
-                            <Button
-                                className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm px-3 py-2"
-                                onClick={DownloadFile}
-                            >
-                                <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-                                <span className="hidden sm:block">
-                                    Download
-                                </span>
-                            </Button>
-                        </div>
+                        {/* SRS view options button */}
                         <div className="flex items-center gap-2">
                             {edit && (
                                 <Button
@@ -159,7 +134,21 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                                 {edit ? "Preview Only" : "Split View"}
                             </Button>
                         </div>
+
+                        {/* SRS download button */}
+                        <div className="flex items-center gap-2 shrink-0">
+                            <Button
+                                className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm px-3 py-2"
+                                onClick={DownloadFile}
+                            >
+                                <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+                                <span className="hidden sm:block">
+                                    Download
+                                </span>
+                            </Button>
+                        </div>
                     </div>
+
 
                     <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-1.5">
                         {/*Chat to update document */}
@@ -175,11 +164,11 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
 
                         </div>
                         {edit ? (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-auto ">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-1.5 overflow-auto ">
 
                                 {/* Editor and Preview */}
                                 <div className="flex flex-col">
-                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Editor
                                     </h3>
                                     <Textarea
@@ -187,16 +176,19 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                                         onChange={(e) =>
                                             setContent(e.target.value)
                                         }
-                                        className="max-h-[750px] flex-1 w-full p-4 text-sm font-mono border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="h-[calc(100vh-270px)] w-full p-4 text-sm font-mono 
+                                                    border border-gray-300 dark:border-gray-600 rounded-lg resize-none 
+                                                    bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white 
+                                                    focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholder="Edit your markdown content here..."
                                     />
                                 </div>
 
                                 <div className="flex flex-col">
-                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Live Preview
                                     </h3>
-                                    <div className="max-h-[750px] flex-1 overflow-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 px-2 py-1">
+                                    <div className="h-[calc(100vh-270px)] overflow-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 px-2 py-1">
                                         <div className="markdown-body">
                                             <ReactMarkdown
                                                 remarkPlugins={[
@@ -211,7 +203,7 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                                 </div>
                             </div>
                         ) : (
-                            <div className="max-h-[750px] markdown-body overflow-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 px-2 py-1">
+                            <div className="h-[calc(100vh-250px)] markdown-body overflow-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 px-2 py-1">
                                 <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
                                     {content || data?.content || ""}
                                 </ReactMarkdown>

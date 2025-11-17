@@ -96,7 +96,7 @@ export function ChatWithAI({ onContentUpdate, projectId, documentId }: ChatWithA
     };
 
     return (
-        <div className="flex flex-col border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-900 h-[750px]">
+        <div className="h-[calc(100vh-250px)] flex flex-col border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-900 ">
             {/* Chat messages area */}
             <div className="flex-1 overflow-y-auto p-1 space-y-3 scrollbar-thin 
                                 scrollbar-thumb-blue-500 
