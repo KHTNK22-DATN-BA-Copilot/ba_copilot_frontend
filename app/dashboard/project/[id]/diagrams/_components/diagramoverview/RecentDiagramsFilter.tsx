@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 
-import { DIAGRAM_TYPES } from "../_lib/constants";
+import { DIAGRAM_TYPES } from "../../_lib/constants";
 
 
 
