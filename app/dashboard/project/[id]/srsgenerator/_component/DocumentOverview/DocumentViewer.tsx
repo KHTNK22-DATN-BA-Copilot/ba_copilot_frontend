@@ -15,10 +15,12 @@ import remarkBreaks from "remark-breaks";
 import { Textarea } from "@/components/ui/textarea";
 import ChatBot from "@/components/chat-bot/ChatBot";
 import { ChatWithAI } from "@/components/chat-bot/ChatWithAI";
+import { describe } from "node:test";
 
 export default function DocumentViewer({ projectId }: { projectId: string }) {
     const param = useSearchParams();
     const document_id = param.get("doc") || "srs-document";
+    const messageDescription = "";
     const { data, error, isLoading } = useSRS(projectId, document_id);
     const [content, setContent] = useState("");
     const [edit, setEdit] = useState(false);
@@ -71,6 +73,10 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
             console.error(error);
         }
     };
+
+    const regenerateDocument = async () => {
+
+    }
 
     return (
         <div className="w-full relative">
@@ -157,7 +163,11 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                                 <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 h-6">
                                     Chat
                                 </h3>
-                                <ChatWithAI onContentUpdate={(newContent) => setContent(newContent)} />
+                                <ChatWithAI
+                                    onContentUpdate={(newContent) => setContent(newContent)}
+                                    projectId={projectId}
+                                    documentId={document_id}
+                                />
 
                             </div>
                             {edit ? (

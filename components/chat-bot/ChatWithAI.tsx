@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 
 interface ChatWithAIProps {
     onContentUpdate?: (newContent: string) => void;
+    projectId?: string;
+    documentId?: string;
 }
 
 const generateMockMarkdown = (userPrompt: string): string => {
@@ -19,7 +21,7 @@ const generateMockMarkdown = (userPrompt: string): string => {
     return mockResponses[Math.floor(Math.random() * mockResponses.length)];
 };
 
-export function ChatWithAI({ onContentUpdate }: ChatWithAIProps) {
+export function ChatWithAI({ onContentUpdate, projectId, documentId }: ChatWithAIProps) {
     const [chatMessages, setChatMessages] = useState<
         { id: number; message: string; isUser: boolean }[]
     >([]);
@@ -28,6 +30,7 @@ export function ChatWithAI({ onContentUpdate }: ChatWithAIProps) {
 
     const handleSend = async () => {
         if (!content.trim() || isProcessing) return;
+
         const userMessage = {
             id: Date.now(),
             message: content,
@@ -38,11 +41,27 @@ export function ChatWithAI({ onContentUpdate }: ChatWithAIProps) {
         setContent("");
         setIsProcessing(true);
 
-        // Simulate AI response with mock markdown data
-        setTimeout(() => {
-            const aiResponseText = "I've updated the document based on your request. The preview should now show the new content.";
-            const mockMarkdownContent = generateMockMarkdown(userPrompt);
+        try {
+            // Prepare FormData with project_id, document_id and description
+            const formData = new FormData();
+            if (projectId) formData.append("project_id", projectId);
+            if (documentId) formData.append("document_id", documentId);
+            formData.append("description", userPrompt);
 
+            // Call API to regenerate document
+            const res = await fetch(`/api/srs-generate/doc`, {
+                method: "PATCH",
+                body: formData,
+            });
+
+            if (!res.ok) {
+                throw new Error(`API error: ${res.status}`);
+            }
+
+            const data = await res.json();
+
+            // Show AI response message
+            const aiResponseText = "I've updated the document based on your request. The preview should now show the new content.";
             setChatMessages((prev) => [
                 ...prev,
                 {
@@ -52,13 +71,28 @@ export function ChatWithAI({ onContentUpdate }: ChatWithAIProps) {
                 },
             ]);
 
-            // Update the document content via callback
-            if (onContentUpdate) {
-                onContentUpdate(mockMarkdownContent);
+            // Update the document content via callback with the 'document' field from response
+            if (onContentUpdate && data.document) {
+                onContentUpdate(data.document);
             }
 
             setIsProcessing(false);
-        }, 1500);
+            console.log("Document regenerated:", data);
+        } catch (error) {
+            console.error("Error regenerating document:", error);
+
+            // Show error message in chat
+            setChatMessages((prev) => [
+                ...prev,
+                {
+                    id: Date.now() + 1,
+                    message: "Sorry, there was an error processing your request. Please try again.",
+                    isUser: false,
+                },
+            ]);
+
+            setIsProcessing(false);
+        }
     };
 
     return (
