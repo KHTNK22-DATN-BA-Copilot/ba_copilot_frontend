@@ -129,9 +129,28 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                             <Button
                                 variant="outline"
                                 onClick={() => setEdit(!edit)}
-                                className="w-fit"
+                                className="w-fit flex items-center justify-center"
                             >
-                                {edit ? "Preview Only" : "Split View"}
+                                {/* Only icon on mobile, text on sm+ */}
+                                {edit ? (
+                                    <>
+                                        {/* Eye icon for Preview Only */}
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M1.75 12C3.5 7.5 8 4.5 12 4.5c4 0 8.5 3 10.25 7.5-1.75 4.5-6.25 7.5-10.25 7.5-4 0-8.5-3-10.25-7.5z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
+                                        <span className="hidden sm:inline">Preview Only</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        {/* Columns icon for Split View */}
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                                            <rect x="3" y="4" width="7" height="16" rx="2" />
+                                            <rect x="14" y="4" width="7" height="16" rx="2" />
+                                        </svg>
+                                        <span className="hidden sm:inline">Split View</span>
+                                    </>
+                                )}
                             </Button>
                         </div>
 
@@ -149,20 +168,18 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                         </div>
                     </div>
 
-
+                    {/*Document detail display */}
                     <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-1.5">
-                        {/*Chat to update document */}
-                        <div className="flex flex-col overflow-auto">
-                            {/* <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 h-6">
-                                Chat
-                            </h3> */}
+
+                        {/* Chat to update document - hidden on mobile */}
+                        <div className="hidden lg:flex flex-col overflow-auto">
                             <ChatWithAI
                                 onContentUpdate={(newContent) => setContent(newContent)}
                                 projectId={projectId}
                                 documentId={document_id}
                             />
-
                         </div>
+
                         {edit ? (
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-1.5 overflow-auto ">
 
