@@ -80,28 +80,42 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
 
     return (
         <div className="w-full relative">
-            <Button
-                variant="ghost"
-                className="mb-4 lg:mb-0 cursor-pointer"
-                onClick={() =>
-                    redirect(`/dashboard/project/${projectId}/srsgenerator`)
-                }
-            >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Back to documents</span>
-                <span className="sm:hidden">Back</span>
-            </Button>
+
 
             {/* Header with title and actions */}
-            <div className="flex-1">
-                <div className="p-2 sm:p-4 lg:p-6">
-                    <div className="flex flex-col sm:flex-row bg-white dark:bg-gray-800 justify-between rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 lg:p-8 gap-4 sm:gap-0">
+            {/* <div className="flex-1">
+                <div className="p-1">
+                    <div className="flex flex-col sm:flex-row bg-white dark:bg-gray-800 justify-between rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 lg:p-4 gap-4 sm:gap-0">
+                        
+
+                        
+
+                    </div>
+                </div>
+            </div> */}
+
+            {/* Main Content Area */}
+            <div className="flex-1 bg-white border border-gray-200 dark:border-gray-700 rounded-xl px-1 pb-2 pt-1 relative">
+                <div className="pt-3 px-1">
+                    <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center mb-4 sm:mb-6 gap-2">
+                        {/* Back to generate SRS document */}
+                        <Button
+                            variant="ghost"
+                            className="mb-4 lg:mb-0 cursor-pointer"
+                            onClick={() =>
+                                redirect(`/dashboard/project/${projectId}/srsgenerator`)
+                            }
+                        >
+                            <ArrowLeft className=" h-4 w-4" />
+                        </Button>
+
+                        {/* SRS document title and status */}
                         <div className="flex-1 min-w-0">
                             <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">
                                 E-Commerce Platform SRS
                             </h1>
-                            <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 mt-2">
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-900 text-white dark:bg-white dark:text-gray-900 w-fit">
+                            <div className="flex flex-row items-center gap-2 ">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-900 text-white dark:bg-white dark:text-gray-900 w-fit">
                                     Complete
                                 </span>
                                 <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
@@ -121,102 +135,89 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                                 </span>
                             </Button>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Main Content Area */}
-            <div className="flex-1 relative">
-                <div className="p-2 sm:p-4 lg:p-6">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 lg:p-8">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-2">
-                            <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white"></h2>
-                            <div className="flex items-center gap-2">
-                                {edit && (
-                                    <Button
-                                        variant="default"
-                                        onClick={() => {
-                                            updateDocument();
-                                        }}
-                                        className="w-fit"
-                                        disabled={
-                                            content.trim() ===
-                                            data?.content.trim()
-                                        }
-                                    >
-                                        Save Changes
-                                    </Button>
-                                )}
+                        <div className="flex items-center gap-2">
+                            {edit && (
                                 <Button
-                                    variant="outline"
-                                    onClick={() => setEdit(!edit)}
+                                    variant="default"
+                                    onClick={() => {
+                                        updateDocument();
+                                    }}
                                     className="w-fit"
+                                    disabled={
+                                        content.trim() ===
+                                        data?.content.trim()
+                                    }
                                 >
-                                    {edit ? "Preview Only" : "Split View"}
+                                    Save Changes
                                 </Button>
-                            </div>
+                            )}
+                            <Button
+                                variant="outline"
+                                onClick={() => setEdit(!edit)}
+                                className="w-fit"
+                            >
+                                {edit ? "Preview Only" : "Split View"}
+                            </Button>
                         </div>
+                    </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
-                            {/*Chat to update document */}
-                            <div className="flex flex-col overflow-auto">
-                                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 h-6">
-                                    Chat
-                                </h3>
-                                <ChatWithAI
-                                    onContentUpdate={(newContent) => setContent(newContent)}
-                                    projectId={projectId}
-                                    documentId={document_id}
-                                />
+                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-1.5">
+                        {/*Chat to update document */}
+                        <div className="flex flex-col overflow-auto">
+                            {/* <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 h-6">
+                                Chat
+                            </h3> */}
+                            <ChatWithAI
+                                onContentUpdate={(newContent) => setContent(newContent)}
+                                projectId={projectId}
+                                documentId={document_id}
+                            />
 
-                            </div>
-                            {edit ? (
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-auto">
+                        </div>
+                        {edit ? (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-auto ">
 
-                                    {/* Editor and Preview */}
-                                    <div className="flex flex-col">
-                                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Editor
-                                        </h3>
-                                        <Textarea
-                                            value={content}
-                                            onChange={(e) =>
-                                                setContent(e.target.value)
-                                            }
-                                            className="flex-1 w-full p-4 text-sm font-mono border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Edit your markdown content here..."
-                                        />
-                                    </div>
+                                {/* Editor and Preview */}
+                                <div className="flex flex-col">
+                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Editor
+                                    </h3>
+                                    <Textarea
+                                        value={content}
+                                        onChange={(e) =>
+                                            setContent(e.target.value)
+                                        }
+                                        className="max-h-[750px] flex-1 w-full p-4 text-sm font-mono border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Edit your markdown content here..."
+                                    />
+                                </div>
 
-                                    <div className="flex flex-col">
-                                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Live Preview
-                                        </h3>
-                                        <div className="flex-1 overflow-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 p-4">
-                                            <div className="markdown-body">
-                                                <ReactMarkdown
-                                                    remarkPlugins={[
-                                                        remarkGfm,
-                                                        remarkBreaks,
-                                                    ]}
-                                                >
-                                                    {content}
-                                                </ReactMarkdown>
-                                            </div>
+                                <div className="flex flex-col">
+                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Live Preview
+                                    </h3>
+                                    <div className="max-h-[750px] flex-1 overflow-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 px-2 py-1">
+                                        <div className="markdown-body">
+                                            <ReactMarkdown
+                                                remarkPlugins={[
+                                                    remarkGfm,
+                                                    remarkBreaks,
+                                                ]}
+                                            >
+                                                {content}
+                                            </ReactMarkdown>
                                         </div>
                                     </div>
                                 </div>
-                            ) : (
-                                <div className="markdown-body overflow-auto">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
-                                        {content || data?.content || ""}
-                                    </ReactMarkdown>
-                                </div>
-                            )
-                            }
-                        </div>
-
-
+                            </div>
+                        ) : (
+                            <div className="max-h-[750px] markdown-body overflow-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 px-2 py-1">
+                                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                                    {content || data?.content || ""}
+                                </ReactMarkdown>
+                            </div>
+                        )
+                        }
                     </div>
                 </div>
             </div>
