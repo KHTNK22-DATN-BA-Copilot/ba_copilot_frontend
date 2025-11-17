@@ -13,7 +13,7 @@ export default async function SRSLayout({
 
     return (
         <main className="flex-1">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:py-8 lg:py-3">
+            <div className="max-w-7xl mx-auto px-4 sm:px-3 lg:px-8 lg:py-3">
                 {/* Page Header */}
                 <div className="col-span-12">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2 gap-4">
