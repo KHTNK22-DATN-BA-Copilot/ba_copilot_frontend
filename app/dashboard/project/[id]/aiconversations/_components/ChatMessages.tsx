@@ -31,7 +31,7 @@ export function ChatMessages({
                             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 shadow-lg bg-gradient-to-br from-blue-400 to-purple-500 dark:from-blue-500 dark:to-purple-700">
                                 <Sparkles className="w-8 h-8 text-black dark:text-gray-100" />
                             </div>
-                            <h2 className="text-2xl sm:text-3xl font-bold text-gray-100 dark:text-gray-100">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
                                 AI Business Analyst Assistant
                             </h2>
                             <p className="text-sm sm:text-base text-gray-400 dark:text-gray-400">

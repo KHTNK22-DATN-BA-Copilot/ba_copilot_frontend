@@ -1,9 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageCircle, Send, X } from "lucide-react";
+import { Send, X, Sparkles } from "lucide-react";
 import { useState } from "react";
 
-export default function ChatBot({assisstanceName}: {assisstanceName: string}) {
+interface ChatBotProps {
+    assisstanceName: string;
+    projectId?: string;
+    documentId?: string;
+    onContentUpdate?: (newContent: string) => void;
+}
+
+export default function ChatBot({ assisstanceName, projectId, documentId, onContentUpdate }: ChatBotProps) {
     const [showChatbot, setShowChatbot] = useState(false);
     const [chatMessages, setChatMessages] = useState<
         { id: number; message: string; isUser: boolean }[]
@@ -20,7 +27,62 @@ export default function ChatBot({assisstanceName}: {assisstanceName: string}) {
             isUser: true,
         };
         setChatMessages((prev) => [...prev, userMessage]);
+        const userPrompt = currentPrompt;
+        setCurrentPrompt("");
         setIsProcessing(true);
+
+        try {
+            // Prepare FormData with project_id, document_id and description
+            const formData = new FormData();
+            if (projectId) formData.append("project_id", projectId);
+            if (documentId) formData.append("document_id", documentId);
+            formData.append("description", userPrompt);
+
+            // Call API to regenerate document
+            const res = await fetch(`/api/srs-generate/doc`, {
+                method: "PATCH",
+                body: formData,
+            });
+
+            if (!res.ok) {
+                throw new Error(`API error: ${res.status}`);
+            }
+
+            const data = await res.json();
+
+            // Show AI response message
+            const aiResponseText = "I've updated the document based on your request. The preview should now show the new content.";
+            setChatMessages((prev) => [
+                ...prev,
+                {
+                    id: Date.now() + 1,
+                    message: aiResponseText,
+                    isUser: false,
+                },
+            ]);
+
+            // Update the document content via callback with the 'document' field from response
+            if (onContentUpdate && data.document) {
+                onContentUpdate(data.document);
+            }
+
+            setIsProcessing(false);
+            console.log("Document regenerated:", data);
+        } catch (error) {
+            console.error("Error regenerating document:", error);
+
+            // Show error message in chat
+            setChatMessages((prev) => [
+                ...prev,
+                {
+                    id: Date.now() + 1,
+                    message: "Sorry, there was an error processing your request. Please try again.",
+                    isUser: false,
+                },
+            ]);
+
+            setIsProcessing(false);
+        }
     };
 
     return (
@@ -28,18 +90,18 @@ export default function ChatBot({assisstanceName}: {assisstanceName: string}) {
             {!showChatbot ? (
                 <div className="relative group" onClick={() => setShowChatbot(true)}>
                     <Button
-                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full cursor-pointer"
-                        size="icon"
+                        className="h-10 sm:h-12 px-4 sm:px-6 rounded-full cursor-pointer flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200"
                     >
-                        <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                        <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                        <span className="text-sm sm:text-base font-medium">AI Regeneration</span>
                     </Button>
-                    
-                    
-                    {/* Tooltip */}
-                    <div className="absolute bottom-14 sm:bottom-16 right-0 bg-gray-900 text-white px-3 py-1 rounded-lg text-xs sm:text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+
+
+                    {/* Tooltip - removed since text is now visible */}
+                    {/* <div className="absolute bottom-14 sm:bottom-16 right-0 bg-gray-900 text-white px-3 py-1 rounded-lg text-xs sm:text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
                         AI Assistant
                         <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                    </div>
+                    </div> */}
                 </div>
             ) : (
                 <div className="w-screen h-screen sm:w-80 sm:h-96 bg-white dark:bg-gray-800 sm:rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 flex flex-col sm:fixed sm:bottom-6 sm:right-6 fixed inset-0 sm:inset-auto">
@@ -71,18 +133,16 @@ export default function ChatBot({assisstanceName}: {assisstanceName: string}) {
                             chatMessages.map((msg) => (
                                 <div
                                     key={msg.id}
-                                    className={`flex ${
-                                        msg.isUser
-                                            ? "justify-end"
-                                            : "justify-start"
-                                    }`}
+                                    className={`flex ${msg.isUser
+                                        ? "justify-end"
+                                        : "justify-start"
+                                        }`}
                                 >
                                     <div
-                                        className={`max-w-[80%] sm:max-w-xs p-2 sm:p-3 rounded-lg text-xs sm:text-sm ${
-                                            msg.isUser
-                                                ? "bg-blue-600 text-white"
-                                                : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                                        }`}
+                                        className={`max-w-[80%] sm:max-w-xs p-2 sm:p-3 rounded-lg text-xs sm:text-sm ${msg.isUser
+                                            ? "bg-blue-600 text-white"
+                                            : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                                            }`}
                                     >
                                         {msg.message}
                                     </div>

@@ -39,9 +39,6 @@ export function ChatInput({ value, onChange, onSend, disabled }: ChatInputProps)
                         <Send className="w-5 h-5" />
                     </Button>
                 </div>
-                <p className="text-xs text-gray-400 dark:text-gray-400 mt-2 text-center">
-                    Press Enter to send, Shift + Enter for new line
-                </p>
             </div>
         </div>
     );
