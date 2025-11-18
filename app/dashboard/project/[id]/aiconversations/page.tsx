@@ -55,13 +55,6 @@ export default function ProjectAIConversationsPage() {
     };
 
     const handleNewConversation = () => {
-        setMessages([
-            {
-                id: 1,
-                role: "assistant",
-                content: "Hello! I'm your BA Copilot assistant. I can help you with creating SRS documents, generating diagrams, designing wireframes, and answering questions about business analysis. How can I assist you today?",
-            },
-        ]);
         setInput("");
     };
 

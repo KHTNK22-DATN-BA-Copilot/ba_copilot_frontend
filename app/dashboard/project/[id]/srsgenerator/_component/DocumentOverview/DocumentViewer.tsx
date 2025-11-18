@@ -78,7 +78,7 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
 
     return (
         <div className="w-full relative">
-            <div className="flex-1 bg-white border border-gray-200 dark:border-gray-700 rounded-xl px-1 pb-2 pt-1 relative">
+            <div className="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-1 pb-2 pt-1 relative">
                 <div className="pt-3 px-1">
 
                     {/* Document Header - improved mobile layout */}
@@ -286,8 +286,8 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                                     <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Live Preview
                                     </h3>
-                                    <div className="h-[calc(100vh-270px)] overflow-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 px-2 py-1">
-                                        <div className="markdown-body">
+                                    <div className="h-[calc(100vh-270px)] overflow-auto border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 px-2 py-1">
+                                        <div className="markdown-body dark:markdown-body-dark">
                                             <ReactMarkdown
                                                 remarkPlugins={[
                                                     remarkGfm,
@@ -301,7 +301,7 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                                 </div>
                             </div>
                         ) : (
-                            <div className="h-[calc(100vh-250px)] markdown-body overflow-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 px-2 py-1">
+                            <div className="h-[calc(100vh-250px)] markdown-body dark:markdown-body-dark overflow-auto border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 px-2 py-1">
                                 <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
                                     {content || data?.content || ""}
                                 </ReactMarkdown>

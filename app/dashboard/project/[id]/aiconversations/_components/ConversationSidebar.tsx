@@ -28,7 +28,7 @@ export function ConversationSidebar({
             <div className="p-4 border-b border-gray-700 dark:border-gray-700">
                 <Button
                     onClick={onNewConversation}
-                    className="w-full justify-start gap-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium rounded-lg py-2.5"
+                    className="w-full justify-start gap-2 font-medium rounded-lg py-2.5"
                 >
                     <Plus className="w-4 h-4" />
                     New Conversation
@@ -47,7 +47,7 @@ export function ConversationSidebar({
                             onClick={() => onSelectConversation?.(i + 1)}
                         >
                             <MessageSquare className="w-4 h-4 text-gray-500 dark:text-gray-500 group-hover:text-blue-400 transition-colors" />
-                            <span className="truncate text-gray-300 dark:text-gray-300 group-hover:text-white">
+                            <span className="truncate text-gray-700 dark:text-gray-300 group-hover:text-white">
                                 Conversation {i + 1}
                             </span>
                         </button>
