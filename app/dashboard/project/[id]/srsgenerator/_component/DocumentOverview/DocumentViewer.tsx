@@ -312,8 +312,15 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                 </div>
             </div>
 
-            {/* Chatbot Icon */}
-            <ChatBot assisstanceName="Document AI Assistant" />
+            {/* Chatbot Icon - only mobile */}
+            <div className="flex sm:hidden">
+                <ChatBot
+                    assisstanceName="Document AI Assistant"
+                    projectId={projectId}
+                    documentId={document_id}
+                    onContentUpdate={(newContent) => setContent(newContent)}
+                />
+            </div>
         </div>
     );
 }

@@ -3,7 +3,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { MessageCircle, Send, X } from "lucide-react";
 import { useState } from "react";
 
-export default function ChatBot({assisstanceName}: {assisstanceName: string}) {
+interface ChatBotProps {
+    assisstanceName: string;
+    projectId?: string;
+    documentId?: string;
+    onContentUpdate?: (newContent: string) => void;
+}
+
+export default function ChatBot({ assisstanceName, projectId, documentId, onContentUpdate }: ChatBotProps) {
     const [showChatbot, setShowChatbot] = useState(false);
     const [chatMessages, setChatMessages] = useState<
         { id: number; message: string; isUser: boolean }[]
@@ -20,7 +27,62 @@ export default function ChatBot({assisstanceName}: {assisstanceName: string}) {
             isUser: true,
         };
         setChatMessages((prev) => [...prev, userMessage]);
+        const userPrompt = currentPrompt;
+        setCurrentPrompt("");
         setIsProcessing(true);
+
+        try {
+            // Prepare FormData with project_id, document_id and description
+            const formData = new FormData();
+            if (projectId) formData.append("project_id", projectId);
+            if (documentId) formData.append("document_id", documentId);
+            formData.append("description", userPrompt);
+
+            // Call API to regenerate document
+            const res = await fetch(`/api/srs-generate/doc`, {
+                method: "PATCH",
+                body: formData,
+            });
+
+            if (!res.ok) {
+                throw new Error(`API error: ${res.status}`);
+            }
+
+            const data = await res.json();
+
+            // Show AI response message
+            const aiResponseText = "I've updated the document based on your request. The preview should now show the new content.";
+            setChatMessages((prev) => [
+                ...prev,
+                {
+                    id: Date.now() + 1,
+                    message: aiResponseText,
+                    isUser: false,
+                },
+            ]);
+
+            // Update the document content via callback with the 'document' field from response
+            if (onContentUpdate && data.document) {
+                onContentUpdate(data.document);
+            }
+
+            setIsProcessing(false);
+            console.log("Document regenerated:", data);
+        } catch (error) {
+            console.error("Error regenerating document:", error);
+
+            // Show error message in chat
+            setChatMessages((prev) => [
+                ...prev,
+                {
+                    id: Date.now() + 1,
+                    message: "Sorry, there was an error processing your request. Please try again.",
+                    isUser: false,
+                },
+            ]);
+
+            setIsProcessing(false);
+        }
     };
 
     return (
@@ -33,8 +95,8 @@ export default function ChatBot({assisstanceName}: {assisstanceName: string}) {
                     >
                         <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     </Button>
-                    
-                    
+
+
                     {/* Tooltip */}
                     <div className="absolute bottom-14 sm:bottom-16 right-0 bg-gray-900 text-white px-3 py-1 rounded-lg text-xs sm:text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
                         AI Assistant
@@ -71,18 +133,16 @@ export default function ChatBot({assisstanceName}: {assisstanceName: string}) {
                             chatMessages.map((msg) => (
                                 <div
                                     key={msg.id}
-                                    className={`flex ${
-                                        msg.isUser
+                                    className={`flex ${msg.isUser
                                             ? "justify-end"
                                             : "justify-start"
-                                    }`}
+                                        }`}
                                 >
                                     <div
-                                        className={`max-w-[80%] sm:max-w-xs p-2 sm:p-3 rounded-lg text-xs sm:text-sm ${
-                                            msg.isUser
+                                        className={`max-w-[80%] sm:max-w-xs p-2 sm:p-3 rounded-lg text-xs sm:text-sm ${msg.isUser
                                                 ? "bg-blue-600 text-white"
                                                 : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                                        }`}
+                                            }`}
                                     >
                                         {msg.message}
                                     </div>
