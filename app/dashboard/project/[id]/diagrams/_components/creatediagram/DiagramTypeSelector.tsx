@@ -1,5 +1,5 @@
-import { DIAGRAM_TYPES } from "../_lib/constants";
-import { useDiagramManager } from "../_lib/hooks";
+import { DIAGRAM_TYPES } from "../../_lib/constants";
+import { useDiagramManager } from "../../_lib/hooks";
 
 export function DiagramTypeSelector({onSelect, diagramTypes}: {onSelect: (typeId: string) => void, diagramTypes: string}) {
     return (

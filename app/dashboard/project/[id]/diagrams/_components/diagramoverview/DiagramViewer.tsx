@@ -1,11 +1,12 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Diagram } from "../_lib/constants";
+import { Diagram } from "../../_lib/constants";
 import ReactMarkdown from "react-markdown";
 import mermaid from "mermaid";
 import { useEffect, useRef, useState } from "react";
 import remarkGfm from "remark-gfm";
+import { ChatWithAI } from "../../../../../../../components/chat-bot/ChatWithAI";
 
 interface DiagramTabsProps {
     diagram: Diagram;
@@ -76,8 +77,8 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
                     typeof crypto !== "undefined" && crypto.randomUUID
                         ? crypto.randomUUID()
                         : `${Date.now()}-${idx}-${Math.floor(
-                              Math.random() * 1000
-                          )}`;
+                            Math.random() * 1000
+                        )}`;
                 const id = `mermaid-${uniq}`;
 
                 try {
@@ -134,7 +135,7 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
     );
 };
 
-export function DiagramTabs({ diagram }: DiagramTabsProps) {
+export function DiagramViewer({ diagram }: DiagramTabsProps) {
     const [edit, setEdit] = useState(false);
     const [content, setContent] = useState(diagram.markdown);
 
@@ -153,39 +154,48 @@ export function DiagramTabs({ diagram }: DiagramTabsProps) {
     };
 
     return (
-        <div className="p-2 sm:p-4 lg:p-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 lg:p-8">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-2">
-                    <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">
-                        Diagram View
-                    </h2>
-                    <div className="flex items-center gap-2">
-                        {edit && (
-                            <Button
-                                variant="default"
-                                onClick={() => {
-                                    updateDiagram();
-                                }}
-                                className="w-fit"
-                                disabled={
-                                    content.trim() === diagram.markdown.trim()
-                                }
-                            >
-                                Save Changes
-                            </Button>
-                        )}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 lg:p-8">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-2">
+                <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">
+                    Diagram View
+                </h2>
+                <div className="flex items-center gap-2">
+                    {edit && (
                         <Button
-                            variant="outline"
-                            onClick={() => setEdit(!edit)}
+                            variant="default"
+                            onClick={() => {
+                                updateDiagram();
+                            }}
                             className="w-fit"
+                            disabled={
+                                content.trim() === diagram.markdown.trim()
+                            }
                         >
-                            {edit ? "Preview Only" : "Split View"}
+                            Save Changes
                         </Button>
-                    </div>
+                    )}
+                    <Button
+                        variant="outline"
+                        onClick={() => setEdit(!edit)}
+                        className="w-fit"
+                    >
+                        {edit ? "Preview Only" : "Split View"}
+                    </Button>
                 </div>
+            </div>
 
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
+                {/* Chat to update diagram */}
+                <div className="overflow-auto">
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 h-6">
+                        Chat
+                    </h3>
+                    <ChatWithAI />
+
+                </div>
                 {edit ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-auto">
+
                         {/* Editor Panel */}
                         <div className="flex flex-col">
                             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -212,7 +222,7 @@ export function DiagramTabs({ diagram }: DiagramTabsProps) {
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 sm:p-8 min-h-[400px] flex items-center justify-center">
+                    <div className="bg-gray-50 overflow-auto dark:bg-gray-900 rounded-lg p-4 sm:p-8 min-h-[400px] flex items-center justify-center">
                         <div className="w-full">
                             <MarkdownWithMermaid content={diagram.markdown} />
                         </div>
