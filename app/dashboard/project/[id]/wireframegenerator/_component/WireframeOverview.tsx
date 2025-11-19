@@ -4,6 +4,8 @@ import { ArrowLeft, Eye, SplitSquareHorizontal } from "lucide-react";
 import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useWireframe } from "@/hooks/use-wireframe";
+import { Textarea } from "@/components/ui/textarea";
+import ChatBot from "@/components/chat-bot/ChatBot";
 import { ChatWithAI } from "@/components/chat-bot/ChatWithAI";
 
 export default function WireframeOverview({

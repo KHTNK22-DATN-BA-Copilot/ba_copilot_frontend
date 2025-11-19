@@ -40,11 +40,32 @@ export default function ProjectsSection({
         null
     );
     const [deleteError, setDeleteError] = useState<string | null>(null);
+    const [sortedProjects, setSortedProjects] = useState<any[]>(projects);
 
     const handleFilterSelect = (filterName: string) => {
         setSelectedFilter(filterName);
         setIsOpenFilter(false);
         console.log(`${filterName} selected`);
+        switch (filterName) {
+            case "Most Recent":
+                setSortedProjects(
+                    [...projects].sort((a, b) =>
+                        new Date(b.created_at).getTime() -
+                        new Date(a.created_at).getTime()
+                    )
+                );
+                break; 
+            case "Title":
+                setSortedProjects(
+                    [...projects].sort((a, b) =>
+                        a.name.localeCompare(b.name)
+                    )
+                );
+                break;
+            default:
+                setSortedProjects(projects);
+                break;
+        }
     };
 
 
@@ -219,7 +240,7 @@ export default function ProjectsSection({
                         </Link>
 
                         {/* Actual project cards */}
-                        {projects.map((item) => (
+                        {sortedProjects.map((item) => (
                             <div
                                 onClick={(e) => {
                                     redirect(`/dashboard/project/${item.id}`)
