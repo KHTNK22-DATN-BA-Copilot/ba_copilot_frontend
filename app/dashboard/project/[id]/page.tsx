@@ -11,7 +11,6 @@ import RecentActivitySection from './_components/RecentActivitySection';
 import TasksOverviewSection from './_components/TasksOverviewSection';
 import DeleteProjectSection from './_components/DeleteProjectSection';
 import { Activity, QuickStat, TaskOverview } from './_components/types';
-import FileManagement from "@/components/file-management/FileManagement"
 
 export default function ProjectOverviewPage() {
     const params = useParams();
@@ -103,7 +102,6 @@ export default function ProjectOverviewPage() {
                 {/* Quick Stats */}
                 <QuickStatsSection stats={quickStats} />
 
-                <FileManagement />
 
                 {/* Main Content Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">

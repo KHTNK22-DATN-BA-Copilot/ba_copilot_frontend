@@ -287,8 +287,6 @@ export default function ProjectsSection({
                                                 {getDay(item.created_at)}
                                             </p>
                                         </div>
-
-                                        
                                     </div>
                                 </div>
                             </div>

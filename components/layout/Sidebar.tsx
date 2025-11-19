@@ -3,6 +3,7 @@
 import { useRouter, usePathname, useParams } from 'next/navigation';
 import { useState } from 'react';
 import { HomeIcon, SRSIcon, WireframeIcon, DiagramIcon, ConversationIcon } from '@/components/icons/project-icons';
+import { FileIcon } from 'lucide-react';
 
 interface SidebarProps {
     isDarkMode: boolean;
@@ -26,6 +27,12 @@ export default function Sidebar({ isDarkMode, isOpen = false, onClose, isMobile 
             href: `/dashboard/project/${id}`,
             icon: <HomeIcon />,
             description: 'Overview & Analytics'
+        },
+        {
+            name: "File management",
+            href: `/dashboard/project/${id}/files`,
+            icon: <FileIcon />,
+            description: 'Manage Project Files'
         },
         {
             name: 'AI Conversations',

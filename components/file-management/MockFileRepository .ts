@@ -1,106 +1,132 @@
+import { id } from "zod/v4/locales";
 import { IFileRepository } from "./IFileRepository ";
-import { FolderData, FileItem } from "./type";
+import { FileNode, FileItem, FolderData } from "./type";
 
-const mockData: FolderData[] = [
+const mockData: FileNode[] = [
     {
-        id: 1,
-        name: "Requirements",
-        color: "blue",
-        files: [
+        id: "folder-001",
+        name: "SRS document",
+        type: "folder",
+        children: [
             {
                 id: 1,
                 name: "functional-requirements.pdf",
                 size: "2.4 MB",
                 uploadedDate: "Nov 10, 2025",
-                type: "pdf",
+                fileType: "pdf",
+                type: "file",
             },
             {
                 id: 2,
                 name: "business-requirements.docx",
                 size: "1.8 MB",
                 uploadedDate: "Nov 12, 2025",
-                type: "docx",
+                type: "file",
+                fileType: "docx",
             },
         ],
     },
     {
-        id: 2,
-        name: "Designs",
-        color: "purple",
-        files: [
-            {
-                id: 3,
-                name: "ui-mockups.fig",
-                size: "5.2 MB",
-                uploadedDate: "Nov 8, 2025",
-                type: "fig",
-            },
-        ],
+        id: "folder-002",
+        name: "Design Docs",
+        type: "folder",
+        children: [],
     },
     {
-        id: 3,
-        name: "Documentation",
-        color: "green",
-        files: [
+        id: "folder-003",
+        name: "Project_Plan.docx",
+        type: "folder",
+        children: [
             {
                 id: 4,
                 name: "project-overview.pdf",
                 size: "3.1 MB",
                 uploadedDate: "Nov 5, 2025",
-                type: "pdf",
+                type: "file",
+                fileType: "pdf",
             },
             {
-                id: 5,
-                name: "technical-specs.md",
-                size: "156 KB",
-                uploadedDate: "Nov 13, 2025",
-                type: "md",
+                id: 123,
+                name: "Architect",
+                type: "folder",
+                children: [
+                    {
+                        id: 10,
+                        name: "project-overview.pdf",
+                        size: "3.1 MB",
+                        uploadedDate: "Nov 5, 2025",
+                        type: "file",
+                        fileType: "pdf",
+                    },
+                ],
             },
         ],
     },
     {
-        id: 4,
-        name: "Research",
-        color: "orange",
-        files: [],
+        id: "folder-004",
+        name: "Meeting_Notes",
+        type: "folder",
+        children: [
+            {
+                id: 5,
+                name: "kickoff-meeting.txt",
+                size: "15 KB",
+                uploadedDate: "Nov 15, 2025",
+                type: "file",
+                fileType: "txt",
+            },
+        ],
     },
 ];
 
 export class MockFileRepository implements IFileRepository {
-    private folders: FolderData[]
+    private folders: FileNode[];
 
     constructor() {
         this.folders = mockData;
     }
-
-    async getFolders(): Promise<FolderData[]> {
-        return Promise.resolve(this.folders);
+    deleteFile(fileId: number, folderId: number): Promise<void> {
+        this.folders.forEach((folder) => {
+            if (folder.id === folderId && folder.type === "folder") {
+                folder.children = folder.children.filter(
+                    (file) => file.id !== fileId
+                );
+            }
+        });
+        return Promise.resolve();
     }
 
-    async uploadFile(folderId: number, file: File): Promise<FileItem> {
-        const newFile: FileItem = {
+    // async getFolders(): Promise<FolderData[]> {
+    //     return Promise.resolve(this.folders);
+    // }
+
+    async uploadFile(folderId: number, file: File): Promise<FileNode> {
+        const newFile: FileNode = {
             id: Date.now(),
             name: file.name,
-            size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-            uploadedDate: new Date().toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-            }),
-            type: file.name.split(".").pop() || "file",
+            size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+            uploadedDate: new Date().toLocaleDateString(),
+            fileType: file.name.split(".").pop() || "file",
+            type: "file",
         };
-        this.folders = this.folders.map((folder) =>
-            folder.id === folderId
-                ? { ...folder, files: [...folder.files, newFile] }
-                : folder
-        );
-        return newFile;
+        // this.folders.forEach((folder) => {
+        //     if (folder.id === folderId && folder.type === "folder") {
+        //         folder.children.push(newFile);
+        //     }
+        // })
+
+        return Promise.resolve(newFile);
     }
-    async deleteFile(fileId: number, folderId: number): Promise<void> {
-        this.folders = this.folders.map((f) =>
-            f.id === folderId
-                ? { ...f, files: f.files.filter((x) => x.id !== fileId) }
-                : f
-        );
+    getTreeStructure(): Promise<FileNode[]> {
+        return Promise.resolve(this.folders);
+    }
+    getTotalFilesCount(): number {
+        let count = 0;
+        this.folders.forEach((folder) => {
+            if (folder.type === "folder") {
+                count += folder.children.length;
+            }
+        });
+        return count;
     }
 }
