@@ -2,9 +2,11 @@ import { FileItem, FolderData, FileNode } from "./type";
 
 export interface IFileRepository {
     //getFolders(): Promise<FolderData[]>;
-    uploadFile(folderId: number, file: File): Promise<FileNode>;
-    deleteFile(fileId: number, folderId: number): Promise<void>;
+    uploadFile(nodes: FileNode[], folderId: number, file: File): FileNode[];
+    deleteFile(nodes: FileNode[] ,fileId: number, folderId: number): FileNode[];
     getTreeStructure(): Promise<FileNode[]>;
     getAllFiles?(): Promise<FileNode[]>;
-    getTotalFilesCount(): number
+    getTotalFilesCount(nodes: FileNode[]): number
+    addFolderRecursive(nodes: FileNode[], parentId: number, newFolder: FileNode): FileNode[]
+    removeFolderRecursive(nodes: FileNode[], targetId: number): FileNode[]
 }

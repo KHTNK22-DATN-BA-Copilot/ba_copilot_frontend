@@ -7,6 +7,7 @@ const mockData: FileNode[] = [
         id: "folder-001",
         name: "SRS document",
         type: "folder",
+        systemFileType: true,
         children: [
             {
                 id: 1,
@@ -30,12 +31,14 @@ const mockData: FileNode[] = [
         id: "folder-002",
         name: "Design Docs",
         type: "folder",
+        systemFileType: false,
         children: [],
     },
     {
         id: "folder-003",
         name: "Project_Plan.docx",
         type: "folder",
+        systemFileType: true,
         children: [
             {
                 id: 4,
@@ -49,6 +52,7 @@ const mockData: FileNode[] = [
                 id: 123,
                 name: "Architect",
                 type: "folder",
+                systemFileType: false,
                 children: [
                     {
                         id: 10,
@@ -66,6 +70,7 @@ const mockData: FileNode[] = [
         id: "folder-004",
         name: "Meeting_Notes",
         type: "folder",
+        systemFileType: true,
         children: [
             {
                 id: 5,
@@ -85,22 +90,58 @@ export class MockFileRepository implements IFileRepository {
     constructor() {
         this.folders = mockData;
     }
-    deleteFile(fileId: number, folderId: number): Promise<void> {
-        this.folders.forEach((folder) => {
-            if (folder.id === folderId && folder.type === "folder") {
-                folder.children = folder.children.filter(
-                    (file) => file.id !== fileId
-                );
+    deleteFile(
+        nodes: FileNode[],
+        fileId: number,
+        folderId: number
+    ): FileNode[] {
+        return nodes.map((node, index) => {
+            if (node.type === "folder") {
+                if (node.id === folderId) {
+                    node.children = node.children.filter(
+                        (child) => child.id !== fileId
+                    );
+                } else {
+                    node.children = this.deleteFile(
+                        node.children,
+                        fileId,
+                        folderId
+                    );
+                }
             }
+
+            return node;
         });
-        return Promise.resolve();
     }
 
-    // async getFolders(): Promise<FolderData[]> {
-    //     return Promise.resolve(this.folders);
-    // }
+    addFolderRecursive(
+        nodes: FileNode[],
+        parentId: number,
+        newFolder: FileNode
+    ): FileNode[] {
+        return nodes.map((node) => {
+            if (node.id === parentId && node.type === "folder") {
+                return { ...node, children: [...node.children, newFolder] };
+            }
+            if (
+                node.type === "folder" &&
+                node.children &&
+                node.children.length > 0
+            ) {
+                return {
+                    ...node,
+                    children: this.addFolderRecursive(
+                        node.children,
+                        parentId,
+                        newFolder
+                    ),
+                };
+            }
+            return node;
+        });
+    }
 
-    async uploadFile(folderId: number, file: File): Promise<FileNode> {
+    uploadFile(nodes: FileNode[], folderId: number, file: File): FileNode[] {
         const newFile: FileNode = {
             id: Date.now(),
             name: file.name,
@@ -109,24 +150,60 @@ export class MockFileRepository implements IFileRepository {
             fileType: file.name.split(".").pop() || "file",
             type: "file",
         };
-        // this.folders.forEach((folder) => {
-        //     if (folder.id === folderId && folder.type === "folder") {
-        //         folder.children.push(newFile);
-        //     }
-        // })
 
-        return Promise.resolve(newFile);
+        return nodes.map((node) => {
+            if (node.type === "folder") {
+                if (node.id === folderId) {
+                    return {
+                        ...node,
+                        children: [...node.children, newFile],
+                    };
+                }
+
+                return {
+                    ...node,
+                    children: this.uploadFile(
+                        node.children,
+                        folderId,
+                        file
+                    ) as unknown as FileNode[],
+                };
+            }
+
+            return node;
+        });
     }
     getTreeStructure(): Promise<FileNode[]> {
         return Promise.resolve(this.folders);
     }
-    getTotalFilesCount(): number {
+    getTotalFilesCount(nodes: FileNode[]): number {
         let count = 0;
-        this.folders.forEach((folder) => {
+        nodes.forEach((folder) => {
             if (folder.type === "folder") {
-                count += folder.children.length;
+                count += this.getTotalFilesCount(folder.children);
+            } else {
+                count += 1;
             }
         });
         return count;
+    }
+
+    removeFolderRecursive(nodes: FileNode[], targetId: number): FileNode[] {
+        return nodes.reduce<FileNode[]>((acc, n) => {
+            if (n.id === targetId) {
+                // skip this node -> removed
+                return acc;
+            }
+            if (n.type === "folder") {
+                const newChildren = this.removeFolderRecursive(
+                    n.children ?? [],
+                    targetId
+                );
+                acc.push({ ...n, children: newChildren });
+            } else {
+                acc.push(n);
+            }
+            return acc;
+        }, []);
     }
 }

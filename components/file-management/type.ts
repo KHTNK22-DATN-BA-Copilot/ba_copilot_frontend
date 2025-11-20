@@ -15,10 +15,12 @@ export type FileNode =
           size: number | string;
           uploadedDate: string;
           fileType: string;
+          
       }
     | {
           id: string | number;
           name: string;
           type: "folder";
           children: FileNode[];
+          systemFileType: boolean;
       };
