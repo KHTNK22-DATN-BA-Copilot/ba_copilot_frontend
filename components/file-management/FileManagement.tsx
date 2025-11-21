@@ -224,6 +224,19 @@ export default function FileManagement() {
         setNewName("");
     };
 
+    const handleDownload = async (file: FileNode) => {
+        if(file.type !== "file") return;
+        // implement download logic, e.g., create a link and trigger click
+        const url = URL.createObjectURL(file.file);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <div className="mt-6 w-ful">
             <Card>
@@ -280,6 +293,7 @@ export default function FileManagement() {
                                     expandedFolders={expandedFolders}
                                     onCreateFolder={handleCreateFolder}
                                     onRemoveFolder={handleRemoveFolder}
+                                    onDownload={handleDownload}
                                 />
                             ))}
                         </div>

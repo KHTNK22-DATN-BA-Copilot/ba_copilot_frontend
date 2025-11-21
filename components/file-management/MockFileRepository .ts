@@ -1,4 +1,4 @@
-import { id } from "zod/v4/locales";
+
 import { IFileRepository } from "./IFileRepository ";
 import { FileNode, FileItem, FolderData } from "./type";
 
@@ -8,30 +8,13 @@ const mockData: FileNode[] = [
         name: "SRS document",
         type: "folder",
         systemFileType: true,
-        children: [
-            {
-                id: 1,
-                name: "functional-requirements.pdf",
-                size: "2.4 MB",
-                uploadedDate: "Nov 10, 2025",
-                fileType: "pdf",
-                type: "file",
-            },
-            {
-                id: 2,
-                name: "business-requirements.docx",
-                size: "1.8 MB",
-                uploadedDate: "Nov 12, 2025",
-                type: "file",
-                fileType: "docx",
-            },
-        ],
+        children: [],
     },
     {
         id: "folder-002",
         name: "Design Docs",
         type: "folder",
-        systemFileType: false,
+        systemFileType: true,
         children: [],
     },
     {
@@ -39,48 +22,14 @@ const mockData: FileNode[] = [
         name: "Project_Plan.docx",
         type: "folder",
         systemFileType: true,
-        children: [
-            {
-                id: 4,
-                name: "project-overview.pdf",
-                size: "3.1 MB",
-                uploadedDate: "Nov 5, 2025",
-                type: "file",
-                fileType: "pdf",
-            },
-            {
-                id: 123,
-                name: "Architect",
-                type: "folder",
-                systemFileType: false,
-                children: [
-                    {
-                        id: 10,
-                        name: "project-overview.pdf",
-                        size: "3.1 MB",
-                        uploadedDate: "Nov 5, 2025",
-                        type: "file",
-                        fileType: "pdf",
-                    },
-                ],
-            },
-        ],
+        children: [],
     },
     {
         id: "folder-004",
         name: "Meeting_Notes",
         type: "folder",
         systemFileType: true,
-        children: [
-            {
-                id: 5,
-                name: "kickoff-meeting.txt",
-                size: "15 KB",
-                uploadedDate: "Nov 15, 2025",
-                type: "file",
-                fileType: "txt",
-            },
-        ],
+        children: [],
     },
 ];
 
@@ -149,6 +98,7 @@ export class MockFileRepository implements IFileRepository {
             uploadedDate: new Date().toLocaleDateString(),
             fileType: file.name.split(".").pop() || "file",
             type: "file",
+            file: file
         };
 
         return nodes.map((node) => {

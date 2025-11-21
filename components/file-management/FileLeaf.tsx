@@ -5,7 +5,7 @@ import { Button } from "../ui/button";
 export const FileLeaf: React.FC<{
     file: FileNode;
     onDelete: (fileId: number) => void;
-    onDownload?: (file: FileItem) => void;
+    onDownload?: (file: FileNode) => void;
     onSelect?: (file: FileItem) => void;
 }> = ({ file, onDelete, onDownload, onSelect }) => {
     return (

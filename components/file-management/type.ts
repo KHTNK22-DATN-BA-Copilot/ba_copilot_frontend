@@ -15,7 +15,7 @@ export type FileNode =
           size: number | string;
           uploadedDate: string;
           fileType: string;
-          
+          file: File
       }
     | {
           id: string | number;

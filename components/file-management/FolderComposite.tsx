@@ -22,7 +22,7 @@ type FolderCompositeProps = {
     toggle: (id: number) => void;
     onUpload: (folderId: number) => void;
     onDelete: (folderId: number, fileId: number) => void;
-    onDownload?: (file: FileItem) => void;
+    onDownload?: (file: FileNode) => void;
     onSelect?: (file: FileItem) => void;
     onCreateFolder?: (parentId: number, name: string) => void;
     onRemoveFolder: (folderId: number) => void;
@@ -87,6 +87,10 @@ export const FolderComposite = ({
         }
         onRemoveFolder?.(folder.id as number);
     };
+
+    const handleDownload = (file: FileNode) => {
+        onDownload?.(file);
+    }
 
     return (
         <div className="border rounded-lg w-full overflow-hidden">
