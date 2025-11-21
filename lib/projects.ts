@@ -22,15 +22,18 @@ export async function getAllProjects() {
 
 export async function getAllDiagrams(projectId: any): Promise<Diagram[]> {
     const access_token = (await cookies()).get("access_token")?.value;
-    const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/diagram/list/${projectId}`, {
-        headers: {
-            Authorization: `Bearer ${access_token}`,
-        },
-    });
+    const res = await fetch(
+        `${process.env.BACKEND_DOMAIN}/api/v1/diagram/list/${projectId}`,
+        {
+            headers: {
+                Authorization: `Bearer ${access_token}`,
+            },
+        }
+    );
     if (!res.ok) {
         console.error("Failed to fetch diagrams:", res.statusText);
         throw new Error("Failed to fetch diagrams");
-    }   
+    }
     const data = await res.json();
 
     const diagrams: Diagram[] = data.diagrams.map((diagram: any) => ({
@@ -44,5 +47,3 @@ export async function getAllDiagrams(projectId: any): Promise<Diagram[]> {
 
     return diagrams;
 }
-
-

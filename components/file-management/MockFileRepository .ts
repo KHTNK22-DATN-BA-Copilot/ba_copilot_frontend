@@ -1,106 +1,159 @@
-import { IFileRepository } from "./IFileRepository ";
-import { FolderData, FileItem } from "./type";
 
-const mockData: FolderData[] = [
+import { IFileRepository } from "./IFileRepository ";
+import { FileNode, FileItem, FolderData } from "./type";
+
+const mockData: FileNode[] = [
     {
-        id: 1,
-        name: "Requirements",
-        color: "blue",
-        files: [
-            {
-                id: 1,
-                name: "functional-requirements.pdf",
-                size: "2.4 MB",
-                uploadedDate: "Nov 10, 2025",
-                type: "pdf",
-            },
-            {
-                id: 2,
-                name: "business-requirements.docx",
-                size: "1.8 MB",
-                uploadedDate: "Nov 12, 2025",
-                type: "docx",
-            },
-        ],
+        id: "folder-001",
+        name: "SRS document",
+        type: "folder",
+        systemFileType: true,
+        children: [],
     },
     {
-        id: 2,
-        name: "Designs",
-        color: "purple",
-        files: [
-            {
-                id: 3,
-                name: "ui-mockups.fig",
-                size: "5.2 MB",
-                uploadedDate: "Nov 8, 2025",
-                type: "fig",
-            },
-        ],
+        id: "folder-002",
+        name: "Design Docs",
+        type: "folder",
+        systemFileType: true,
+        children: [],
     },
     {
-        id: 3,
-        name: "Documentation",
-        color: "green",
-        files: [
-            {
-                id: 4,
-                name: "project-overview.pdf",
-                size: "3.1 MB",
-                uploadedDate: "Nov 5, 2025",
-                type: "pdf",
-            },
-            {
-                id: 5,
-                name: "technical-specs.md",
-                size: "156 KB",
-                uploadedDate: "Nov 13, 2025",
-                type: "md",
-            },
-        ],
+        id: "folder-003",
+        name: "Project_Plan.docx",
+        type: "folder",
+        systemFileType: true,
+        children: [],
     },
     {
-        id: 4,
-        name: "Research",
-        color: "orange",
-        files: [],
+        id: "folder-004",
+        name: "Meeting_Notes",
+        type: "folder",
+        systemFileType: true,
+        children: [],
     },
 ];
 
 export class MockFileRepository implements IFileRepository {
-    private folders: FolderData[]
+    private folders: FileNode[];
 
     constructor() {
         this.folders = mockData;
     }
+    deleteFile(
+        nodes: FileNode[],
+        fileId: number,
+        folderId: number
+    ): FileNode[] {
+        return nodes.map((node, index) => {
+            if (node.type === "folder") {
+                if (node.id === folderId) {
+                    node.children = node.children.filter(
+                        (child) => child.id !== fileId
+                    );
+                } else {
+                    node.children = this.deleteFile(
+                        node.children,
+                        fileId,
+                        folderId
+                    );
+                }
+            }
 
-    async getFolders(): Promise<FolderData[]> {
-        return Promise.resolve(this.folders);
+            return node;
+        });
     }
 
-    async uploadFile(folderId: number, file: File): Promise<FileItem> {
-        const newFile: FileItem = {
+    addFolderRecursive(
+        nodes: FileNode[],
+        parentId: number,
+        newFolder: FileNode
+    ): FileNode[] {
+        return nodes.map((node) => {
+            if (node.id === parentId && node.type === "folder") {
+                return { ...node, children: [...node.children, newFolder] };
+            }
+            if (
+                node.type === "folder" &&
+                node.children &&
+                node.children.length > 0
+            ) {
+                return {
+                    ...node,
+                    children: this.addFolderRecursive(
+                        node.children,
+                        parentId,
+                        newFolder
+                    ),
+                };
+            }
+            return node;
+        });
+    }
+
+    uploadFile(nodes: FileNode[], folderId: number, file: File): FileNode[] {
+        const newFile: FileNode = {
             id: Date.now(),
             name: file.name,
-            size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-            uploadedDate: new Date().toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-            }),
-            type: file.name.split(".").pop() || "file",
+            size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+            uploadedDate: new Date().toLocaleDateString(),
+            fileType: file.name.split(".").pop() || "file",
+            type: "file",
+            file: file
         };
-        this.folders = this.folders.map((folder) =>
-            folder.id === folderId
-                ? { ...folder, files: [...folder.files, newFile] }
-                : folder
-        );
-        return newFile;
+
+        return nodes.map((node) => {
+            if (node.type === "folder") {
+                if (node.id === folderId) {
+                    return {
+                        ...node,
+                        children: [...node.children, newFile],
+                    };
+                }
+
+                return {
+                    ...node,
+                    children: this.uploadFile(
+                        node.children,
+                        folderId,
+                        file
+                    ) as unknown as FileNode[],
+                };
+            }
+
+            return node;
+        });
     }
-    async deleteFile(fileId: number, folderId: number): Promise<void> {
-        this.folders = this.folders.map((f) =>
-            f.id === folderId
-                ? { ...f, files: f.files.filter((x) => x.id !== fileId) }
-                : f
-        );
+    getTreeStructure(): Promise<FileNode[]> {
+        return Promise.resolve(this.folders);
+    }
+    getTotalFilesCount(nodes: FileNode[]): number {
+        let count = 0;
+        nodes.forEach((folder) => {
+            if (folder.type === "folder") {
+                count += this.getTotalFilesCount(folder.children);
+            } else {
+                count += 1;
+            }
+        });
+        return count;
+    }
+
+    removeFolderRecursive(nodes: FileNode[], targetId: number): FileNode[] {
+        return nodes.reduce<FileNode[]>((acc, n) => {
+            if (n.id === targetId) {
+                // skip this node -> removed
+                return acc;
+            }
+            if (n.type === "folder") {
+                const newChildren = this.removeFolderRecursive(
+                    n.children ?? [],
+                    targetId
+                );
+                acc.push({ ...n, children: newChildren });
+            } else {
+                acc.push(n);
+            }
+            return acc;
+        }, []);
     }
 }
