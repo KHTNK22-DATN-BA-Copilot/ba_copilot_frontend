@@ -28,6 +28,11 @@ type FolderCompositeProps = {
     onRemoveFolder: (folderId: number) => void;
 };
 
+function CalTotalFiles(folder: FileNode): number {
+    if(folder.type === "file") return 1;
+    return folder.children.reduce((total, child) => total + CalTotalFiles(child), 0);
+}
+
 export const FolderComposite = ({
     folder,
     expanded,
@@ -107,9 +112,9 @@ export const FolderComposite = ({
                     <div>
                         <p>{folder.name}</p>
                         <p className="text-sm text-muted-foreground">
-                            {folder.type == "folder" && folder.children.length}{" "}
+                            {folder.type == "folder" && CalTotalFiles(folder)}{" "}
                             {folder.type == "folder" &&
-                            folder.children.length === 1
+                            CalTotalFiles(folder) === 1
                                 ? "file"
                                 : "files"}
                         </p>
