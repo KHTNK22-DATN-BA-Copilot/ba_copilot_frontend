@@ -221,6 +221,8 @@ graph TD
     NewProject["/new-project"]
     ProjectDetail["/dashboard/project/[id]"]
     SRSGen["/dashboard/project/[id]/srsgenerator"]
+    Wireframe["/dashboard/project/[id]/wireframegerator"]
+    Diagram["/dashboard/project/[id]/diagramgenerator"]
     AccountSetting["/dashboard/accountsetting"]
     
     Root --> Auth
@@ -233,6 +235,8 @@ graph TD
     Dashboard --> ProjectDetail
     Dashboard --> AccountSetting
     ProjectDetail --> SRSGen
+    ProjectDetail --> Diagram
+    ProjectDetail --> Wireframe
 ```
 
 ## Quản lý trạng thái và dữ liệu
