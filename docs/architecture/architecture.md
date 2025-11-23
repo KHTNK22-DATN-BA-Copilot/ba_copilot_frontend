@@ -28,6 +28,9 @@ Tài liệu này mô tả kiến trúc phía frontend cho dự án BA Copilot, d
 - [`app/dashboard/project/[id]/`](../../app/dashboard/project/[id]/) — dynamic routes cho project details
 - [`app/dashboard/project/[id]/srsgenerator/`](../../app/dashboard/project/[id]/srsgenerator/) — SRS Generator feature
 - [`app/dashboard/accountsetting/`](../../app/dashboard/accountsetting/) — cài đặt tài khoản
+- [`app/new-project/`](../../app/new-project/) — **(Mới)** Module tạo dự án mới
+  - [`app/new-project/page.tsx`](../../app/new-project/page.tsx) — trang wizard tạo dự án
+  - [`app/new-project/_components/`](../../app/new-project/_components/) — components riêng cho luồng tạo dự án
 
 ### API Routes (Backend for Frontend - BFF Pattern)
 
@@ -38,6 +41,8 @@ Tài liệu này mô tả kiến trúc phía frontend cho dự án BA Copilot, d
 - [`app/api/forgot-password/route.ts`](../../app/api/forgot-password/route.ts) — reset password
 - [`app/api/projects/route.ts`](../../app/api/projects/route.ts) — quản lý projects
 - [`app/api/srs-generate/route.ts`](../../app/api/srs-generate/route.ts) — generate SRS document
+- [`app/api/diagram/`](../../app/api/diagram/) — **(Mới)** API generate diagrams (Sequence, Class, Use Case)
+- [`app/api/wireframe-generate/`](../../app/api/wireframe-generate/) — **(Mới)** API generate wireframe từ yêu cầu
 
 ### Shared Components
 
@@ -61,6 +66,16 @@ Tài liệu này mô tả kiến trúc phía frontend cho dự án BA Copilot, d
 - [`components/icons/`](../../components/icons/) — icon components
   - [`index.ts`](../../components/icons/index.ts)
   - [`project-icons.tsx`](../../components/icons/project-icons.tsx)
+- [`components/chat-bot/`](../../components/chat-bot/) — **(Mới)** AI Chat Integration
+  - [`ChatBot.tsx`](../../components/chat-bot/ChatBot.tsx) — Main chat interface
+  - [`ChatWithAI.tsx`](../../components/chat-bot/ChatWithAI.tsx) — Chat logic wrapper
+- [`components/file-management/`](../../components/file-management/) — **(Mới)** File Explorer System (Composite Pattern)
+  - [`FileManagement.tsx`](../../components/file-management/FileManagement.tsx) — Main container
+  - [`FolderComposite.tsx`](../../components/file-management/FolderComposite.tsx) — Folder node component
+  - [`FileLeaf.tsx`](../../components/file-management/FileLeaf.tsx) — File node component
+  - [`IFileRepository.ts`](../../components/file-management/IFileRepository%20.ts) — Repository interface
+- [`components/file/`](../../components/file/) — **(Mới)** File Utilities
+  - [`FileUpload.tsx`](../../components/file/FileUpload.tsx) — Upload component
 
 ### State Management
 
@@ -71,7 +86,12 @@ Tài liệu này mô tả kiến trúc phía frontend cho dự án BA Copilot, d
 
 - [`lib/user.ts`](../../lib/user.ts) — user-related utilities và API calls
 - [`lib/projects.ts`](../../lib/projects.ts) — project-related utilities và API calls
-- [`lib/utils.ts`](../../lib/utils.ts) — shared utility functions (cn, formatters, validators)
+- [`lib/utils.ts`](../../lib/utils.ts) — shared utility functions (cn, validators, formatters)
+- [`hooks/use-srs-doc.ts`](../../hooks/use-srs-doc.ts) — **(Mới)** Logic xử lý SRS
+- [`hooks/use-wireframe.ts`](../../hooks/use-wireframe.ts) — **(Mới)** Logic xử lý Wireframe
+- [`hooks/`](../../hooks/) — **(Mới)** Custom React Hooks
+  - [`use-srs-doc.ts`](../../hooks/use-srs-doc.ts) — Hook xử lý logic SRS document
+  - [`use-wireframe.ts`](../../hooks/use-wireframe.ts) — Hook xử lý logic sinh wireframe
 
 ### Configuration & Setup
 
@@ -123,6 +143,9 @@ Các route và page components nằm trong [`app/`](../../app/) sử dụng Next
 - **Primitives**: [`components/ui/`](../../components/ui/) — base components từ Shadcn UI
 - **Layout Components**: [`components/layout/`](../../components/layout/) — reusable layout pieces
 - **Feature Components**: trong `_components/` của mỗi feature (ví dụ: [`app/dashboard/project/[id]/srsgenerator/_component/`](../../app/dashboard/project/[id]/srsgenerator/_component/))
+- **Specialized Modules**: **(Mới)**
+  - **Chat Bot**: Module giao tiếp AI độc lập.
+  - **File Management**: Sử dụng **Composite Pattern** để quản lý cấu trúc thư mục/tệp tin phức tạp.
 - **Icons**: [`components/icons/`](../../components/icons/) — centralized icon management
 
 ### 3. State Management Layer
@@ -147,7 +170,7 @@ API routes trong [`app/api/`](../../app/api/) hoạt động như Backend-for-Fr
 
 ### 5. Business Logic Layer
 
-Helpers và utilities trong [`lib/`](../../lib/):
+Helpers và utilities trong [`lib/`](../../lib/) và [`hooks/`](../../hooks/):
 
 - [`lib/user.ts`](../../lib/user.ts) — user operations
 - [`lib/projects.ts`](../../lib/projects.ts) — project CRUD
@@ -198,6 +221,8 @@ graph TD
     NewProject["/new-project"]
     ProjectDetail["/dashboard/project/[id]"]
     SRSGen["/dashboard/project/[id]/srsgenerator"]
+    Wireframe["/dashboard/project/[id]/wireframegerator"]
+    Diagram["/dashboard/project/[id]/diagramgenerator"]
     AccountSetting["/dashboard/accountsetting"]
     
     Root --> Auth
@@ -210,6 +235,8 @@ graph TD
     Dashboard --> ProjectDetail
     Dashboard --> AccountSetting
     ProjectDetail --> SRSGen
+    ProjectDetail --> Diagram
+    ProjectDetail --> Wireframe
 ```
 
 ## Quản lý trạng thái và dữ liệu
@@ -280,6 +307,7 @@ app/layout.tsx (Root Providers)
 - **Client Components**: `'use client'` cho interactive UI
 - **Composition**: compose từ primitives trong [`components/ui/`](../../components/ui/)
 - **Co-location**: feature-specific components trong `_components/` folders
+- **Composite Pattern**: Áp dụng trong `components/file-management` để xử lý cấu trúc cây thư mục.
 
 ## API Integration
 
