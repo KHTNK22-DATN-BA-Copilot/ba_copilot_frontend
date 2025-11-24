@@ -9,7 +9,7 @@ import remarkGfm from "remark-gfm";
 import { ChatWithAI, diagramChatConfig } from "@/components/chat-bot";
 import { ArrowLeft, Download, Share2, Workflow } from "lucide-react";
 import ChatBot from "@/components/chat-bot/ChatBot";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 
 interface DiagramTabsProps {
@@ -143,6 +143,7 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
 export function DiagramViewer({ diagram, projectId }: DiagramTabsProps) {
     const [edit, setEdit] = useState(false);
     const [content, setContent] = useState(diagram.markdown);
+    const router = useRouter();
 
     useEffect(() => {
         setContent(diagram.markdown);
@@ -169,7 +170,7 @@ export function DiagramViewer({ diagram, projectId }: DiagramTabsProps) {
                         variant="ghost"
                         className="gap-2"
                         onClick={() =>
-                            redirect(`/dashboard/project/${projectId}/diagrams`)
+                            router.push(`/dashboard/project/${projectId}/diagrams`)
                         }
                     >
                         <ArrowLeft className="w-4 h-4" />
@@ -262,7 +263,7 @@ export function DiagramViewer({ diagram, projectId }: DiagramTabsProps) {
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-gray-50 h-[calc(100vh-250px)] overflow-auto dark:bg-gray-900 rounded-lg p-4 border border-gray-300 dark:border-gray-600 sm:p-8 min-h-[400px] flex items-center justify-center">
+                    <div className="h-[calc(100vh-250px)] overflow-auto border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 px-2 py-1">
                         <div className="w-full">
                             <MarkdownWithMermaid content={diagram.markdown} />
                         </div>
