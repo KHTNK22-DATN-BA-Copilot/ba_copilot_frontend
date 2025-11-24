@@ -7,6 +7,10 @@ import mermaid from "mermaid";
 import { useEffect, useRef, useState } from "react";
 import remarkGfm from "remark-gfm";
 import { ChatWithAI, diagramChatConfig } from "@/components/chat-bot";
+import { ArrowLeft, Download, Share2, Workflow } from "lucide-react";
+import ChatBot from "@/components/chat-bot/ChatBot";
+import { redirect } from "next/navigation";
+
 
 interface DiagramTabsProps {
     diagram: Diagram;
@@ -156,10 +160,32 @@ export function DiagramViewer({ diagram, projectId }: DiagramTabsProps) {
 
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 lg:p-1.5">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-2">
-                <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">
-                    Diagram View
-                </h2>
+
+            {/** Diagram detail header */}
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center sm:mb-2 gap-2">
+                <div className="flex flex-row items-center gap-2">
+                    {/* Back Button */}
+                    <Button
+                        variant="ghost"
+                        className="gap-2"
+                        onClick={() =>
+                            redirect(`/dashboard/project/${projectId}/diagrams`)
+                        }
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                    </Button>
+
+                    {/* Diagram Header */}
+                    <div className="flex items-center gap-4">
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{diagram.name}</h2>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {diagram.type} • Created {diagram.date}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <div className="flex items-center gap-2">
                     {edit && (
                         <Button
@@ -182,6 +208,16 @@ export function DiagramViewer({ diagram, projectId }: DiagramTabsProps) {
                     >
                         {edit ? "Preview Only" : "Split View"}
                     </Button>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" className="gap-2">
+                            <Share2 className="w-4 h-4" />
+                            Share
+                        </Button>
+                        <Button variant="outline" size="sm" className="gap-2">
+                            <Download className="w-4 h-4" />
+                            Download
+                        </Button>
+                    </div>
                 </div>
             </div>
 
@@ -226,7 +262,7 @@ export function DiagramViewer({ diagram, projectId }: DiagramTabsProps) {
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-gray-50 h-[calc(100vh-250px)] overflow-auto dark:bg-gray-900 rounded-lg p-4 sm:p-8 min-h-[400px] flex items-center justify-center">
+                    <div className="bg-gray-50 h-[calc(100vh-250px)] overflow-auto dark:bg-gray-900 rounded-lg p-4 border border-gray-300 dark:border-gray-600 sm:p-8 min-h-[400px] flex items-center justify-center">
                         <div className="w-full">
                             <MarkdownWithMermaid content={diagram.markdown} />
                         </div>
