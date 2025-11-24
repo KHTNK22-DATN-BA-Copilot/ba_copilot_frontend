@@ -155,7 +155,7 @@ export function DiagramViewer({ diagram, projectId }: DiagramTabsProps) {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 lg:p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 lg:p-1.5">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-2">
                 <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">
                     Diagram View
@@ -185,12 +185,9 @@ export function DiagramViewer({ diagram, projectId }: DiagramTabsProps) {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-2">
                 {/* Chat to update diagram */}
                 <div className="overflow-auto">
-                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 h-6">
-                        Chat
-                    </h3>
                     <ChatWithAI
                         apiConfig={diagramChatConfig}
                         additionalData={{ projectId: projectId, diagramId: diagram.id }}
@@ -201,11 +198,11 @@ export function DiagramViewer({ diagram, projectId }: DiagramTabsProps) {
 
                 </div>
                 {edit ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 overflow-auto">
 
                         {/* Editor Panel */}
-                        <div className="flex flex-col">
-                            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <div className="flex flex-col h-[calc(100vh-250px)]">
+                            <h3 className="text-sm  font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Editor
                             </h3>
                             <Textarea
@@ -217,7 +214,7 @@ export function DiagramViewer({ diagram, projectId }: DiagramTabsProps) {
                         </div>
 
                         {/* Preview Panel */}
-                        <div className="flex flex-col">
+                        <div className="flex flex-col h-[calc(100vh-250px)]">
                             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Live Preview
                             </h3>
@@ -229,7 +226,7 @@ export function DiagramViewer({ diagram, projectId }: DiagramTabsProps) {
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-gray-50 overflow-auto dark:bg-gray-900 rounded-lg p-4 sm:p-8 min-h-[400px] flex items-center justify-center">
+                    <div className="bg-gray-50 h-[calc(100vh-250px)] overflow-auto dark:bg-gray-900 rounded-lg p-4 sm:p-8 min-h-[400px] flex items-center justify-center">
                         <div className="w-full">
                             <MarkdownWithMermaid content={diagram.markdown} />
                         </div>
