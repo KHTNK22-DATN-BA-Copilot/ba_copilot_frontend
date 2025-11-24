@@ -15,6 +15,7 @@ import remarkBreaks from "remark-breaks";
 import { Textarea } from "@/components/ui/textarea";
 import ChatBot from "@/components/chat-bot/ChatBot";
 import { ChatWithAI } from "@/components/chat-bot/ChatWithAI";
+import { srsDocumentChatConfig } from "@/components/chat-bot/chat-configs";
 
 export default function DocumentViewer({ projectId }: { projectId: string }) {
     const param = useSearchParams();
@@ -255,9 +256,11 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
                         {/* Chat to update document - hidden on mobile */}
                         <div className="hidden lg:flex flex-col overflow-auto">
                             <ChatWithAI
+                                apiConfig={srsDocumentChatConfig}
+                                additionalData={{ projectId, documentId: document_id }}
                                 onContentUpdate={(newContent) => setContent(newContent)}
-                                projectId={projectId}
-                                documentId={document_id}
+                                emptyStateMessage="Ask me to update your SRS document!"
+                                placeholder="e.g., Add a security requirements section..."
                             />
                         </div>
 

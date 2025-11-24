@@ -6,10 +6,11 @@ import ReactMarkdown from "react-markdown";
 import mermaid from "mermaid";
 import { useEffect, useRef, useState } from "react";
 import remarkGfm from "remark-gfm";
-import { ChatWithAI } from "../../../../../../../components/chat-bot/ChatWithAI";
+import { ChatWithAI, diagramChatConfig } from "@/components/chat-bot";
 
 interface DiagramTabsProps {
     diagram: Diagram;
+    projectId: string;
 }
 
 mermaid.initialize({ startOnLoad: false }); // you can keep this or move into useEffect
@@ -135,7 +136,7 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
     );
 };
 
-export function DiagramViewer({ diagram }: DiagramTabsProps) {
+export function DiagramViewer({ diagram, projectId }: DiagramTabsProps) {
     const [edit, setEdit] = useState(false);
     const [content, setContent] = useState(diagram.markdown);
 
@@ -190,7 +191,13 @@ export function DiagramViewer({ diagram }: DiagramTabsProps) {
                     <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 h-6">
                         Chat
                     </h3>
-                    <ChatWithAI />
+                    <ChatWithAI
+                        apiConfig={diagramChatConfig}
+                        additionalData={{ projectId: projectId, diagramId: diagram.id }}
+                        onContentUpdate={(newContent) => setContent(newContent)}
+                        emptyStateMessage="Ask me to update your diagram!"
+                        placeholder="e.g., Change the database to a NoSQL database..."
+                    />
 
                 </div>
                 {edit ? (

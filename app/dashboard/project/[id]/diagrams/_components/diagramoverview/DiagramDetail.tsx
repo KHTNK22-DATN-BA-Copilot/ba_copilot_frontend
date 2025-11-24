@@ -6,10 +6,11 @@ import ChatBot from '@/components/chat-bot/ChatBot';
 
 interface DiagramDetailProps {
     diagram: Diagram;
+    projectId: string;
     onBack: () => void;
 }
 
-export function DiagramDetail({ diagram, onBack }: DiagramDetailProps) {
+export function DiagramDetail({ diagram, projectId, onBack }: DiagramDetailProps) {
     return (
         <div className="space-y-6">
             {/* Back Button */}
@@ -52,7 +53,7 @@ export function DiagramDetail({ diagram, onBack }: DiagramDetailProps) {
             </div>
 
             {/* Diagram Tabs */}
-            <DiagramViewer diagram={diagram} />
+            <DiagramViewer diagram={diagram} projectId={projectId} />
             <ChatBot assisstanceName="Diagram AI Assistant" />
         </div>
     );

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useWireframe } from "@/hooks/use-wireframe";
 import { Textarea } from "@/components/ui/textarea";
 import ChatBot from "@/components/chat-bot/ChatBot";
-import { ChatWithAI } from "@/components/chat-bot/ChatWithAI";
+import { ChatWithAI, wireframeChatConfig } from "@/components/chat-bot";
 
 export default function WireframeOverview({
     project_id,
@@ -76,7 +76,21 @@ export default function WireframeOverview({
             {/* Content Area */}
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
                 <div className="overflow-auto">
-                    <ChatWithAI />
+                    <ChatWithAI
+                        apiConfig={wireframeChatConfig}
+                        additionalData={{ projectId: project_id, wireframeId: wireframe_id }}
+                        onContentUpdate={(newContent) => {
+                            // Assuming the API returns HTML content
+                            setHtml(newContent);
+                        }}
+                        onSuccess={(data) => {
+                            // Update both HTML and CSS if available in response
+                            if (data.html_content) setHtml(data.html_content);
+                            if (data.css_content) setCss(data.css_content);
+                        }}
+                        emptyStateMessage="Ask me to update your wireframe!"
+                        placeholder="e.g., Add a navigation bar with logo and menu..."
+                    />
                 </div>
                 {isSplitView ? (
                     <>

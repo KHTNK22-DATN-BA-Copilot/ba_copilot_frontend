@@ -170,6 +170,7 @@ export default function ProjectDiagramsPage() {
                 ) : (
                     <DiagramDetail
                         diagram={selectedDiagram}
+                        projectId={projectId as string}
                         onBack={deselectDiagram}
                     />
                 )}
