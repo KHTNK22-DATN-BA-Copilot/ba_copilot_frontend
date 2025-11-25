@@ -88,11 +88,12 @@ export function ChatWithAI({
                 ...(!isFormData && { headers: { "Content-Type": "application/json" } }),
             });
 
-            if (!res.ok) {
-                throw new Error(`API error: ${res.status}`);
-            }
-
             const data = await res.json();
+            //console.log("API response:", data, "Status:", res.status);
+
+            if (!res.ok) {
+                throw new Error(data.message || data.error || `API error: ${res.status}`);
+            }
 
             // Extract AI response message
             const aiResponseText = successMessage ||
@@ -121,7 +122,6 @@ export function ChatWithAI({
             }
 
             setIsProcessing(false);
-            console.log("API response:", data);
         } catch (error) {
             console.error("Error processing request:", error);
 

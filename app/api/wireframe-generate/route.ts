@@ -49,6 +49,6 @@ export async function PATCH(request: NextRequest) {
             body: backendFormData,
         }
     );
-    const data = await res.json
+    const data = await res.json();
     return NextResponse.json(data, { status: res.status })
 }

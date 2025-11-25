@@ -46,8 +46,13 @@ export const wireframeChatConfig: ChatAPIConfig = {
         formData.append("description", userPrompt);
         return formData;
     },
-    extractResponseContent: (data: any) => data.wireframe_code || data.html || null,
-    extractResponseMessage: () => "I've updated the wireframe based on your request.",
+    extractResponseContent: (data: any) => data.html_content || data.wireframe_code || data.html || null,
+    extractResponseMessage: (data: any) => {
+        if (data.html_content || data.css_content) {
+            return "I've updated the wireframe based on your request. The preview should now show the new content.";
+        }
+        return "Wireframe updated successfully!";
+    },
 };
 
 // Generic JSON API Configuration (for custom implementations)
