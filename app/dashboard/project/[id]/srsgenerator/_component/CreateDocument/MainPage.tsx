@@ -47,7 +47,7 @@ export default function SRSGeneratorPage() {
     return (
         <div className="col-span-12">
                 
-            <FileUpload description="Upload any documents related to your project for AI analysis"/>
+            {/* <FileUpload description="Upload any documents related to your project for AI analysis"/> */}
             
 
             <div className="col-span-12">

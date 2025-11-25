@@ -8,7 +8,7 @@ interface PageHeaderProps {
 export function PageHeader({ projectId }: PageHeaderProps) {
     return (
         <div className="col-span-12">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2.5 gap-4">
                 <div className="flex items-center space-x-3">
                     <Link
                         href={`/dashboard/project/${projectId}`}

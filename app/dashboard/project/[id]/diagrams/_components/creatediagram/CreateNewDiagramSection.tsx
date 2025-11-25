@@ -21,7 +21,7 @@ export function CreateNewDiagramSection({
     return (
         <div className="space-y-6">
             <DiagramTypeSelector onSelect={setDiagramTypes} diagramTypes={diagramTypes} />
-            <FileUpload description="Upload any documents related to your project for AI analysis" />
+            {/* <FileUpload description="Upload any documents related to your project for AI analysis" /> */}
             <AIGenerationForm
                 overview={overview}
                 onChange={setOverview}

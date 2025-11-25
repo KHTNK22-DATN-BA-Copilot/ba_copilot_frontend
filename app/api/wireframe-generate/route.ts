@@ -20,3 +20,35 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(wireframe_id);
 }
+
+export async function PATCH(request: NextRequest) {
+    const access_token = (await cookies()).get("access_token")?.value;
+    if (!access_token) {
+        return new Response("Unauthorized", { status: 401 });
+    }
+
+    const formData = await request.formData();
+    const project_id = formData.get("project_id") as string;
+    const wireframe_id = formData.get("wireframe_id") as string;
+    const description = formData.get("description") as string;
+
+    const backendFormData = new FormData();
+    backendFormData.append("description", description);
+
+    const files = formData.getAll("files");
+    files.forEach(file => {
+        backendFormData.append("files", file);
+    })
+
+    const res = await fetch(
+        `${process.env.BACKEND_DOMAIN}/api/v1/wireframe/regenerate/${project_id}/${wireframe_id}`, {
+            method: "PATCH",
+            headers: {
+                Authorization: `Bearer ${access_token}`,
+            },
+            body: backendFormData,
+        }
+    );
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status })
+}

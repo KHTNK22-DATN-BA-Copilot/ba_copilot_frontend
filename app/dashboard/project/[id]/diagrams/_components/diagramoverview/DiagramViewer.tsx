@@ -6,10 +6,15 @@ import ReactMarkdown from "react-markdown";
 import mermaid from "mermaid";
 import { useEffect, useRef, useState } from "react";
 import remarkGfm from "remark-gfm";
-import { ChatWithAI } from "../../../../../../../components/chat-bot/ChatWithAI";
+import { ChatWithAI, diagramChatConfig } from "@/components/chat-bot";
+import { ArrowLeft, Download, Share2, Workflow } from "lucide-react";
+import ChatBot from "@/components/chat-bot/ChatBot";
+import { useRouter } from "next/navigation";
+
 
 interface DiagramTabsProps {
     diagram: Diagram;
+    projectId: string;
 }
 
 mermaid.initialize({ startOnLoad: false }); // you can keep this or move into useEffect
@@ -135,9 +140,10 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
     );
 };
 
-export function DiagramViewer({ diagram }: DiagramTabsProps) {
+export function DiagramViewer({ diagram, projectId }: DiagramTabsProps) {
     const [edit, setEdit] = useState(false);
     const [content, setContent] = useState(diagram.markdown);
+    const router = useRouter();
 
     useEffect(() => {
         setContent(diagram.markdown);
@@ -154,11 +160,33 @@ export function DiagramViewer({ diagram }: DiagramTabsProps) {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 lg:p-8">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-2">
-                <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">
-                    Diagram View
-                </h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 lg:p-1.5">
+
+            {/** Diagram detail header */}
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center sm:mb-2 gap-2">
+                <div className="flex flex-row items-center gap-2">
+                    {/* Back Button */}
+                    <Button
+                        variant="ghost"
+                        className="gap-2"
+                        onClick={() =>
+                            router.push(`/dashboard/project/${projectId}/diagrams`)
+                        }
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                    </Button>
+
+                    {/* Diagram Header */}
+                    <div className="flex items-center gap-4">
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{diagram.name}</h2>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {diagram.type} • Created {diagram.date}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <div className="flex items-center gap-2">
                     {edit && (
                         <Button
@@ -181,24 +209,37 @@ export function DiagramViewer({ diagram }: DiagramTabsProps) {
                     >
                         {edit ? "Preview Only" : "Split View"}
                     </Button>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" className="gap-2">
+                            <Share2 className="w-4 h-4" />
+                            Share
+                        </Button>
+                        <Button variant="outline" size="sm" className="gap-2">
+                            <Download className="w-4 h-4" />
+                            Download
+                        </Button>
+                    </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-2">
                 {/* Chat to update diagram */}
                 <div className="overflow-auto">
-                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 h-6">
-                        Chat
-                    </h3>
-                    <ChatWithAI />
+                    <ChatWithAI
+                        apiConfig={diagramChatConfig}
+                        additionalData={{ projectId: projectId, diagramId: diagram.id }}
+                        onContentUpdate={(newContent) => setContent(newContent)}
+                        emptyStateMessage="Ask me to update your diagram!"
+                        placeholder="e.g., Change the database to a NoSQL database..."
+                    />
 
                 </div>
                 {edit ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 overflow-auto">
 
                         {/* Editor Panel */}
-                        <div className="flex flex-col">
-                            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <div className="flex flex-col h-[calc(100vh-250px)]">
+                            <h3 className="text-sm  font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Editor
                             </h3>
                             <Textarea
@@ -210,7 +251,7 @@ export function DiagramViewer({ diagram }: DiagramTabsProps) {
                         </div>
 
                         {/* Preview Panel */}
-                        <div className="flex flex-col">
+                        <div className="flex flex-col h-[calc(100vh-250px)]">
                             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Live Preview
                             </h3>
@@ -222,7 +263,7 @@ export function DiagramViewer({ diagram }: DiagramTabsProps) {
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-gray-50 overflow-auto dark:bg-gray-900 rounded-lg p-4 sm:p-8 min-h-[400px] flex items-center justify-center">
+                    <div className="h-[calc(100vh-250px)] overflow-auto border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 px-2 py-1">
                         <div className="w-full">
                             <MarkdownWithMermaid content={diagram.markdown} />
                         </div>
