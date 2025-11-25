@@ -16,7 +16,10 @@ export function DiagramDetail({ diagram, projectId, onBack }: DiagramDetailProps
 
             {/* Diagram Tabs */}
             <DiagramViewer diagram={diagram} projectId={projectId} />
-            <ChatBot assisstanceName="Diagram AI Assistant" />
+            <div className="flex sm:hidden">
+                <ChatBot assisstanceName="Diagram AI Assistant" />
+
+            </div>
         </div>
     );
 }
