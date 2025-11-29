@@ -52,11 +52,9 @@ export default function DiagramsStep({
     };
 
     const handleGenerateDiagrams = () => {
-        if (prompt.trim()) {
-            console.log("Sending prompt:", prompt);
-            console.log("Selected files:", selectedFiles);
-            onGenerate();
-        }
+        console.log("Sending prompt:", prompt);
+        console.log("Selected files:", selectedFiles);
+        onGenerate();
     };
 
     return (
@@ -65,109 +63,108 @@ export default function DiagramsStep({
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                     Generate Diagrams
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400 mt-2">
-                    Describe what diagrams you want to generate or select a file for reference
-                </p>
             </div>
 
             {/**
              * Prompt Description
              */}
             <div className="space-y-4">
-                <div className="space-y-3">
-                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        Diagram Generation Prompt
-                    </label>
-                    <Textarea
-                        placeholder="Describe the diagrams you want to generate...
+                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Diagram Generation Prompt & Reference Files (Optional)
+                </label>
 
-Example:
-- Generate a use case diagram for user authentication
-- Create a class diagram for the order management system
-- Build an activity diagram for the checkout process"
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        className="min-h-[150px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
-                    />
-                </div>
-
-                <div className="space-y-3">
-                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        Reference Files (Optional)
-                    </label>
-
-                    {/* Selected Files Display */}
-                    {selectedFiles.length > 0 && (
-                        <div className="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                            {getSelectedFileNames().map((fileName, index) => (
-                                <Badge
-                                    key={index}
-                                    variant="secondary"
-                                    className="flex items-center gap-1 px-3 py-1"
-                                >
-                                    <FileText className="w-3 h-3" />
-                                    <span>{fileName}</span>
-                                    <button
-                                        onClick={() => handleRemoveFile(selectedFiles[index])}
-                                        className="ml-1 hover:text-red-600 dark:hover:text-red-400"
-                                    >
-                                        <X className="w-3 h-3" />
-                                    </button>
-                                </Badge>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* File Selection Dropdown */}
-                    <div className="relative">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setIsFileDropdownOpen(!isFileDropdownOpen)}
-                            className="w-full justify-between bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
-                        >
-                            <span className="text-gray-600 dark:text-gray-400">
-                                {selectedFiles.length > 0
-                                    ? `${selectedFiles.length} file(s) selected`
-                                    : "Select files from your project"}
-                            </span>
-                            <svg
-                                className={`w-4 h-4 transition-transform ${isFileDropdownOpen ? 'rotate-180' : ''}`}
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </Button>
-
-                        {isFileDropdownOpen && (
-                            <div className="absolute z-10 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                <div className="p-2 space-y-1">
-                                    {projectFiles.map((file) => (
-                                        <div
-                                            key={file.id}
-                                            className="flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer"
-                                            onClick={() => handleFileToggle(file.id)}
-                                        >
-                                            <Checkbox
-                                                checked={selectedFiles.includes(file.id)}
-                                                onCheckedChange={() => handleFileToggle(file.id)}
-                                            />
-                                            <FileText className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                                            <span className="text-sm text-gray-900 dark:text-gray-100">
-                                                {file.name}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                <div className="flex gap-2">
+                    {/* Prompt Section - 3/4 width */}
+                    <div className="w-3/4 space-y-3">
+                        <Textarea
+                            placeholder="Describe the diagrams you want to generate...
+                                Example:
+                                - Generate a use case diagram for user authentication
+                                - Create a class diagram for the order management system
+                                - Build an activity diagram for the checkout process"
+                            value={prompt}
+                            onChange={(e) => setPrompt(e.target.value)}
+                            className="min-h-[150px] bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700"
+                        />
                     </div>
 
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Select one or more files from your project to use as reference for diagram generation
-                    </p>
+                    {/* File Selection Section - 1/4 width */}
+                    <div className="w-1/4 space-y-3">
+                        <div className="space-y-3">
+                            {/* Selected Files Display */}
+                            <div className="flex flex-wrap gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 max-h-[100px] min-h-[100px] overflow-y-auto">
+                                {selectedFiles.length > 0 ? (
+                                    getSelectedFileNames().map((fileName, index) => (
+                                        <Badge
+                                            key={index}
+                                            variant="secondary"
+                                            className="flex items-center gap-1 px-2 py-1 text-xs h-fit"
+                                        >
+                                            <FileText className="w-3 h-3" />
+                                            <span className="truncate max-w-[80px]">{fileName}</span>
+                                            <button
+                                                onClick={() => handleRemoveFile(selectedFiles[index])}
+                                                className="ml-1 hover:text-red-600 dark:hover:text-red-400"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </Badge>
+                                    ))
+                                ) : (
+                                    <div className="flex items-center justify-center w-full h-full text-xs text-gray-400 dark:text-gray-500">
+                                        No files selected
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* File Selection Dropdown */}
+                            <div className="relative">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setIsFileDropdownOpen(!isFileDropdownOpen)}
+                                    className="w-full justify-between bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-xs"
+                                >
+                                    <span className="text-gray-600 dark:text-gray-400 truncate">
+                                        {selectedFiles.length > 0
+                                            ? `${selectedFiles.length} file(s)`
+                                            : "Select files"}
+                                    </span>
+                                    <svg
+                                        className={`w-4 h-4 transition-transform flex-shrink-0 ${isFileDropdownOpen ? 'rotate-180' : ''}`}
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </Button>
+
+                                {isFileDropdownOpen && (
+                                    <div className="absolute z-10 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                        <div className="p-2 space-y-1">
+                                            {projectFiles.map((file) => (
+                                                <div
+                                                    key={file.id}
+                                                    className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                                                    onClick={() => handleFileToggle(file.id)}
+                                                >
+                                                    <Checkbox
+                                                        checked={selectedFiles.includes(file.id)}
+                                                        onCheckedChange={() => handleFileToggle(file.id)}
+                                                    />
+                                                    <FileText className="w-3 h-3 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                                                    <span className="text-xs text-gray-900 dark:text-gray-100 truncate">
+                                                        {file.name}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -210,7 +207,7 @@ Example:
                     Back
                 </Button>
                 {generatedDiagrams.length === 0 ? (
-                    <Button onClick={handleGenerateDiagrams} disabled={!prompt.trim()} className="gap-2">
+                    <Button onClick={handleGenerateDiagrams} className="gap-2">
                         <Sparkles className="w-4 h-4" />
                         Generate Diagrams
                     </Button>
