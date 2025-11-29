@@ -1,48 +1,169 @@
 'use client';
 
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { CheckCircle2 } from "lucide-react";
+import { SRSIcon, DiagramIcon, WireframeIcon, HomeIcon } from "@/components/icons/project-icons";
+import WorkflowHeader from "./WorkflowHeader";
+import WorkflowProgressBar from "./WorkflowProgressBar";
+import WorkflowStepIndicator from "./WorkflowStepIndicator";
+import RequirementsStep from "./steps/RequirementsStep";
+import DiagramsStep from "./steps/DiagramsStep";
+import SRSStep from "./steps/SRSStep";
+import WireframesStep from "./steps/WireframesStep";
+import ReviewStep from "./steps/ReviewStep";
+import { WorkflowStep } from "./types";
+
 interface WorkflowsMainProps {
     projectId: string;
 }
 
 export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
-    return (
-        <div className="space-y-6">
-            {/* Page Header */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    Project Workflows
-                </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-2">
-                    All-in-one flow for managing your project workflow
-                </p>
-            </div>
+    const [currentStep, setCurrentStep] = useState(0);
+    const [requirements, setRequirements] = useState("");
+    const [generatedSRS, setGeneratedSRS] = useState("");
+    const [generatedDiagrams, setGeneratedDiagrams] = useState<string[]>([]);
+    const [generatedWireframes, setGeneratedWireframes] = useState<string[]>([]);
 
-            {/* Placeholder Content */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8">
-                <div className="text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/20 mb-4">
-                        <svg
-                            className="w-8 h-8 text-blue-600 dark:text-blue-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                            />
-                        </svg>
-                    </div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                        Workflows Feature
-                    </h2>
-                    <p className="text-gray-600 dark:text-gray-400">
-                        This feature is under development. Implementation coming soon.
-                    </p>
-                </div>
-            </div>
+    const steps: WorkflowStep[] = [
+        {
+            id: 0,
+            title: "Project Requirements Input",
+            description: "Describe your project requirements and goals",
+            icon: HomeIcon,
+            status: currentStep > 0 ? "completed" : currentStep === 0 ? "current" : "pending"
+        },
+        {
+            id: 1,
+            title: "Generate Diagrams",
+            description: "Create visual diagrams for your project",
+            icon: DiagramIcon,
+            status: currentStep > 1 ? "completed" : currentStep === 1 ? "current" : "pending"
+        },
+        {
+            id: 2,
+            title: "Generate SRS Document",
+            description: "Generate Software Requirements Specification",
+            icon: SRSIcon,
+            status: currentStep > 2 ? "completed" : currentStep === 2 ? "current" : "pending"
+        },
+        {
+            id: 3,
+            title: "Create Wireframes",
+            description: "Design user interface wireframes",
+            icon: WireframeIcon,
+            status: currentStep > 3 ? "completed" : currentStep === 3 ? "current" : "pending"
+        },
+        {
+            id: 4,
+            title: "Final Review",
+            description: "Review all generated artifacts",
+            icon: CheckCircle2,
+            status: currentStep === 4 ? "current" : "pending"
+        }
+    ];
+
+    const handleNext = () => {
+        if (currentStep < steps.length - 1) {
+            setCurrentStep(currentStep + 1);
+        }
+    };
+
+    const handleBack = () => {
+        if (currentStep > 0) {
+            setCurrentStep(currentStep - 1);
+        }
+    };
+
+    const handleGenerateDiagrams = () => {
+        // Simulate diagram generation
+        setGeneratedDiagrams(["Usecase Diagram", "Class Diagram", "Activity Diagram"]);
+    };
+
+    const handleGenerateSRS = () => {
+        // Simulate SRS generation
+        setGeneratedSRS("Software Requirements Specification document has been generated based on your input.");
+    };
+
+    const handleGenerateWireframes = () => {
+        // Simulate wireframe generation
+        setGeneratedWireframes(["Login Page", "Dashboard", "User Profile"]);
+    };
+
+    const handleComplete = () => {
+        // Handle workflow completion
+        console.log("Workflow completed!");
+    };
+
+    const handleRestart = () => {
+        setCurrentStep(0);
+        setRequirements("");
+        setGeneratedSRS("");
+        setGeneratedDiagrams([]);
+        setGeneratedWireframes([]);
+    };
+
+    return (
+        <div className=" max-w-7xl mx-auto space-y-3">
+            {/* Page Header */}
+            <WorkflowHeader />
+
+            {/* Progress Bar */}
+            {/* <WorkflowProgressBar currentStep={currentStep} totalSteps={steps.length} /> */}
+
+            {/* Step Indicator */}
+            <WorkflowStepIndicator steps={steps} />
+
+            {/* Step Content */}
+            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                <CardContent className="p-6">
+                    {currentStep === 0 && (
+                        <RequirementsStep
+                            requirements={requirements}
+                            onRequirementsChange={setRequirements}
+                            onNext={handleNext}
+                        />
+                    )}
+
+                    {currentStep === 1 && (
+                        <DiagramsStep
+                            generatedDiagrams={generatedDiagrams}
+                            onGenerate={handleGenerateDiagrams}
+                            onNext={handleNext}
+                            onBack={handleBack}
+                        />
+                    )}
+
+                    {currentStep === 2 && (
+                        <SRSStep
+                            generatedSRS={generatedSRS}
+                            onGenerate={handleGenerateSRS}
+                            onNext={handleNext}
+                            onBack={handleBack}
+                        />
+                    )}
+
+                    {currentStep === 3 && (
+                        <WireframesStep
+                            generatedWireframes={generatedWireframes}
+                            onGenerate={handleGenerateWireframes}
+                            onNext={handleNext}
+                            onBack={handleBack}
+                        />
+                    )}
+
+                    {currentStep === 4 && (
+                        <ReviewStep
+                            requirements={requirements}
+                            generatedDiagrams={generatedDiagrams}
+                            generatedWireframes={generatedWireframes}
+                            onBack={handleBack}
+                            onComplete={handleComplete}
+                            onRestart={handleRestart}
+                        />
+                    )}
+                </CardContent>
+            </Card>
         </div>
     );
 }
