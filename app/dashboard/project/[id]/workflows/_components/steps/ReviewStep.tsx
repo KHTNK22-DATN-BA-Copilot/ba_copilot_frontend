@@ -1,11 +1,14 @@
 'use client';
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import PreviewModal from "../PreviewModal";
 
 interface ReviewStepProps {
     requirements: string;
+    generatedSRS: string;
     generatedDiagrams: string[];
     generatedWireframes: string[];
     onBack: () => void;
@@ -13,14 +16,40 @@ interface ReviewStepProps {
     onRestart: () => void;
 }
 
+type PreviewType = 'diagram' | 'srs' | 'wireframe' | null;
+
 export default function ReviewStep({
     requirements,
+    generatedSRS,
     generatedDiagrams,
     generatedWireframes,
     onBack,
     onComplete,
     onRestart
 }: ReviewStepProps) {
+    const [previewType, setPreviewType] = useState<PreviewType>(null);
+    const [selectedItem, setSelectedItem] = useState<string | null>(null);
+
+    const handleViewDiagrams = () => {
+        setPreviewType('diagram');
+        setSelectedItem(generatedDiagrams[0] || null);
+    };
+
+    const handleViewSRS = () => {
+        setPreviewType('srs');
+        setSelectedItem(null);
+    };
+
+    const handleViewWireframes = () => {
+        setPreviewType('wireframe');
+        setSelectedItem(generatedWireframes[0] || null);
+    };
+
+    const handleClosePreview = () => {
+        setPreviewType(null);
+        setSelectedItem(null);
+    };
+
     return (
         <div className="space-y-6">
             <div>
@@ -33,25 +62,6 @@ export default function ReviewStep({
             </div>
 
             <div className="space-y-4">
-                {/* Project Requirements Summary */}
-                <Card className="border-2 border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-900/10">
-                    <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                            <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                            <div className="flex-1">
-                                <p className="font-medium text-gray-900 dark:text-gray-100">
-                                    Project Requirements
-                                </p>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                    {requirements.substring(0, 150)}...
-                                </p>
-                            </div>
-                            <Button variant="outline" size="sm">
-                                View
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
 
                 {/* Diagrams Summary */}
                 <Card className="border-2 border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-900/10">
@@ -66,7 +76,7 @@ export default function ReviewStep({
                                     {generatedDiagrams.length} diagrams created
                                 </p>
                             </div>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={handleViewDiagrams}>
                                 View
                             </Button>
                         </div>
@@ -86,7 +96,7 @@ export default function ReviewStep({
                                     Software Requirements Specification completed
                                 </p>
                             </div>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={handleViewSRS}>
                                 View
                             </Button>
                         </div>
@@ -106,13 +116,27 @@ export default function ReviewStep({
                                     {generatedWireframes.length} wireframes generated
                                 </p>
                             </div>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={handleViewWireframes}>
                                 View
                             </Button>
                         </div>
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Preview Modal */}
+            {previewType && (
+                <PreviewModal
+                    isOpen={!!previewType}
+                    onClose={handleClosePreview}
+                    type={previewType}
+                    title={
+                        previewType === 'diagram' ? (selectedItem || 'Diagrams') :
+                            previewType === 'srs' ? 'SRS Document Preview' :
+                                `${selectedItem || 'Wireframes'} - Preview`
+                    }
+                />
+            )}
 
             <div className="flex justify-center items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <Button variant="outline" onClick={onBack} className="gap-2">

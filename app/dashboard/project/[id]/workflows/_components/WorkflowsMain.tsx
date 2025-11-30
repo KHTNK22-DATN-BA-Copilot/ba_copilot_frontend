@@ -155,6 +155,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
                     {currentStep === 4 && (
                         <ReviewStep
                             requirements={requirements}
+                            generatedSRS={generatedSRS}
                             generatedDiagrams={generatedDiagrams}
                             generatedWireframes={generatedWireframes}
                             onBack={handleBack}
