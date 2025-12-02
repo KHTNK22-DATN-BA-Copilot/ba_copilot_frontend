@@ -75,10 +75,17 @@ export default function ReviewStep({
                                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                                     {generatedDiagrams.length} diagrams created
                                 </p>
+                                <ul className="mt-2 space-y-2">
+                                    {generatedDiagrams.map((diagram, idx) => (
+                                        <li key={idx} className="flex items-center justify-between">
+                                            <span className="truncate text-gray-800 dark:text-gray-200 text-sm">{diagram}</span>
+                                            <Button variant="outline" size="sm" onClick={() => { setPreviewType('diagram'); setSelectedItem(diagram); }}>
+                                                View
+                                            </Button>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
-                            <Button variant="outline" size="sm" onClick={handleViewDiagrams}>
-                                View
-                            </Button>
                         </div>
                     </CardContent>
                 </Card>
@@ -95,10 +102,24 @@ export default function ReviewStep({
                                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                                     Software Requirements Specification completed
                                 </p>
+                                {/* Support multiple SRS files if array, else single */}
+                                {Array.isArray(generatedSRS) ? (
+                                    <ul className="mt-2 space-y-2">
+                                        {generatedSRS.map((srs, idx) => (
+                                            <li key={idx} className="flex items-center justify-between">
+                                                <span className="truncate text-gray-800 dark:text-gray-200 text-sm">{srs}</span>
+                                                <Button variant="outline" size="sm" onClick={() => { setPreviewType('srs'); setSelectedItem(srs); }}>
+                                                    View
+                                                </Button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <Button variant="outline" size="sm" onClick={handleViewSRS}>
+                                        View
+                                    </Button>
+                                )}
                             </div>
-                            <Button variant="outline" size="sm" onClick={handleViewSRS}>
-                                View
-                            </Button>
                         </div>
                     </CardContent>
                 </Card>
@@ -115,10 +136,17 @@ export default function ReviewStep({
                                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                                     {generatedWireframes.length} wireframes generated
                                 </p>
+                                <ul className="mt-2 space-y-2">
+                                    {generatedWireframes.map((wireframe, idx) => (
+                                        <li key={idx} className="flex items-center justify-between">
+                                            <span className="truncate text-gray-800 dark:text-gray-200 text-sm">{wireframe}</span>
+                                            <Button variant="outline" size="sm" onClick={() => { setPreviewType('wireframe'); setSelectedItem(wireframe); }}>
+                                                View
+                                            </Button>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
-                            <Button variant="outline" size="sm" onClick={handleViewWireframes}>
-                                View
-                            </Button>
                         </div>
                     </CardContent>
                 </Card>
@@ -132,7 +160,7 @@ export default function ReviewStep({
                     type={previewType}
                     title={
                         previewType === 'diagram' ? (selectedItem || 'Diagrams') :
-                            previewType === 'srs' ? 'SRS Document Preview' :
+                            previewType === 'srs' ? (selectedItem || 'SRS Document Preview') :
                                 `${selectedItem || 'Wireframes'} - Preview`
                     }
                 />
