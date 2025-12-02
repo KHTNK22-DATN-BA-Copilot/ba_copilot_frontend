@@ -47,6 +47,7 @@ export async function PATCH(req: NextRequest) {
             method: "PATCH",
             headers: {
                 Authorization: `Bearer ${access_token}`,
+                "Content-Type": "application/x-www-form-urlencoded"
             },
             body: backendFormData,
         }
