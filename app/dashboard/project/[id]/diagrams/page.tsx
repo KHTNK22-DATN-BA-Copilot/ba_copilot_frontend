@@ -35,6 +35,7 @@ export default function ProjectDiagramsPage() {
         title: "",
         description: "",
     });
+    const [activeTab, setActiveTab] = useState("main-page");
 
     //Check tab
     const isRecentTab = searchParams.get("tabs") === "recent";
@@ -125,7 +126,7 @@ export default function ProjectDiagramsPage() {
                 <PageHeader projectId={projectId} />
 
                 {!selectedDiagram ? (
-                    <Tabs defaultValue="main-page">
+                    <Tabs value={activeTab} onValueChange={setActiveTab}>
                         <TabsList>
                             <TabsTrigger value="main-page">
                                 Create New
@@ -163,7 +164,10 @@ export default function ProjectDiagramsPage() {
                             <RecentDiagramsFilter />
                             <RecentDiagramsList
                                 diagrams={diagrams}
-                                onSelectDiagram={selectDiagram}
+                                onSelectDiagram={(id) => {
+                                    selectDiagram(id);
+                                    setActiveTab("recent");
+                                }}
                             />
                         </TabsContent>
                     </Tabs>
@@ -171,7 +175,10 @@ export default function ProjectDiagramsPage() {
                     <DiagramDetail
                         diagram={selectedDiagram}
                         projectId={projectId as string}
-                        onBack={deselectDiagram}
+                        onBack={() => {
+                            deselectDiagram();
+                            setActiveTab("recent");
+                        }}
                     />
                 )}
             </div>
