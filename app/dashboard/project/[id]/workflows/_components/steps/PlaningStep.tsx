@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ArrowLeft, CheckCircle2, Sparkles } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowRight, ArrowLeft, CheckCircle2, Sparkles, Eye } from "lucide-react";
 import { DiagramIcon } from "@/components/icons/project-icons";
 import PromptWithFileSelection from "../PromptWithFileSelection";
 import PreviewModal from "../PreviewModal";
@@ -14,6 +15,35 @@ interface DiagramsStepProps {
     onBack: () => void;
 }
 
+interface PlanningDocument {
+    id: string;
+    name: string;
+    description: string;
+}
+
+const planningDocuments: PlanningDocument[] = [
+    {
+        id: "project-charter",
+        name: "Project Charter Document",
+        description: "Core project initiation documents including objectives, scope, and stakeholders"
+    },
+    {
+        id: "business-case",
+        name: "Business Case Document",
+        description: "Justification for the project with cost-benefit analysis and strategic alignment"
+    },
+    {
+        id: "scope-statement",
+        name: "Scope Statement Document",
+        description: "Detailed project scope, deliverables, and boundaries definition"
+    },
+    {
+        id: "product-roadmap",
+        name: "Product Roadmap Document",
+        description: "High-level timeline and milestones for project delivery phases"
+    }
+];
+
 export default function DiagramsStep({
     generatedDiagrams,
     onGenerate,
@@ -22,7 +52,9 @@ export default function DiagramsStep({
 }: DiagramsStepProps) {
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+    const [selectedPlanningDocs, setSelectedPlanningDocs] = useState<string[]>([]);
     const [previewDiagram, setPreviewDiagram] = useState<string | null>(null);
+    const [previewDocument, setPreviewDocument] = useState<string | null>(null);
 
     const handleGenerateDiagrams = () => {
         console.log("Sending prompt:", prompt);
@@ -36,14 +68,69 @@ export default function DiagramsStep({
 
     const handleClosePreview = () => {
         setPreviewDiagram(null);
+        setPreviewDocument(null);
+    };
+
+    const handleDocumentToggle = (docId: string) => {
+        setSelectedPlanningDocs(prev =>
+            prev.includes(docId)
+                ? prev.filter(id => id !== docId)
+                : [...prev, docId]
+        );
+    };
+
+    const handlePreviewDocument = (docId: string) => {
+        setPreviewDocument(docId);
     };
 
     return (
         <div className="space-y-6">
             <div>
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                    Generate Diagrams
+                    Planning Step
                 </h2>
+            </div>
+
+            {/* Document Selection Section */}
+            <div className="space-y-3">
+                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Select type of Documents to Generate
+                </label>
+                <div className="space-y-2">
+                    {planningDocuments.map((doc) => (
+                        <div
+                            key={doc.id}
+                            className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+                        >
+                            <Checkbox
+                                id={doc.id}
+                                checked={selectedPlanningDocs.includes(doc.id)}
+                                onCheckedChange={() => handleDocumentToggle(doc.id)}
+                                className="flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                                <label
+                                    htmlFor={doc.id}
+                                    className="block font-medium text-gray-900 dark:text-gray-100 cursor-pointer"
+                                >
+                                    {doc.name}
+                                </label>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                    {doc.description}
+                                </p>
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2 flex-shrink-0"
+                                onClick={() => handlePreviewDocument(doc.id)}
+                            >
+                                <Eye className="w-4 h-4" />
+                                Preview
+                            </Button>
+                        </div>
+                    ))}
+                </div>
             </div>
 
             <PromptWithFileSelection
@@ -51,13 +138,9 @@ export default function DiagramsStep({
                 onPromptChange={setPrompt}
                 selectedFiles={selectedFiles}
                 onSelectedFilesChange={setSelectedFiles}
-                placeholder="Describe the diagrams you want to generate...
-
-Example:
-- Generate a use case diagram for user authentication
-- Create a class diagram for the order management system
-- Build an activity diagram for the checkout process"
-                label="Diagram Generation Prompt & Reference Files (Optional)"
+                placeholder="
+                "
+                label="Prompt & Reference Files for Planning Step (Optional)"
             />
 
             {/* Generated Diagrams Section */}
@@ -70,7 +153,7 @@ Example:
                             </div>
                             <div>
                                 <p className="font-medium text-gray-900 dark:text-gray-100">
-                                    Generated Diagrams
+                                    Generated
                                 </p>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">
                                     {generatedDiagrams.length} diagram(s) created
@@ -103,12 +186,22 @@ Example:
                 </div>
             )}
 
+            {/* Preview Modals */}
             <PreviewModal
                 isOpen={!!previewDiagram}
                 onClose={handleClosePreview}
                 type="diagram"
                 title={previewDiagram || ""}
             />
+
+            {previewDocument && (
+                <PreviewModal
+                    isOpen={!!previewDocument}
+                    onClose={handleClosePreview}
+                    type="diagram"
+                    title={planningDocuments.find(doc => doc.id === previewDocument)?.name || ""}
+                />
+            )}
 
             <div className="flex justify-center items-center gap-3">
                 <Button variant="outline" onClick={onBack} className="gap-2">
@@ -118,7 +211,7 @@ Example:
                 {generatedDiagrams.length === 0 ? (
                     <Button onClick={handleGenerateDiagrams} className="gap-2">
                         <Sparkles className="w-4 h-4" />
-                        Generate Diagrams
+                        Generate
                     </Button>
                 ) : (
                     <Button onClick={onNext} className="gap-2">

@@ -2,12 +2,42 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ArrowLeft, FileText, CheckCircle2, Sparkles } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowRight, ArrowLeft, FileText, CheckCircle2, Sparkles, Eye } from "lucide-react";
 import PromptWithFileSelection from "../PromptWithFileSelection";
 import { SRSIcon } from "@/components/icons";
 import PreviewModal from "../PreviewModal";
 
-interface SRSStepProps {
+interface AnalysisDocument {
+    id: string;
+    name: string;
+    description: string;
+}
+
+const analysisDocuments: AnalysisDocument[] = [
+    {
+        id: "feasibility-study",
+        name: "Feasibility Study Report",
+        description: "Comprehensive analysis of technical, operational, and economic feasibility"
+    },
+    {
+        id: "cost-benefit-analysis",
+        name: "Cost-Benefit Analysis Document",
+        description: "Detailed financial analysis comparing project costs against expected benefits"
+    },
+    {
+        id: "risk-register",
+        name: "Risk Register Document",
+        description: "Identification and assessment of potential project risks and mitigation strategies"
+    },
+    {
+        id: "compliance",
+        name: "Compliance Document",
+        description: "Legal, regulatory, and standards compliance requirements and verification"
+    }
+];
+
+interface AnalysisStepProps {
     generatedSRS: string;
     onGenerate: () => void;
     onNext: () => void;
@@ -19,10 +49,12 @@ export default function SRSStep({
     onGenerate,
     onNext,
     onBack
-}: SRSStepProps) {
+}: AnalysisStepProps) {
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+    const [selectedAnalysisDocs, setSelectedAnalysisDocs] = useState<string[]>([]);
     const [previewSRS, setPreviewSRS] = useState(false);
+    const [previewDocument, setPreviewDocument] = useState<string | null>(null);
 
     const handleGenerateSRS = () => {
         console.log("Sending prompt:", prompt);
@@ -36,14 +68,69 @@ export default function SRSStep({
 
     const handleClosePreview = () => {
         setPreviewSRS(false);
+        setPreviewDocument(null);
+    };
+
+    const handleDocumentToggle = (docId: string) => {
+        setSelectedAnalysisDocs(prev =>
+            prev.includes(docId)
+                ? prev.filter(id => id !== docId)
+                : [...prev, docId]
+        );
+    };
+
+    const handlePreviewDocument = (docId: string) => {
+        setPreviewDocument(docId);
     };
 
     return (
         <div className="space-y-6">
             <div>
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                    Generate SRS Document
+                    Analysis Step
                 </h2>
+            </div>
+
+            {/* Document Selection Section */}
+            <div className="space-y-3">
+                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Select Documents to Generate
+                </label>
+                <div className="space-y-2">
+                    {analysisDocuments.map((doc) => (
+                        <div
+                            key={doc.id}
+                            className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+                        >
+                            <Checkbox
+                                id={doc.id}
+                                checked={selectedAnalysisDocs.includes(doc.id)}
+                                onCheckedChange={() => handleDocumentToggle(doc.id)}
+                                className="flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                                <label
+                                    htmlFor={doc.id}
+                                    className="block font-medium text-gray-900 dark:text-gray-100 cursor-pointer"
+                                >
+                                    {doc.name}
+                                </label>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                    {doc.description}
+                                </p>
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2 flex-shrink-0"
+                                onClick={() => handlePreviewDocument(doc.id)}
+                            >
+                                <Eye className="w-4 h-4" />
+                                Preview
+                            </Button>
+                        </div>
+                    ))}
+                </div>
             </div>
 
             <PromptWithFileSelection
@@ -51,13 +138,8 @@ export default function SRSStep({
                 onPromptChange={setPrompt}
                 selectedFiles={selectedFiles}
                 onSelectedFilesChange={setSelectedFiles}
-                placeholder="Describe the SRS document you want to generate...
-
-Example:
-- Generate a complete SRS for an e-commerce platform
-- Create functional requirements for user authentication module
-- Document non-functional requirements for performance and security"
-                label="SRS Generation Prompt & Reference Files (Optional)"
+                placeholder="Enter prompt to generate document at analysis step..."
+                label="Prompt & Reference Files (Optional)"
             />
 
             {/* Generated SRS Section */}
@@ -70,7 +152,7 @@ Example:
                             </div>
                             <div>
                                 <p className="font-medium text-gray-900 dark:text-gray-100">
-                                    Generated SRS Document
+                                    Analysis Step
                                 </p>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">
                                     Document created successfully
@@ -100,12 +182,22 @@ Example:
                 </div>
             )}
 
+            {/* Preview Modals */}
             <PreviewModal
                 isOpen={previewSRS}
                 onClose={handleClosePreview}
                 type="srs"
                 title="SRS Document Preview"
             />
+
+            {previewDocument && (
+                <PreviewModal
+                    isOpen={!!previewDocument}
+                    onClose={handleClosePreview}
+                    type="srs"
+                    title={analysisDocuments.find(doc => doc.id === previewDocument)?.name || ""}
+                />
+            )}
 
             <div className="flex justify-center items-center gap-3">
                 <Button variant="outline" onClick={onBack} className="gap-2">
