@@ -211,7 +211,7 @@ export default function SRSStep({
                     </Button>
                 ) : (
                     <Button onClick={onNext} className="gap-2">
-                        Continue to Wireframes
+                        Continue to Design
                         <ArrowRight className="w-4 h-4" />
                     </Button>
                 )}
