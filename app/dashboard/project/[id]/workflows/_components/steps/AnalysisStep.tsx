@@ -142,42 +142,54 @@ export default function SRSStep({
                 label="Prompt & Reference Files (Optional)"
             />
 
-            {/* Generated SRS Section */}
-            {generatedSRS && (
-                <div className="bg-gray-50 dark:bg-gray-800">
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded">
-                                <SRSIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <div>
-                                <p className="font-medium text-gray-900 dark:text-gray-100">
-                                    Analysis Step
-                                </p>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    Document created successfully
-                                </p>
-                            </div>
+            {/* Generated Analysis Documents Section */}
+            {generatedSRS && selectedAnalysisDocs.length > 0 && (
+                <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded">
+                            <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
                         </div>
+                        <div>
+                            <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                Generated Documents
+                            </label>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                                {selectedAnalysisDocs.length} document(s) created
+                            </p>
+                        </div>
+                    </div>
 
-                        <div className="p-4 bg-white dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-700">
-                            <div className="flex items-start justify-between gap-2">
-                                <div className="flex items-start gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 mt-1" />
-                                    <div>
-                                        <p className="text-sm text-gray-900 dark:text-gray-100">{generatedSRS}</p>
-                                    </div>
-                                </div>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="gap-2"
-                                    onClick={handleViewSRS}
+                    <div className="space-y-2">
+                        {analysisDocuments.map((doc) => {
+                            // Only show if document is selected
+                            if (!selectedAnalysisDocs.includes(doc.id)) return null;
+
+                            return (
+                                <div
+                                    key={doc.id}
+                                    className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg"
                                 >
-                                    View
-                                </Button>
-                            </div>
-                        </div>
+                                    <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                                            {doc.name}
+                                        </p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                            {doc.description}
+                                        </p>
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-2 flex-shrink-0"
+                                        onClick={() => handlePreviewDocument(doc.id)}
+                                    >
+                                        <Eye className="w-4 h-4" />
+                                        View
+                                    </Button>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             )}
