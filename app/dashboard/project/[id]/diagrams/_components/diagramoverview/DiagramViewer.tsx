@@ -8,13 +8,11 @@ import { useEffect, useRef, useState } from "react";
 import remarkGfm from "remark-gfm";
 import { ChatWithAI, diagramChatConfig } from "@/components/chat-bot";
 import { ArrowLeft, Download, Share2, Workflow } from "lucide-react";
-import ChatBot from "@/components/chat-bot/ChatBot";
-import { useRouter } from "next/navigation";
-
 
 interface DiagramTabsProps {
     diagram: Diagram;
     projectId: string;
+    onBack: () => void;
 }
 
 mermaid.initialize({ startOnLoad: false }); // you can keep this or move into useEffect
@@ -140,10 +138,9 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
     );
 };
 
-export function DiagramViewer({ diagram, projectId }: DiagramTabsProps) {
+export function DiagramViewer({ diagram, projectId, onBack }: DiagramTabsProps) {
     const [edit, setEdit] = useState(false);
     const [content, setContent] = useState(diagram.markdown);
-    const router = useRouter();
 
     useEffect(() => {
         setContent(diagram.markdown);
@@ -168,10 +165,12 @@ export function DiagramViewer({ diagram, projectId }: DiagramTabsProps) {
                     {/* Back Button */}
                     <Button
                         variant="ghost"
-                        className="gap-2"
-                        onClick={() =>
-                            router.push(`/dashboard/project/${projectId}/diagrams`)
-                        }
+                        className="gap-2 relative z-10"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onBack();
+                        }}
                     >
                         <ArrowLeft className="w-4 h-4" />
                     </Button>

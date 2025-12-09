@@ -8,9 +8,9 @@ import WorkflowHeader from "./WorkflowHeader";
 import WorkflowProgressBar from "./WorkflowProgressBar";
 import WorkflowStepIndicator from "./WorkflowStepIndicator";
 import RequirementsStep from "./steps/RequirementsStep";
-import DiagramsStep from "./steps/DiagramsStep";
-import SRSStep from "./steps/SRSStep";
-import WireframesStep from "./steps/WireframesStep";
+import DiagramsStep from "./steps/PlaningStep";
+import SRSStep from "./steps/AnalysisStep";
+import WireframesStep from "./steps/DesignStep";
 import ReviewStep from "./steps/ReviewStep";
 import { WorkflowStep } from "./types";
 
@@ -33,23 +33,24 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
             icon: HomeIcon,
             status: currentStep > 0 ? "completed" : currentStep === 0 ? "current" : "pending"
         },
+        
         {
             id: 1,
-            title: "Generate Diagrams",
+            title: "Planning",
             description: "Create visual diagrams for your project",
             icon: DiagramIcon,
             status: currentStep > 1 ? "completed" : currentStep === 1 ? "current" : "pending"
         },
         {
             id: 2,
-            title: "Generate SRS Document",
+            title: "Analysis",
             description: "Generate Software Requirements Specification",
             icon: SRSIcon,
             status: currentStep > 2 ? "completed" : currentStep === 2 ? "current" : "pending"
         },
         {
             id: 3,
-            title: "Create Wireframes",
+            title: "Design",
             description: "Design user interface wireframes",
             icon: WireframeIcon,
             status: currentStep > 3 ? "completed" : currentStep === 3 ? "current" : "pending"
@@ -60,7 +61,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
             description: "Review all generated artifacts",
             icon: CheckCircle2,
             status: currentStep === 4 ? "current" : "pending"
-        }
+        },
     ];
 
     const handleNext = () => {

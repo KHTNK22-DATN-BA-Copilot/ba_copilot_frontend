@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname, useParams } from 'next/navigation';
 import { useState } from 'react';
-import { HomeIcon, SRSIcon, WireframeIcon, DiagramIcon, ConversationIcon } from '@/components/icons/project-icons';
+import { HomeIcon, SRSIcon, WireframeIcon, DiagramIcon, ConversationIcon, SparkleIcon } from '@/components/icons/project-icons';
 import { FileIcon } from 'lucide-react';
 import { describe } from 'node:test';
 
@@ -33,7 +33,7 @@ export default function Sidebar({ isDarkMode, isOpen = false, onClose, isMobile 
             name: 'Project Workflows',
             description: 'All in one flow',
             href: `/dashboard/project/${id}/workflows`,
-            icon: <HomeIcon />
+            icon: <SparkleIcon />
         },
         {
             name: "File management",

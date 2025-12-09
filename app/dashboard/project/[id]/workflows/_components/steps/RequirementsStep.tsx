@@ -56,7 +56,7 @@ export default function RequirementsStep({
                     onClick={onNext}
                     className="gap-2"
                 >
-                    Continue to Diagrams
+                    Continue to Planing
                     <ArrowRight className="w-4 h-4" />
                 </Button>
             </div>

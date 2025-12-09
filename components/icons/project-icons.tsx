@@ -1,3 +1,16 @@
+export const SparkleIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364l-1.414 1.414M6.05 17.95l-1.414 1.414M17.95 17.95l-1.414-1.414M6.05 6.05L4.636 7.464" />
+        <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth={2} />
+    </svg>
+);
+export const WorkflowIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 17v1a2 2 0 002 2h2m8-3v1a2 2 0 01-2 2h-2m-4-6a2 2 0 012-2h4a2 2 0 012 2v2a2 2 0 01-2 2h-4a2 2 0 01-2-2v-2zm0-6V5a2 2 0 012-2h4a2 2 0 012 2v2a2 2 0 01-2 2h-4a2 2 0 01-2-2z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11v2m0-8v2" />
+        <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+    </svg>
+);
 // Shared icons for project overview and navigation components
 // These icons are used across the application for consistent styling
 
@@ -42,6 +55,10 @@ export const projectIcons = {
     diagram: DiagramIcon,
     MessageSquare: ConversationIcon,
     conversation: ConversationIcon,
+    Workflow: WorkflowIcon,
+    workflow: WorkflowIcon,
+    Sparkle: SparkleIcon,
+    sparkle: SparkleIcon,
 } as const;
 
 export type IconType = keyof typeof projectIcons;
