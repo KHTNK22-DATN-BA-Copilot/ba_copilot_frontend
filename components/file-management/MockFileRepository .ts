@@ -1,4 +1,3 @@
-
 import { IFileRepository } from "./IFileRepository ";
 import { FileNode, FileItem, FolderData } from "./type";
 
@@ -39,6 +38,12 @@ export class MockFileRepository implements IFileRepository {
     constructor() {
         this.folders = mockData;
     }
+    getAllFiles?(): Promise<FileNode[]> {
+        throw new Error("Method not implemented.");
+    }
+    renameFolderRecursive(nodes: FileNode[], targetId: number, newName: string, project_id: string): Promise<FileNode[]> {
+        throw new Error("Method not implemented.");
+    }
     deleteFile(
         nodes: FileNode[],
         fileId: number,
@@ -67,30 +72,34 @@ export class MockFileRepository implements IFileRepository {
         nodes: FileNode[],
         parentId: number,
         newFolder: FileNode
-    ): FileNode[] {
-        return nodes.map((node) => {
-            if (node.id === parentId && node.type === "folder") {
-                return { ...node, children: [...node.children, newFolder] };
-            }
-            if (
-                node.type === "folder" &&
-                node.children &&
-                node.children.length > 0
-            ) {
-                return {
-                    ...node,
-                    children: this.addFolderRecursive(
+    ): Promise<FileNode[]> {
+        return Promise.all(
+            nodes.map(async (node) => {
+                if (node.id === parentId && node.type === "folder") {
+                    return { ...node, children: [...node.children, newFolder] };
+                }
+                if (
+                    node.type === "folder" &&
+                    node.children &&
+                    node.children.length > 0
+                ) {
+                    const children = await this.addFolderRecursive(
                         node.children,
                         parentId,
                         newFolder
-                    ),
-                };
-            }
-            return node;
-        });
+                    );
+                    return { ...node, children };
+                }
+                return node;
+            })
+        );
     }
 
-    uploadFile(nodes: FileNode[], folderId: number, file: File): FileNode[] {
+    uploadFile(
+        nodes: FileNode[],
+        folderId: number,
+        file: File
+    ): Promise<FileNode[]> {
         const newFile: FileNode = {
             id: Date.now(),
             name: file.name,
@@ -98,30 +107,32 @@ export class MockFileRepository implements IFileRepository {
             uploadedDate: new Date().toLocaleDateString(),
             fileType: file.name.split(".").pop() || "file",
             type: "file",
-            file: file
+            file: file,
         };
 
-        return nodes.map((node) => {
-            if (node.type === "folder") {
-                if (node.id === folderId) {
+        return Promise.resolve(
+            nodes.map((node) => {
+                if (node.type === "folder") {
+                    if (node.id === folderId) {
+                        return {
+                            ...node,
+                            children: [...node.children, newFile],
+                        };
+                    }
+
                     return {
                         ...node,
-                        children: [...node.children, newFile],
+                        children: this.uploadFile(
+                            node.children,
+                            folderId,
+                            file
+                        ) as unknown as FileNode[],
                     };
                 }
 
-                return {
-                    ...node,
-                    children: this.uploadFile(
-                        node.children,
-                        folderId,
-                        file
-                    ) as unknown as FileNode[],
-                };
-            }
-
-            return node;
-        });
+                return node;
+            })
+        );
     }
     getTreeStructure(): Promise<FileNode[]> {
         return Promise.resolve(this.folders);
@@ -138,22 +149,7 @@ export class MockFileRepository implements IFileRepository {
         return count;
     }
 
-    removeFolderRecursive(nodes: FileNode[], targetId: number): FileNode[] {
-        return nodes.reduce<FileNode[]>((acc, n) => {
-            if (n.id === targetId) {
-                // skip this node -> removed
-                return acc;
-            }
-            if (n.type === "folder") {
-                const newChildren = this.removeFolderRecursive(
-                    n.children ?? [],
-                    targetId
-                );
-                acc.push({ ...n, children: newChildren });
-            } else {
-                acc.push(n);
-            }
-            return acc;
-        }, []);
+    removeFolderRecursive(nodes: FileNode[], targetId: number, project_id: string): Promise<FileNode[]> {
+        throw new Error("Method not implemented.");
     }
 }

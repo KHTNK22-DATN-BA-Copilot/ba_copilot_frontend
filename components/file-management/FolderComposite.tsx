@@ -4,6 +4,7 @@ import {
     FolderPlus,
     FilePlus,
     FolderMinus,
+    Edit2,
 } from "lucide-react";
 import { FileItem, FileNode } from "./type";
 import { Button } from "../ui/button";
@@ -26,6 +27,7 @@ type FolderCompositeProps = {
     onSelect?: (file: FileItem) => void;
     onCreateFolder?: (parentId: number, name: string) => void;
     onRemoveFolder: (folderId: number) => void;
+    onRenameFolder?: (folderId: number, newName: string) => void;
 };
 
 function CalTotalFiles(folder: FileNode): number {
@@ -43,11 +45,15 @@ export const FolderComposite = ({
     onDownload,
     onSelect,
     onCreateFolder,
-    onRemoveFolder
+    onRemoveFolder,
+    onRenameFolder
 }: FolderCompositeProps) => {
     const [creating, setCreating] = useState(false);
+    const [renaming, setRenaming] = useState(false);
     const [newName, setNewName] = useState("");
+    const [renameName, setRenameName] = useState(folder.name);
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const renameInputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
         if (creating) {
@@ -58,6 +64,13 @@ export const FolderComposite = ({
             inputRef.current?.select();
         }
     }, [creating]);
+
+    useEffect(() => {
+        if (renaming) {
+            renameInputRef.current?.focus();
+            renameInputRef.current?.select();
+        }
+    }, [renaming]);
 
     const handleCreateConfirm = () => {
         const name = (newName ?? "").trim();
@@ -78,6 +91,22 @@ export const FolderComposite = ({
     const handleCreateCancel = () => {
         setCreating(false);
         setNewName("");
+    };
+
+    const handleRenameConfirm = () => {
+        const name = (renameName ?? "").trim();
+        if (!name || name === folder.name) {
+            setRenaming(false);
+            setRenameName(folder.name);
+            return;
+        }
+        onRenameFolder?.(folder.id as number, name);
+        setRenaming(false);
+    };
+
+    const handleRenameCancel = () => {
+        setRenaming(false);
+        setRenameName(folder.name);
     };
 
     const handleRemoveClick = (e: React.MouseEvent) => {
@@ -101,7 +130,7 @@ export const FolderComposite = ({
         <div className="border rounded-lg w-full overflow-hidden">
             <div
                 className={`flex bg-blue-100 items-center justify-between p-4 cursor-pointer hover:bg-blue-200 transition-colors border-b`}
-                onClick={() => toggle(folder.id as number)}
+                onClick={() => !renaming && toggle(folder.id as number)}
             >
                 <div className="flex items-center gap-3">
                     {expanded ? (
@@ -110,7 +139,25 @@ export const FolderComposite = ({
                         <Folder className={`w-5 h-5 text-blue-500`} />
                     )}
                     <div>
-                        <p>{folder.name}</p>
+                        {renaming ? (
+                            <input
+                                ref={renameInputRef}
+                                value={renameName}
+                                onChange={(e) => setRenameName(e.target.value)}
+                                onBlur={() => handleRenameConfirm()}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        handleRenameConfirm();
+                                    } else if (e.key === "Escape") {
+                                        handleRenameCancel();
+                                    }
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="px-2 py-1 rounded border font-medium"
+                            />
+                        ) : (
+                            <p>{folder.name}</p>
+                        )}
                         <p className="text-sm text-muted-foreground">
                             {folder.type == "folder" && CalTotalFiles(folder)}{" "}
                             {folder.type == "folder" &&
@@ -147,7 +194,6 @@ export const FolderComposite = ({
                                 size="sm"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    // open inline create folder input
                                     setCreating(true);
                                 }}
                             >
@@ -160,20 +206,44 @@ export const FolderComposite = ({
                     </Tooltip>
 
                     {folder.type === "folder" && !folder.systemFileType && (
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="sm" onClick={(e) => {
-                                    e.stopPropagation();
-                                    // open inline create folder input
-                                    handleRemoveClick(e);
-                                }}>
-                                    <FolderMinus className="w-4 h-4" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Remove folder</p>
-                            </TooltipContent>
-                        </Tooltip>
+                        <>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setRenaming(true);
+                                            setRenameName(folder.name);
+                                        }}
+                                    >
+                                        <Edit2 className="w-4 h-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Rename folder</p>
+                                </TooltipContent>
+                            </Tooltip>
+
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleRemoveClick(e);
+                                        }}
+                                    >
+                                        <FolderMinus className="w-4 h-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Remove folder</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </>
                     )}
                 </div>
             </div>
@@ -249,6 +319,7 @@ export const FolderComposite = ({
                                             onSelect={onSelect}
                                             onCreateFolder={onCreateFolder} 
                                             onRemoveFolder={onRemoveFolder}
+                                            onRenameFolder={onRenameFolder}
                                         />
                                     )
                                 )}
