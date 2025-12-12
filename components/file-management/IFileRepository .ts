@@ -2,7 +2,7 @@ import { FileItem, FolderData, FileNode } from "./type";
 
 export interface IFileRepository {
     //getFolders(): Promise<FolderData[]>;
-    uploadFile(nodes: FileNode[], folderId: number, file: File): Promise<FileNode[]>;
+    uploadFile(nodes: FileNode[], folderId: number, file: File, project_id: string): Promise<FileNode[]>;
     deleteFile(nodes: FileNode[] ,fileId: number, folderId: number): FileNode[];
     getTreeStructure(project_id: string): Promise<FileNode[]>;
     getAllFiles?(): Promise<FileNode[]>;

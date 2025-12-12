@@ -59,15 +59,24 @@ export default function FileManagement({projectId}: {projectId: string}) {
     const handleFileUpload = async (folderId: number) => {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
+        fileInput.multiple = false; // Set to true if you want to allow multiple files
         fileInput.onchange = async (e: Event) => {
             const target = e.target as HTMLInputElement;
             const file = target.files?.[0];
 
-            // if (file) {
-            //     setFileNode(async (prevNodes) =>
-            //         await fileRepository.uploadFile(prevNodes, folderId, file)
-            //     );
-            // }
+            if (file) {
+                try {
+                    const updated = await fileRepository.uploadFile(
+                        fileNode,
+                        folderId,
+                        file,
+                        projectId
+                    );
+                    setFileNode(updated);
+                } catch (err) {
+                    console.error("Failed to upload file:", err);
+                }
+            }
         };
         fileInput.click();
     };

@@ -29,9 +29,7 @@ export class ApiRepository implements IFileRepository {
         this.folders = nodes;
         return nodes;
     }
-    async addFolderRecursive(nodes: FileNode[], parentId: number | null, newFolder: FileNode, project_id: string): Promise<FileNode[]> {
-        console.log("Adding folder:", newFolder, "to parentId:", parentId);
-        
+    async addFolderRecursive(nodes: FileNode[], parentId: number | null, newFolder: FileNode, project_id: string): Promise<FileNode[]> { 
         // Handle root level folder creation (parentId === null)
         if (parentId === null) {
             const body = { name: newFolder.name, parent_id: null };
@@ -114,8 +112,67 @@ export class ApiRepository implements IFileRepository {
     }
 
 
-    uploadFile(nodes: FileNode[], folderId: number, file: File): Promise<FileNode[]> {
-        throw new Error("Method not implemented.");
+    async uploadFile(nodes: FileNode[], folderId: number, file: File, project_id: string): Promise<FileNode[]> {
+        // Calculate folder path
+        const folderPath = this.calculateFolderPath(nodes, folderId);
+        
+        // Prepare FormData
+        const formData = new FormData();
+        formData.append('path', folderPath);
+        formData.append('files', file);
+
+        // Call API to upload file
+        const resp = await fetch(`http://localhost:8010/api/v1/files/upload/${project_id}/${folderId}`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${await getAccessToken()}`,
+            },
+            body: formData,
+        });
+        if (!resp.ok) throw new Error(`Failed to upload file: ${resp.status}`);
+        
+        const uploaded = await resp.json();
+        console.log("Uploaded file response:", uploaded);
+        
+        // Add uploaded file to tree
+        return this.addFileToFolder(nodes, folderId, uploaded);
+    }
+
+    private calculateFolderPath(nodes: FileNode[], folderId: number, currentPath: string = ""): string {
+        for (const node of nodes) {
+            if (node.id === folderId && node.type === "folder") {
+                return currentPath ? `${currentPath}/${node.name}` : node.name;
+            }
+            if (node.type === "folder" && node.children) {
+                const newPath = currentPath ? `${currentPath}/${node.name}` : node.name;
+                const found = this.calculateFolderPath(node.children, folderId, newPath);
+                if (found) return found;
+            }
+        }
+        return "";
+    }
+
+    private addFileToFolder(nodes: FileNode[], folderId: number, uploadedFileData: any): FileNode[] {
+        return nodes.map((node) => {
+            if (node.id === folderId && node.type === "folder") {
+                // Handle array of uploaded files or single file
+                const uploadedFiles = Array.isArray(uploadedFileData) ? uploadedFileData : [uploadedFileData];
+                const newFiles: FileNode[] = uploadedFiles.map((fi: any) => ({
+                    id: fi.id,
+                    name: fi.name,
+                    type: "file" as const,
+                    size: fi.file_metadata?.size ?? 0,
+                    uploadedDate: fi.created_at ?? fi.updated_at ?? "",
+                    fileType: fi.extension ?? fi.file_type ?? "",
+                    file: (null as unknown) as File,
+                }));
+                return { ...node, children: [...node.children, ...newFiles] };
+            }
+            if (node.type === "folder" && node.children) {
+                return { ...node, children: this.addFileToFolder(node.children, folderId, uploadedFileData) };
+            }
+            return node;
+        });
     }
     deleteFile(nodes: FileNode[], fileId: number, folderId: number): FileNode[] {
         throw new Error("Method not implemented.");

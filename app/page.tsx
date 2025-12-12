@@ -2,9 +2,7 @@ import { ArrowRight } from "lucide-react";
 import { cookies } from "next/headers";
 import Link from "next/link";
 
-export default async function Home() {
-    const refreshToken = (await cookies()).get("refresh_token")?.value;
-
+export default function Home() {
     return (
         <div className="min-h-screen ">
             {/* Enhanced Animated Background */}
@@ -50,40 +48,38 @@ export default async function Home() {
                     {/* Enhanced CTA Buttons */}
                     <div className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-12">
                         <Link
-                            href={refreshToken ? "/dashboard" : "/register"}
+                            href={"/register"}
                             className="group relative px-10 py-5 text-lg font-bold text-white overflow-hidden rounded-2xl shadow-2xl transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 transition-all duration-300 group-hover:scale-110"></div>
                             <div className="absolute inset-0 bg-gradient-to-r from-violet-700 via-blue-700 to-cyan-600 opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                             <span className="relative z-10 flex items-center justify-center gap-2">
-                                {refreshToken ? "Dashboard" : "Get Started"}
+                                {"Get Started"}
                                 <ArrowRight />
                             </span>
                         </Link>
 
-                        {!refreshToken ? (
-                            <Link
-                                href="/login"
-                                className="group px-10 py-5 text-lg font-bold bg-white/10 dark:bg-slate-800/50 backdrop-blur-xl border-2 border-slate-200 dark:border-slate-600 hover:border-violet-400 dark:hover:border-violet-400 text-slate-700 dark:text-slate-200 rounded-2xl shadow-xl transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
-                            >
-                                <span className="flex items-center justify-center gap-2">
-                                    Sign In
-                                    <svg
-                                        className="w-5 h-5 transform group-hover:rotate-12 transition-transform duration-300"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
-                                        />
-                                    </svg>
-                                </span>
-                            </Link>
-                        ): (null)}
+                        <Link
+                            href="/login"
+                            className="group px-10 py-5 text-lg font-bold bg-white/10 dark:bg-slate-800/50 backdrop-blur-xl border-2 border-slate-200 dark:border-slate-600 hover:border-violet-400 dark:hover:border-violet-400 text-slate-700 dark:text-slate-200 rounded-2xl shadow-xl transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
+                        >
+                            <span className="flex items-center justify-center gap-2">
+                                Sign In
+                                <svg
+                                    className="w-5 h-5 transform group-hover:rotate-12 transition-transform duration-300"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                                    />
+                                </svg>
+                            </span>
+                        </Link>
                     </div>
 
                     {/* Bottom CTA */}
