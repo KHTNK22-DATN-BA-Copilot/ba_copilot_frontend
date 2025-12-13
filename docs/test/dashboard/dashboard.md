@@ -1,15 +1,21 @@
-## Kế hoạch test: Chức năng Dashboard
+## Dashboard Feature Test Plan
 
-### Tổng quan
+**Last Updated**: December 13, 2025  
+**Feature**: Dashboard Main Functionality  
+**Status**: Active Testing
 
-Tài liệu test này cover chức năng dashboard chính của ứng dụng BA Copilot, gồm có các thành phần:
+### Overview
 
--   Header với search và user actions
+This test document covers the main dashboard functionality of the BA Copilot application, including the following components:
+
+-   Header with search and user actions
 -   Sidebar navigation (desktop)
--   Overview section với các thẻ tổng quan
--   Projects section với danh sách và filter
+-   Overview section with summary cards
+-   Projects section with list and filters
 -   Dark/Light mode toggle
--   Responsive design
+-   Responsive design across devices
+-   Account settings navigation
+-   Performance and loading states
 
 ### Test Cases
 

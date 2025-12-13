@@ -39,7 +39,11 @@ BA Copilot Frontend là giao diện người dùng cho hệ thống AI hỗ tr�
 4. Wireframe Generator với drag-and-drop
 5. AI Chat Interface
 6. Quản lý Profile người dùng
-7. Responsive layout cho tất cả devices
+7. File Management System với Composite Pattern
+8. Diagram Generator (Sequence, Class, Use Case, Activity)
+9. AI Conversations với context awareness
+10. Workflow Management
+11. Responsive layout cho tất cả devices
 
 ---
 
@@ -1008,6 +1012,9 @@ BA Copilot Frontend là giao diện người dùng cho hệ thống AI hỗ tr�
 -   UC014: Wireframe Generator
 -   UC016: AI Chat Interface
 -   UC006-008: Profile Management
+-   UC025-026: File Management System
+-   UC027-030: Diagram Generator
+-   UC033-034: Enhanced AI Conversations
 
 **🟡 Important (MVP Enhanced)**:
 
@@ -1015,6 +1022,8 @@ BA Copilot Frontend là giao diện người dùng cho hệ thống AI hỗ tr�
 -   UC015: Collaborative Editing
 -   UC017-018: AI Conversation Management
 -   UC019-020: Responsive Features
+-   UC031-032: Workflow Management
+-   UC035-037: Chat Bot Integration
 
 **🟢 Nice-to-have (Post-MVP)**:
 
@@ -1047,11 +1056,455 @@ BA Copilot Frontend là giao diện người dùng cho hệ thống AI hỗ tr�
 
 ---
 
-## 🔄 REVISION HISTORY
+## � NHÓM USE CASE 11: FILE MANAGEMENT SYSTEM
+
+### UC025: Upload và Quản Lý Files
+
+**Mô Tả**: Người dùng upload và tổ chức files trong hệ thống với cấu trúc thư mục hierarchical.
+
+**Actor Chính**: Business Analyst, Project Manager
+
+**Điều Kiện Tiên Quyết**:
+-   Đã đăng nhập vào hệ thống
+-   Có quyền truy cập project
+
+**Luồng Sự Kiện Chính**:
+
+1. Người dùng truy cập `/dashboard/project/[id]/files`
+2. Hệ thống hiển thị file explorer với:
+    - Folder tree (sidebar)
+    - File list (main area)
+    - Upload zone (drag & drop)
+    - Breadcrumb navigation
+3. Upload files:
+    - Drag & drop files vào upload zone
+    - Hoặc click "Upload" và chọn files
+    - Hiển thị progress bar cho multiple files
+4. Tổ chức files:
+    - Tạo folders mới
+    - Move files giữa folders
+    - Rename files/folders
+    - Delete files/folders
+5. File operations:
+    - Preview supported file types
+    - Download files
+    - Share file links
+    - View file metadata (size, date, type)
+
+**Tính Năng Composite Pattern**:
+-   Folders chứa folders và files
+-   Recursive operations (copy, move, delete)
+-   Hierarchical permissions
+-   Tree navigation với expand/collapse
+
+**Kết Quả**:
+-   Files được tổ chức có cấu trúc
+-   Easy access và management
+-   Collaborative file sharing
+
+### UC026: File Version Control
+
+**Mô Tả**: Người dùng quản lý versions của documents và track changes.
+
+**Actor Chính**: Business Analyst, Team Members
+
+**Luồng Sự Kiện Chính**:
+
+1. Từ file list, click vào document
+2. Hiển thị version history panel
+3. View version details:
+    - Version number
+    - Modified date
+    - Modified by
+    - Change summary
+4. Compare versions:
+    - Side-by-side diff view
+    - Highlight changes
+    - Accept/reject changes
+5. Restore previous versions
+6. Download specific versions
+
+**Kết Quả**:
+-   Document history được preserved
+-   Change tracking cho compliance
+-   Rollback capability khi cần
+
+---
+
+## 📊 NHÓM USE CASE 12: DIAGRAM GENERATOR
+
+### UC027: Tạo Sequence Diagrams
+
+**Mô Tả**: Người dùng tạo sequence diagrams để visualize system interactions.
+
+**Actor Chính**: Business Analyst, System Architect
+
+**Điều Kiện Tiên Quyết**:
+-   Đã đăng nhập vào hệ thống
+-   Có quyền tạo diagrams trong project
+
+**Luồng Sự Kiện Chính**:
+
+1. Truy cập `/dashboard/project/[id]/diagrams`
+2. Chọn "Sequence Diagram" từ diagram types
+3. Mở diagram editor với:
+    - Mermaid-based canvas
+    - Actor/participant toolbox
+    - Message arrow tools
+    - Lifeline management
+4. Add actors và participants:
+    - Drag actors onto canvas
+    - Name actors (User, System, Database, etc.)
+5. Create message flows:
+    - Draw arrows between actors
+    - Add message labels
+    - Configure arrow types (sync, async, return)
+6. Add activation bars và notes
+7. AI assistance:
+    - Generate diagram từ text description
+    - Suggest improvements
+    - Validate diagram syntax
+
+**Kết Quả**:
+-   Sequence diagram hoàn chỉnh
+-   Export to image/PDF
+-   Embed trong SRS documents
+
+### UC028: Tạo Class Diagrams
+
+**Mô Tả**: Người dùng tạo class diagrams để model system structure.
+
+**Actor Chính**: System Architect, Developer
+
+**Luồng Sự Kiện Chính**:
+
+1. Chọn "Class Diagram" từ diagram types
+2. Editor hiển thị với:
+    - Class shape tools
+    - Relationship connectors
+    - Property/method editors
+3. Create classes:
+    - Add class boxes
+    - Define attributes và methods
+    - Set visibility (+, -, #)
+4. Define relationships:
+    - Inheritance (extends)
+    - Composition/aggregation
+    - Association với multiplicity
+    - Dependency relationships
+5. AI-powered suggestions:
+    - Auto-complete class structures
+    - Suggest relationships
+    - Validate UML compliance
+
+**Kết Quả**:
+-   Class diagram theo chuẩn UML
+-   Code generation capability
+-   Documentation cho developers
+
+### UC029: Tạo Use Case Diagrams
+
+**Mô Tả**: Người dùng tạo use case diagrams để model system requirements.
+
+**Actor Chính**: Business Analyst, Product Manager
+
+**Luồng Sự Kiện Chính**:
+
+1. Chọn "Use Case Diagram" từ diagram types
+2. Editor với:
+    - Actor symbols
+    - Use case ellipses
+    - System boundary boxes
+    - Relationship connectors
+3. Define actors:
+    - Primary actors
+    - Secondary actors
+    - System actors
+4. Create use cases:
+    - Functional requirements
+    - System boundaries
+5. Connect relationships:
+    - Association lines
+    - Include/extend relationships
+    - Generalization
+
+**Kết Quả**:
+-   Use case diagram hoàn chỉnh
+-   Requirements visualization
+-   Stakeholder communication tool
+
+### UC030: Tạo Activity Diagrams
+
+**Mô Tả**: Người dùng tạo activity diagrams để model business processes.
+
+**Actor Chính**: Business Analyst, Process Owner
+
+**Luồng Sự Kiện Chính**:
+
+1. Chọn "Activity Diagram" từ diagram types
+2. Editor với workflow tools:
+    - Start/end nodes
+    - Activity rectangles
+    - Decision diamonds
+    - Flow connectors
+3. Model business processes:
+    - Sequential activities
+    - Parallel processes
+    - Decision points
+    - Loops và iterations
+4. Add swimlanes cho role separation
+5. AI assistance cho optimization
+
+**Kết Quả**:
+-   Process flow visualization
+-   Business logic documentation
+-   Workflow optimization insights
+
+---
+
+## 🔄 NHÓM USE CASE 13: WORKFLOW MANAGEMENT
+
+### UC031: Tạo và Quản Lý Workflows
+
+**Mô Tả**: Người dùng tạo visual workflows để automate business processes.
+
+**Actor Chính**: Project Manager, Business Analyst
+
+**Điều Kiện Tiên Quyết**:
+-   Đã đăng nhập vào hệ thống
+-   Có quyền tạo workflows trong project
+
+**Luồng Sự Kiện Chính**:
+
+1. Truy cập `/dashboard/project/[id]/workflows`
+2. Hiển thị workflow canvas với:
+    - Node palette (tasks, decisions, events)
+    - Connection tools
+    - Property panels
+3. Build workflow:
+    - Drag nodes onto canvas
+    - Connect nodes với flows
+    - Configure node properties
+4. Define triggers và conditions:
+    - Event-based triggers
+    - Time-based schedules
+    - Conditional logic
+5. Add automation rules:
+    - Task assignments
+    - Notification rules
+    - Approval workflows
+
+**Tính Năng Visual Builder**:
+-   Drag-and-drop interface
+-   Real-time validation
+-   Template library
+-   Version control
+
+**Kết Quả**:
+-   Automated business processes
+-   Reduced manual work
+-   Consistent process execution
+
+### UC032: Execute và Monitor Workflows
+
+**Mô Tả**: Người dùng chạy workflows và monitor execution status.
+
+**Actor Chính**: Process Owners, Team Members
+
+**Luồng Sự Kiện Chính**:
+
+1. Từ workflow list, click "Execute" trên workflow
+2. Hiển thị execution dashboard:
+    - Current step highlighting
+    - Progress indicators
+    - Task assignments
+3. Monitor execution:
+    - Real-time status updates
+    - Bottleneck identification
+    - Performance metrics
+4. Handle exceptions:
+    - Manual intervention points
+    - Error handling
+    - Retry mechanisms
+
+**Kết Quả**:
+-   Process automation
+-   Real-time monitoring
+-   Performance insights
+
+---
+
+## 🤖 NHÓM USE CASE 14: ENHANCED AI CONVERSATIONS
+
+### UC033: Context-Aware AI Chat
+
+**Mô Tả**: AI assistant duy trì context across conversations và project knowledge.
+
+**Actor Chính**: Business Analyst, Project Team
+
+**Điều Kiện Tiên Quyết**:
+-   Đã đăng nhập vào hệ thống
+-   AI service hoạt động
+
+**Luồng Sự Kiện Chính**:
+
+1. Truy cập `/dashboard/project/[id]/aiconversations`
+2. AI có access đến:
+    - Current project context
+    - Previous conversations
+    - SRS documents
+    - Wireframe designs
+    - Team knowledge base
+3. Context-aware responses:
+    - Reference project requirements
+    - Suggest based on existing work
+    - Maintain conversation continuity
+4. Project-specific assistance:
+    - SRS generation help
+    - Wireframe suggestions
+    - Diagram explanations
+    - Process recommendations
+
+**Tính Năng Context Awareness**:
+-   Project memory
+-   Cross-conversation learning
+-   Knowledge base integration
+-   Personalized recommendations
+
+**Kết Quả**:
+-   More relevant AI assistance
+-   Consistent project knowledge
+-   Improved productivity
+
+### UC034: Multi-Modal AI Interactions
+
+**Mô Tả**: AI xử lý text, diagrams, và files trong conversations.
+
+**Actor Chính**: Business Analyst, Designers
+
+**Luồng Sự Kiện Chính**:
+
+1. Upload files trong chat:
+    - Documents (PDF, DOC)
+    - Images (wireframes, screenshots)
+    - Diagrams (exports)
+2. AI analyzes uploaded content:
+    - Extract text từ documents
+    - Analyze visual elements
+    - Generate insights
+3. Multi-modal responses:
+    - Text explanations
+    - Diagram suggestions
+    - Code snippets
+    - Action recommendations
+
+**Kết Quả**:
+-   Rich AI interactions
+-   Comprehensive analysis
+-   Integrated workflow support
+
+---
+
+## 💬 NHÓM USE CASE 15: CHAT BOT INTEGRATION
+
+### UC035: AI Chat Bot trong SRS Generator
+
+**Mô Tả**: Chat bot tích hợp trong SRS generator để hỗ trợ real-time.
+
+**Actor Chính**: Business Analyst
+
+**Điều Kiện Tiên Quyết**:
+-   Đang trong SRS generation process
+-   Chat bot service available
+
+**Luồng Sự Kiện Chính**:
+
+1. Trong SRS editor, click chat bot icon
+2. Chat interface mở với context:
+    - Current SRS section
+    - Project requirements
+    - Generated content so far
+3. AI assistance cho:
+    - Content suggestions
+    - Structure improvements
+    - Requirements clarification
+    - Template recommendations
+4. Real-time collaboration:
+    - Apply suggestions directly
+    - Accept/reject changes
+    - Track AI contributions
+
+**Tính Năng Context Integration**:
+-   Section-aware responses
+-   Content-aware suggestions
+-   Template-specific help
+-   Quality validation
+
+**Kết Quả**:
+-   Improved SRS quality
+-   Faster document creation
+-   Expert-level assistance
+
+### UC036: Chat Bot trong Wireframe Generator
+
+**Mô Tả**: AI chat hỗ trợ wireframe design process.
+
+**Actor Chính**: UI/UX Designer, Product Manager
+
+**Luồng Sự Kiện Chính**:
+
+1. Trong wireframe editor, activate chat bot
+2. Context-aware assistance:
+    - Current design elements
+    - User flow analysis
+    - Design best practices
+3. AI suggestions cho:
+    - Layout improvements
+    - Component placement
+    - Color scheme recommendations
+    - Accessibility compliance
+4. Interactive design help:
+    - Generate components từ descriptions
+    - Suggest responsive layouts
+    - Validate design consistency
+
+**Kết Quả**:
+-   Enhanced design quality
+-   Faster prototyping
+-   Professional design assistance
+
+### UC037: Chat Bot trong Diagram Editor
+
+**Mô Tả**: AI assistance cho diagram creation và validation.
+
+**Actor Chính**: System Architect, Business Analyst
+
+**Luồng Sự Kiện Chính**:
+
+1. Trong diagram editor, open chat interface
+2. AI analyzes current diagram:
+    - Structure validation
+    - Completeness checking
+    - Best practice compliance
+3. Provides assistance:
+    - Missing element suggestions
+    - Relationship recommendations
+    - Documentation generation
+    - Syntax validation
+
+**Kết Quả**:
+-   Accurate diagram creation
+-   Standards compliance
+-   Documentation support
+
+---
+
+## �🔄 REVISION HISTORY
 
 | Version | Date     | Author          | Changes                                      |
 | ------- | -------- | --------------- | -------------------------------------------- |
-| 1.0.0   | Oct 2025 | BA Copilot Team | Initial comprehensive use case specification |
+| 1.1.0   | Dec 2025   | BA Copilot Team | Added File Management, Diagram Generator, Workflow Management, Enhanced AI Conversations, and Chat Bot Integration use cases |
+| 1.0.0   | Oct 2025   | BA Copilot Team | Initial comprehensive use case specification |
 
 ---
 

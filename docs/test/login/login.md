@@ -1,23 +1,31 @@
 # Login Feature Testing Document
 
+**Last Updated**: December 13, 2025  
+**Feature**: User Authentication - Login  
+**Status**: Active Testing
+
 ## 1. Testing Document Plan
 
 ### Objective
-Ensure the login feature functions correctly, securely, and meets user requirements.
+Ensure the login feature functions correctly, securely, and meets user requirements for the BA Copilot application.
 
 ### Scope
-- Email field
-- Password field
-- Login button
-- Error handling and validation
+- Email/Username field validation
+- Password field security
+- Login button functionality
+- Error handling and user feedback
+- Session management
+- Token refresh mechanism
 
 ### Resources
-- Testers: 2 QA engineers
-- Tools: Manual testing, automated test scripts (e.g., Cypress, Selenium)
+- **Testers**: 2 QA engineers
+- **Tools**: Manual testing, automated test scripts (Cypress, Playwright)
+- **Test Environment**: Development, Staging
 
 ### Schedule
 - Test case design: 1 day
 - Test execution: 2 days
+- Bug fixes and retesting: 1-2 days
 - Reporting: 1 day
 
 ## 2. Testing Strategy
