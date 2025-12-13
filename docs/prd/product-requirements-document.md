@@ -1,42 +1,42 @@
-# BA Copilot Frontend - Tài Liệu Yêu Cầu Sản Phẩm (PRD)
+# BA Copilot Frontend - Product Requirements Document (PRD)
 
-## Thông Tin Tài Liệu
+## Document Information
 
-**Tên Sản Phẩm**: BA Copilot Frontend  
-**Phiên Bản**: 1.0.0  
-**Ngày Tạo**: 4 Tháng 10, 2025  
-**Cập Nhật Lần Cuối**: 4 Tháng 10, 2025  
-**Chủ Sở Hữu Tài Liệu**: Đội BA Copilot Frontend  
-**Trạng Thái Dự Án**: Sprint 2 - Giai Đoạn Phát Triển  
-**Phát Hành MVP Dự Kiến**: 11 Tháng 11, 2025  
-**Phát Hành Sản Phẩm Hoàn Chỉnh**: 1 Tháng 5, 2026
+**Product Name**: BA Copilot Frontend  
+**Version**: 1.0.0  
+**Created**: October 4, 2025  
+**Last Updated**: December 13, 2025  
+**Document Owner**: BA Copilot Frontend Team  
+**Project Status**: Sprint 2+ - Active Development  
+**MVP Release**: November 11, 2025  
+**Full Product Release**: May 1, 2026
 
 ---
 
-## Danh Mục Tham Khảo (Table of Contents)
+## Table of Contents
 
-### 📑 **Phần I: Tổng Quan Sản Phẩm**
+### 📑 **Part I: Product Overview**
 
--   [1. Mục Đích và Tầm Nhìn Sản Phẩm](#1-mục-đích-và-tầm-nhìn-sản-phẩm)
-    -   [1.1 Phát Biểu Vấn Đề](#11-phát-biểu-vấn-đề)
-    -   [1.2 Người Dùng Mục Tiêu & Các Bên Liên Quan](#12-người-dùng-mục-tiêu--các-bên-liên-quan)
-    -   [1.3 Đề Xuất Giá Trị](#13-đề-xuất-giá-trị)
+-   [1. Product Purpose and Vision](#1-product-purpose-and-vision)
+    -   [1.1 Problem Statement](#11-problem-statement)
+    -   [1.2 Target Users & Stakeholders](#12-target-users--stakeholders)
+    -   [1.3 Value Proposition](#13-value-proposition)
 
-### 🔧 **Phần II: Yêu Cầu Kỹ Thuật**
+### 🔧 **Part II: Technical Requirements**
 
--   [2. Phân Tích Tính Năng](#2-phân-tích-tính-năng)
-    -   [2.1 Tính Năng API](#21-tính-năng-api)
-    -   [2.2 Tính Năng Hiệu Suất](#22-tính-năng-hiệu-suất)
-    -   [2.3 Tính Năng Mobile](#23-tính-năng-mobile)
+-   [2. Feature Analysis](#2-feature-analysis)
+    -   [2.1 API Features](#21-api-features)
+    -   [2.2 Performance Features](#22-performance-features)
+    -   [2.3 Mobile Features](#23-mobile-features)
 
-### ✅ **Phần III: Tiêu Chuẩn Chất Lượng**
+### ✅ **Part III: Quality Standards**
 
--   [3. Tiêu Chí Phát Hành](#3-tiêu-chí-phát-hành)
-    -   [3.1 Tiêu Chí Chức Năng](#31-tiêu-chí-chức-năng)
-    -   [3.2 Tiêu Chí Khả Năng Sử Dụng](#32-tiêu-chí-khả-năng-sử-dụng)
-    -   [3.3 Tiêu Chí Độ Tin Cậy](#33-tiêu-chí-độ-tin-cậy)
-    -   [3.4 Tiêu Chí Hiệu Suất](#34-tiêu-chí-hiệu-suất)
-    -   [3.5 Tiêu Chí Hỗ Trợ](#35-tiêu-chí-hỗ-trợ)
+-   [3. Release Criteria](#3-release-criteria)
+    -   [3.1 Functional Criteria](#31-functional-criteria)
+    -   [3.2 Usability Criteria](#32-usability-criteria)
+    -   [3.3 Reliability Criteria](#33-reliability-criteria)
+    -   [3.4 Performance Criteria](#34-performance-criteria)
+    -   [3.5 Support Criteria](#35-support-criteria)
 
 ### 📅 **Phần IV: Quản Lý Dự Án**
 

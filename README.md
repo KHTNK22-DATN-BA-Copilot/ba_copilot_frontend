@@ -1,5 +1,16 @@
 ## 🎯 Overview
-This is Front-end repo for BA Copilot. A web-base application that focus on BA in their bussiness.   
+
+**BA Copilot Frontend** is a modern web application designed to assist Business Analysts in their daily work. Built with Next.js 15 and React 19, it provides AI-powered tools for requirements documentation, wireframe generation, diagram creation, and intelligent conversation assistance.
+
+### Key Features
+
+- 🤖 **AI-Powered SRS Generator** - Automated software requirements specification creation
+- 🎨 **Wireframe Generator** - Visual prototyping from text descriptions
+- 📊 **Diagram Generator** - Sequence, class, use case, and activity diagrams
+- 💬 **AI Conversations** - Context-aware chat assistant for BA tasks  
+- 📁 **File Management** - Organized document and file handling
+- 🔄 **Workflow Management** - Process automation and task tracking
+- 🔐 **Secure Authentication** - JWT-based auth with OAuth support   
 
 ## ✨ Getting Started
 ### 1. If you are using npm
