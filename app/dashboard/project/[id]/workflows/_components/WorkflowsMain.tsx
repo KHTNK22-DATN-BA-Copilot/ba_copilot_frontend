@@ -8,9 +8,9 @@ import WorkflowHeader from "./WorkflowHeader";
 import WorkflowProgressBar from "./WorkflowProgressBar";
 import WorkflowStepIndicator from "./WorkflowStepIndicator";
 import RequirementsStep from "./steps/RequirementsStep";
-import DiagramsStep from "./steps/PlaningStep";
-import SRSStep from "./steps/AnalysisStep";
-import DiagramStep from "./steps/DesignStep";
+import DiagramsStep from "./steps/planning/PlaningStep";
+import SRSStep from "./steps/analysis/AnalysisStep";
+import DiagramStep from "./steps/design/DesignStep";
 import ReviewStep from "./steps/ReviewStep";
 import { WorkflowStep } from "./types";
 
