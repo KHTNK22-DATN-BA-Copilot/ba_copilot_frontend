@@ -65,6 +65,41 @@ export default function FileManagement({projectId}: {projectId: string}) {
             const file = target.files?.[0];
 
             if (file) {
+                const tempId = Date.now();
+                const tempFileNode: FileNode = {
+                    id: tempId,
+                    name: file.name,
+                    type: "file",
+                    size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+                    uploadedDate: new Date().toISOString(),
+                    fileType: file.name.split('.').pop() || "",
+                    file: file,
+                };
+
+                // Optimistic update: thêm file vào UI ngay lập tức
+                const addFileToFolder = (nodes: FileNode[]): FileNode[] => {
+                    return nodes.map((node) => {
+                        if (node.id === folderId && node.type === "folder") {
+                            return { ...node, children: [...node.children, tempFileNode] };
+                        }
+                        if (node.type === "folder" && node.children) {
+                            return { ...node, children: addFileToFolder(node.children) };
+                        }
+                        return node;
+                    });
+                };
+
+                const previousState = fileNode;
+                setFileNode(addFileToFolder(fileNode));
+
+                // Expand folder
+                setExpandedFolders((prev) => {
+                    const next = new Set(prev);
+                    next.add(folderId);
+                    return next;
+                });
+
+                // Gọi API trong background
                 try {
                     const updated = await fileRepository.uploadFile(
                         fileNode,
@@ -72,9 +107,11 @@ export default function FileManagement({projectId}: {projectId: string}) {
                         file,
                         projectId
                     );
-                    setFileNode(updated);
                 } catch (err) {
                     console.error("Failed to upload file:", err);
+                    // Rollback nếu API fail
+                    setFileNode(previousState);
+                    alert("Failed to upload file. Please try again.");
                 }
             }
         };
@@ -236,9 +273,9 @@ export default function FileManagement({projectId}: {projectId: string}) {
                                     />
                                 </div>
                             )}
-                            {fileNode.map((folder) => (
+                            {fileNode.map((folder, index) => (
                                 <FolderComposite
-                                    key={folder.id}
+                                    key={`${folder.id}-${index}`}
                                     folder={folder}
                                     expanded={expandedFolders.has(
                                         folder.id as number

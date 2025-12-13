@@ -97,11 +97,12 @@ export class ApiRepository implements IFileRepository {
         });
 
         (tree.files || []).forEach((fi: any) => {
-            out.push({
+
+            return out.push({
                 id: fi.id,
                 name: fi.name,
                 type: "file",
-                size: fi.file_metadata?.size ?? 0,
+                size: `${(fi.file_metadata?.size ?? 0 / (1024 * 1024)).toFixed(2)} MB`,
                 uploadedDate: fi.created_at ?? fi.updated_at ?? "",
                 fileType: fi.extension ?? fi.file_type ?? "",
                 file: (null as unknown) as File,
