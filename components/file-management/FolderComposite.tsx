@@ -293,7 +293,7 @@ export const FolderComposite = ({
                                 folder.children.map((file, index) =>
                                     file.type === "file" ? (
                                         <FileLeaf
-                                            key={file.id}
+                                            key={`${file.id}-${index}`}
                                             file={file}
                                             onDelete={(fileId) =>
                                                 onDelete(
@@ -306,7 +306,7 @@ export const FolderComposite = ({
                                         />
                                     ) : (
                                         <FolderComposite
-                                            key={file.id}
+                                            key={`${file.id}-${index}`}
                                             folder={file}
                                             toggle={toggle}
                                             onUpload={onUpload}
