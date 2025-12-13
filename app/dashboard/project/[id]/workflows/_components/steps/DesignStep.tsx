@@ -7,6 +7,7 @@ import { ArrowRight, ArrowLeft, Layout, CheckCircle2, Sparkles, Eye, ChevronDown
 import PromptWithFileSelection from "../PromptWithFileSelection";
 import { WireframeIcon } from "@/components/icons";
 import PreviewModal from "../PreviewModal";
+import { all } from "axios";
 
 interface SubItem {
     id: string;
@@ -71,7 +72,7 @@ interface DesignStepProps {
     onBack: () => void;
 }
 
-export default function WireframesStep({
+export default function DiagramStep({
     generatedWireframes,
     onGenerate,
     onNext,
@@ -79,7 +80,10 @@ export default function WireframesStep({
 }: DesignStepProps) {
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
-    const [selectedDesignDocs, setSelectedDesignDocs] = useState<string[]>([]);
+    const allDocIds = designDocuments.flatMap(doc =>
+        doc.subItems ? doc.subItems.map(sub => sub.id) : [doc.id]
+    );
+    const [selectedDesignDocs, setSelectedDesignDocs] = useState<string[]>(allDocIds);
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
     const [previewWireframe, setPreviewWireframe] = useState<string | null>(null);
     const [previewDocument, setPreviewDocument] = useState<string | null>(null);

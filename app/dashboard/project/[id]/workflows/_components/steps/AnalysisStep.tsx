@@ -52,7 +52,10 @@ export default function SRSStep({
 }: AnalysisStepProps) {
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
-    const [selectedAnalysisDocs, setSelectedAnalysisDocs] = useState<string[]>([]);
+    const allDocIds = analysisDocuments.flatMap(doc =>
+        [doc.id]
+    );
+    const [selectedAnalysisDocs, setSelectedAnalysisDocs] = useState<string[]>(allDocIds);
     const [previewSRS, setPreviewSRS] = useState(false);
     const [previewDocument, setPreviewDocument] = useState<string | null>(null);
 

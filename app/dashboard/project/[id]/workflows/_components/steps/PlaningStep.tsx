@@ -63,7 +63,11 @@ export default function DiagramsStep({
 }: DiagramsStepProps) {
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
-    const [selectedPlanningDocs, setSelectedPlanningDocs] = useState<string[]>([]);
+    // Default: all documents selected (parent docs without subItems, and all subItems for those with subItems)
+    const allDocIds = planningDocuments.flatMap(doc =>
+        doc.subItems ? doc.subItems.map(sub => sub.id) : [doc.id]
+    );
+    const [selectedPlanningDocs, setSelectedPlanningDocs] = useState<string[]>(allDocIds);
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
     const [previewDiagram, setPreviewDiagram] = useState<string | null>(null);
     const [previewDocument, setPreviewDocument] = useState<string | null>(null);

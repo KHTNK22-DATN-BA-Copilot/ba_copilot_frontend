@@ -10,7 +10,7 @@ import WorkflowStepIndicator from "./WorkflowStepIndicator";
 import RequirementsStep from "./steps/RequirementsStep";
 import DiagramsStep from "./steps/PlaningStep";
 import SRSStep from "./steps/AnalysisStep";
-import WireframesStep from "./steps/DesignStep";
+import DiagramStep from "./steps/DesignStep";
 import ReviewStep from "./steps/ReviewStep";
 import { WorkflowStep } from "./types";
 
@@ -33,7 +33,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
             icon: HomeIcon,
             status: currentStep > 0 ? "completed" : currentStep === 0 ? "current" : "pending"
         },
-        
+
         {
             id: 1,
             title: "Planning",
@@ -145,7 +145,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
                     )}
 
                     {currentStep === 3 && (
-                        <WireframesStep
+                        <DiagramStep
                             generatedWireframes={generatedWireframes}
                             onGenerate={handleGenerateWireframes}
                             onNext={handleNext}
