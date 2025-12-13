@@ -47,3 +47,8 @@ export async function getAllDiagrams(projectId: any): Promise<Diagram[]> {
 
     return diagrams;
 }
+
+export async function getAccessToken() {
+    const access_token = (await cookies()).get("access_token")?.value;
+    return access_token;
+}

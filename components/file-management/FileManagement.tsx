@@ -1,4 +1,4 @@
-'use client";';
+'use client';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -8,10 +8,11 @@ import { MockFileRepository } from "./MockFileRepository ";
 import { FileItem, FileNode, FolderData } from "./type";
 import { FolderComposite } from "./FolderComposite";
 import { Button } from "../ui/button";
+import {ApiRepository} from "./ApiRepository";
 
-const fileRepository: IFileRepository = new MockFileRepository();
+const fileRepository: IFileRepository = new ApiRepository();
 
-export default function FileManagement() {
+export default function FileManagement({projectId}: {projectId: string}) {
     const [fileNode, setFileNode] = useState<FileNode[]>([]);
     const [expandedFolders, setExpandedFolders] = useState<Set<number>>(
         new Set()
@@ -31,7 +32,7 @@ export default function FileManagement() {
     useEffect(() => {
         let mounted = true;
         fileRepository
-            .getTreeStructure()
+            .getTreeStructure(projectId)
             .then((data) => {
                 if (!mounted) return;
                 setFileNode(data);
@@ -44,7 +45,7 @@ export default function FileManagement() {
                 setExpandedFolders(initial);
             })
             .catch(console.error);
-    }, []);
+    }, [projectId]);
 
     const toggleFolder = useCallback((folderId: number) => {
         setExpandedFolders((prev) => {
@@ -58,14 +59,23 @@ export default function FileManagement() {
     const handleFileUpload = async (folderId: number) => {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
+        fileInput.multiple = false; // Set to true if you want to allow multiple files
         fileInput.onchange = async (e: Event) => {
             const target = e.target as HTMLInputElement;
             const file = target.files?.[0];
 
             if (file) {
-                setFileNode((prevNodes) =>
-                    fileRepository.uploadFile(prevNodes, folderId, file)
-                );
+                try {
+                    const updated = await fileRepository.uploadFile(
+                        fileNode,
+                        folderId,
+                        file,
+                        projectId
+                    );
+                    setFileNode(updated);
+                } catch (err) {
+                    console.error("Failed to upload file:", err);
+                }
             }
         };
         fileInput.click();
@@ -78,130 +88,76 @@ export default function FileManagement() {
     };
 
     const handleCreateFolder = useCallback(
-        (parentId: number | null, name: string) => {
+        async (parentId: number | null, name: string) => {
             const newFolder: FileNode = {
-                id: Date.now(), // simple unique id
+                id: Date.now(),
                 name,
                 type: "folder",
                 systemFileType: false,
                 children: [],
             } as FileNode;
 
-            setFileNode((prev) => {
-                // duplicate check at target level
-                const alreadyExists = (function find(
-                    nodes: FileNode[],
-                    pid: number | null
-                ) {
-                    if (pid === null) {
-                        return nodes.some(
-                            (n) => n.type === "folder" && n.name === name
-                        );
-                    }
-                    for (const n of nodes) {
-                        if (n.id === pid && n.type === "folder") {
-                            return n.children.some(
-                                (c) => c.type === "folder" && c.name === name
-                            );
-                        }
-                        if (n.type === "folder" && n.children) {
-                            const found = find(n.children, pid);
-                            if (found) return true;
-                        }
-                    }
-                    return false;
-                })(prev, parentId);
+            try {
+                const updated = await fileRepository.addFolderRecursive(
+                    fileNode,
+                    parentId,
+                    newFolder,
+                    projectId
+                );
+                console.log("Updated file node after adding folder:", updated);
+                setFileNode(updated);
 
-                if (alreadyExists) return prev;
-
-                if (parentId === null) {
-                    // add at root
-                    return [...prev, newFolder];
-                } else {
-                    // delegate to repository helper if available, otherwise do recursive insert here
-                    if (
-                        typeof (fileRepository as any).addFolderRecursive ===
-                        "function"
-                    ) {
-                        try {
-                            return (fileRepository as any).addFolderRecursive(
-                                prev,
-                                parentId,
-                                newFolder
-                            );
-                        } catch {
-                            // fallthrough to manual recursion
-                        }
+                // expand parent folder after creation
+                setExpandedFolders((prev) => {
+                    const next = new Set(prev);
+                    if (parentId !== null) {
+                        next.add(parentId);
                     }
-                    // manual recursion insert
-                    const addRec = (nodes: FileNode[]): FileNode[] =>
-                        nodes.map((n) => {
-                            if (n.id === parentId && n.type === "folder") {
-                                return {
-                                    ...n,
-                                    children: [
-                                        ...(n.children ?? []),
-                                        newFolder,
-                                    ],
-                                };
-                            }
-                            if (n.type === "folder" && n.children) {
-                                return { ...n, children: addRec(n.children) };
-                            }
-                            return n;
-                        });
-                    return addRec(prev);
-                }
-            });
-
-            // persist via repository only if parentId !== null and createFolder exists
-            if (
-                parentId !== null &&
-                typeof (fileRepository as any).createFolder === "function"
-            ) {
-                try {
-                    (fileRepository as any).createFolder(parentId, name);
-                } catch (err) {
-                    console.error("persist createFolder failed", err);
-                }
+                    return next;
+                });
+            } catch (err) {
+                console.error("Failed to create folder:", err);
             }
-
-            // ensure parent expanded (for root just expand the new folder)
-            setExpandedFolders((prev) => {
-                const next = new Set(prev);
-                if (parentId === null) {
-                    next.add(newFolder.id as number);
-                } else {
-                    next.add(parentId);
-                }
-                return next;
-            });
         },
-        []
+        [fileNode, projectId]
     );
 
     const handleRemoveFolder = async (folderId: number) => {
-        // optional: check if folder exists and has children to decide confirm (UI already asked)
-        setFileNode((prev) =>
-            fileRepository.removeFolderRecursive(prev, folderId)
-        );
+        try {
+            const updated = await fileRepository.removeFolderRecursive(
+                fileNode,
+                folderId,
+                projectId
+            );
+            setFileNode(updated);
 
-        // persist via repository if available
-        if (typeof (fileRepository as any).deleteFolder === "function") {
-            try {
-                await (fileRepository as any).deleteFolder(folderId);
-            } catch (err) {
-                console.error("persist deleteFolder failed", err);
-            }
+            // also remove from expanded set
+            setExpandedFolders((prev) => {
+                const next = new Set(prev);
+                next.delete(folderId);
+                return next;
+            });
+        } catch (err) {
+            console.error("Failed to remove folder:", err);
         }
-
-        // also remove from expanded set
-        setExpandedFolders((prev) => {
-            const next = new Set(prev);
-            next.delete(folderId);
-            return next;
-        });
     };
+
+    const handleRenameFolder = useCallback(
+        async (folderId: number, newName: string) => {
+            try {
+                const updated = await fileRepository.renameFolderRecursive(
+                    fileNode,
+                    folderId,
+                    newName,
+                    projectId
+                );
+                setFileNode(updated);
+            } catch (err) {
+                console.error("Failed to rename folder:", err);
+            }
+        },
+        [fileNode, projectId]
+    );
 
     const handleCreateConfirm = () => {
         const name = (newName ?? "").trim();
@@ -293,6 +249,7 @@ export default function FileManagement() {
                                     expandedFolders={expandedFolders}
                                     onCreateFolder={handleCreateFolder}
                                     onRemoveFolder={handleRemoveFolder}
+                                    onRenameFolder={handleRenameFolder}
                                     onDownload={handleDownload}
                                 />
                             ))}

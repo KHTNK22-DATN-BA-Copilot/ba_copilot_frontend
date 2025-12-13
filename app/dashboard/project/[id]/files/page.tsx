@@ -1,10 +1,10 @@
-'use client';
 import FileManagement from "@/components/file-management/FileManagement";
 
-export default function FileManagementPage() {
+export default async function FileManagementPage({params}: {params: {id: string}}) {
+    const {id} = await params;
     return (
         <>
-            <FileManagement />
+            <FileManagement projectId={id} />
         </>
     );
 }
