@@ -3,9 +3,15 @@
 import { useState } from "react";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
 import PreviewModal from "../../PreviewModal";
-import { planningDocuments } from "./documents";
-import { DocumentSelector, GeneratedDocumentsList, PlanningActions } from ".";
-import { useDocumentSelection, useDocumentPreview, usePlanningGeneration } from "./hooks";
+import { planningDocuments, getAllDocIds, documentFiles } from "./documents";
+import {
+    DocumentSelector,
+    GeneratedDocumentsList,
+    WorkflowActions,
+    useDocumentSelection,
+    useDocumentPreview,
+    useWorkflowGeneration
+} from "../shared";
 
 interface PlanningStepProps {
     generatedDiagrams: string[];
@@ -24,15 +30,16 @@ export default function PlanningStep({
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
 
     // Custom hooks for state management
-    const documentSelection = useDocumentSelection();
-    const documentPreview = useDocumentPreview();
-    const planningGeneration = usePlanningGeneration(onGenerate);
+    const documentSelection = useDocumentSelection(getAllDocIds());
+    const documentPreview = useDocumentPreview(planningDocuments, documentFiles);
+    const planningGeneration = useWorkflowGeneration(onGenerate);
 
     const handleGenerateDocuments = async () => {
         const payload = {
             prompt,
             selectedFiles,
-            selectedDocIds: documentSelection.selectedPlanningDocs,
+            selectedDocIds: documentSelection.selectedDocs,
+            stepType: 'planning'
         };
 
         await planningGeneration.generateDocuments(payload);
@@ -49,7 +56,7 @@ export default function PlanningStep({
             {/* Document Selection Section */}
             <DocumentSelector
                 documents={planningDocuments}
-                selectedDocs={documentSelection.selectedPlanningDocs}
+                selectedDocs={documentSelection.selectedDocs}
                 expandedItems={documentSelection.expandedItems}
                 onDocumentToggle={documentSelection.handleDocumentToggle}
                 onToggleExpand={documentSelection.handleToggleExpand}
@@ -57,6 +64,7 @@ export default function PlanningStep({
                 onPreview={documentPreview.handlePreviewDocument}
                 isDocumentSelected={documentSelection.isDocumentSelected}
                 isDocumentIndeterminate={documentSelection.isDocumentIndeterminate}
+                label="Select type of Documents to Generate"
             />
 
             {/* Prompt and File Selection */}
@@ -79,10 +87,10 @@ export default function PlanningStep({
             )}
 
             {/* Generated Documents List */}
-            {generatedDiagrams.length > 0 && documentSelection.selectedPlanningDocs.length > 0 && (
+            {generatedDiagrams.length > 0 && documentSelection.selectedDocs.length > 0 && (
                 <GeneratedDocumentsList
                     documents={planningDocuments}
-                    selectedDocs={documentSelection.selectedPlanningDocs}
+                    selectedDocs={documentSelection.selectedDocs}
                     onPreview={documentPreview.handlePreviewDocument}
                     getSelectedSubItems={documentSelection.getSelectedSubItems}
                 />
@@ -100,12 +108,13 @@ export default function PlanningStep({
             )}
 
             {/* Action Buttons */}
-            <PlanningActions
+            <WorkflowActions
                 hasGeneratedDocuments={generatedDiagrams.length > 0}
                 isGenerating={planningGeneration.isGenerating}
                 onGenerate={handleGenerateDocuments}
                 onNext={onNext}
                 onBack={onBack}
+                nextButtonText="Continue to Analysis"
             />
         </div>
     );

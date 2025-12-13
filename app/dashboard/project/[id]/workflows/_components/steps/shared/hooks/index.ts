@@ -1,3 +1,3 @@
 export { useDocumentSelection } from "./useDocumentSelection";
 export { useDocumentPreview } from "./useDocumentPreview";
-export { useDesignGeneration } from "./useDesignGeneration";
+export { useWorkflowGeneration } from "./useWorkflowGeneration";

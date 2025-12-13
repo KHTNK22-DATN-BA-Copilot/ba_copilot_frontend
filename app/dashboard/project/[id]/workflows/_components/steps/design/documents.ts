@@ -1,6 +1,6 @@
-import { DesignDocument } from "./types";
+import { WorkflowDocument } from "../shared/types";
 
-export const designDocuments: DesignDocument[] = [
+export const designDocuments: WorkflowDocument[] = [
   {
     id: "srs",
     name: "Software Requirement Specification",

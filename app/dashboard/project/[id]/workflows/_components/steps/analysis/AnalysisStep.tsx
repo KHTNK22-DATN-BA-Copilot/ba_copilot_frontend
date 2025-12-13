@@ -3,9 +3,15 @@
 import { useState } from "react";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
 import PreviewModal from "../../PreviewModal";
-import { analysisDocuments } from "./documents";
-import { DocumentSelector, GeneratedDocumentsList, AnalysisActions } from ".";
-import { useDocumentSelection, useDocumentPreview, useAnalysisGeneration } from "./hooks";
+import { analysisDocuments, getAllDocIds, documentFiles } from "./documents";
+import {
+    DocumentSelector,
+    GeneratedDocumentsList,
+    WorkflowActions,
+    useDocumentSelection,
+    useDocumentPreview,
+    useWorkflowGeneration
+} from "../shared";
 
 interface AnalysisStepProps {
     generatedSRS: string;
@@ -24,15 +30,16 @@ export default function AnalysisStep({
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
 
     // Custom hooks for state management
-    const documentSelection = useDocumentSelection();
-    const documentPreview = useDocumentPreview();
-    const analysisGeneration = useAnalysisGeneration(onGenerate);
+    const documentSelection = useDocumentSelection(getAllDocIds());
+    const documentPreview = useDocumentPreview(analysisDocuments, documentFiles);
+    const analysisGeneration = useWorkflowGeneration(onGenerate);
 
     const handleGenerateDocuments = async () => {
         const payload = {
             prompt,
             selectedFiles,
-            selectedDocIds: documentSelection.selectedAnalysisDocs,
+            selectedDocIds: documentSelection.selectedDocs,
+            stepType: 'analysis'
         };
 
         await analysisGeneration.generateDocuments(payload);
@@ -49,9 +56,14 @@ export default function AnalysisStep({
             {/* Document Selection Section */}
             <DocumentSelector
                 documents={analysisDocuments}
-                selectedDocs={documentSelection.selectedAnalysisDocs}
+                selectedDocs={documentSelection.selectedDocs}
+                expandedItems={documentSelection.expandedItems}
                 onDocumentToggle={documentSelection.handleDocumentToggle}
+                onToggleExpand={documentSelection.handleToggleExpand}
+                onParentToggle={documentSelection.handleParentToggle}
                 onPreview={documentPreview.handlePreviewDocument}
+                isDocumentSelected={documentSelection.isDocumentSelected}
+                isDocumentIndeterminate={documentSelection.isDocumentIndeterminate}
             />
 
             {/* Prompt and File Selection */}
@@ -74,11 +86,12 @@ export default function AnalysisStep({
             )}
 
             {/* Generated Documents List */}
-            {generatedSRS && documentSelection.selectedAnalysisDocs.length > 0 && (
+            {generatedSRS && documentSelection.selectedDocs.length > 0 && (
                 <GeneratedDocumentsList
                     documents={analysisDocuments}
-                    selectedDocs={documentSelection.selectedAnalysisDocs}
+                    selectedDocs={documentSelection.selectedDocs}
                     onPreview={documentPreview.handlePreviewDocument}
+                    getSelectedSubItems={documentSelection.getSelectedSubItems}
                 />
             )}
 
@@ -94,12 +107,14 @@ export default function AnalysisStep({
             )}
 
             {/* Action Buttons */}
-            <AnalysisActions
+            <WorkflowActions
                 hasGeneratedDocuments={!!generatedSRS}
                 isGenerating={analysisGeneration.isGenerating}
                 onGenerate={handleGenerateDocuments}
                 onNext={onNext}
                 onBack={onBack}
+                generateButtonText="Generate Documents"
+                nextButtonText="Continue to Design"
             />
         </div>
     );

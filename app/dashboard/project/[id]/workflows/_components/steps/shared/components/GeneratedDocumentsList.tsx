@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Eye } from "lucide-react";
-import { PlanningDocument } from "./types";
+import { WorkflowDocument, SubItem } from "../types";
 
 interface GeneratedDocumentsListProps {
-    documents: PlanningDocument[];
+    documents: WorkflowDocument[];
     selectedDocs: string[];
     onPreview: (docId: string) => void;
-    getSelectedSubItems: (doc: PlanningDocument) => Array<{ id: string; name: string }>;
+    getSelectedSubItems: (doc: WorkflowDocument) => SubItem[];
 }
 
 export function GeneratedDocumentsList({

@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { analysisDocuments, documentFiles } from "../documents";
+import { WorkflowDocument } from "../types";
 
-export function useDocumentPreview() {
+export function useDocumentPreview(
+  documents: WorkflowDocument[],
+  documentFiles: Record<string, string>
+) {
   const [previewDocument, setPreviewDocument] = useState<string | null>(null);
   const [previewContent, setPreviewContent] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -18,12 +21,12 @@ export function useDocumentPreview() {
           const content = await response.text();
           setPreviewContent(content);
         } else {
-          const docName = findDocumentName(docId);
+          const docName = findDocumentName(docId, documents);
           setPreviewContent(`# ${docName}\n\nContent not available yet.`);
         }
       } catch (error) {
         console.error("Error fetching document:", error);
-        const docName = findDocumentName(docId);
+        const docName = findDocumentName(docId, documents);
         setPreviewContent(`# ${docName}\n\nError loading content.`);
       }
     }
@@ -36,8 +39,18 @@ export function useDocumentPreview() {
   };
 
   const getPreviewTitle = (docId: string): string => {
-    const doc = analysisDocuments.find(d => d.id === docId);
-    return doc?.name || "Document Preview";
+    // Find document name from main items
+    const mainDoc = documents.find(doc => doc.id === docId);
+    if (mainDoc) return mainDoc.name;
+
+    // Find document name from sub-items
+    for (const doc of documents) {
+      if (doc.subItems) {
+        const subItem = doc.subItems.find(sub => sub.id === docId);
+        if (subItem) return `${doc.name} - ${subItem.name}`;
+      }
+    }
+    return "Document Preview";
   };
 
   return {
@@ -50,7 +63,15 @@ export function useDocumentPreview() {
   };
 }
 
-function findDocumentName(docId: string): string {
-  const doc = analysisDocuments.find(d => d.id === docId);
-  return doc?.name || "Document";
+function findDocumentName(docId: string, documents: WorkflowDocument[]): string {
+  const mainDoc = documents.find(doc => doc.id === docId);
+  if (mainDoc) return mainDoc.name;
+
+  for (const doc of documents) {
+    if (doc.subItems) {
+      const subItem = doc.subItems.find(sub => sub.id === docId);
+      if (subItem) return subItem.name;
+    }
+  }
+  return "Document";
 }

@@ -1,6 +1,6 @@
-import { AnalysisDocument } from "./types";
+import { WorkflowDocument } from "../shared/types";
 
-export const analysisDocuments: AnalysisDocument[] = [
+export const analysisDocuments: WorkflowDocument[] = [
   {
     id: "feasibility-study",
     name: "Feasibility Study Report",

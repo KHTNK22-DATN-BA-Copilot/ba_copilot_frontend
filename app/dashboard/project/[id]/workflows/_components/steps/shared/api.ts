@@ -1,7 +1,7 @@
-import { GenerateDesignPayload, DesignApiResponse, JobStatusResponse } from "./types";
+import { GenerateWorkflowPayload, WorkflowApiResponse, JobStatusResponse } from "./types";
 
 /**
- * Base configuration for design API endpoints
+ * Base configuration for workflow API endpoints
  */
 const API_CONFIG = {
   baseUrl: "/api/workflow",
@@ -15,13 +15,13 @@ const API_CONFIG = {
 } as const;
 
 /**
- * Generate design documents based on the provided payload
+ * Generate workflow documents based on the provided payload
  * @param payload - The generation payload including prompt, files, and selected documents
  * @returns Promise with job ID and status
  */
-export async function generateDesignDocuments(
-  payload: GenerateDesignPayload
-): Promise<DesignApiResponse> {
+export async function generateWorkflowDocuments(
+  payload: GenerateWorkflowPayload
+): Promise<WorkflowApiResponse> {
   try {
     const endpoint = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.generate}`;
     
@@ -40,7 +40,7 @@ export async function generateDesignDocuments(
 
     return await response.json();
   } catch (error) {
-    console.error("generateDesignDocuments error:", error);
+    console.error("generateWorkflowDocuments error:", error);
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Unknown error occurred",
@@ -49,11 +49,11 @@ export async function generateDesignDocuments(
 }
 
 /**
- * Check the status of a design generation job
+ * Check the status of a workflow generation job
  * @param jobId - The job ID to check
  * @returns Promise with job status information
  */
-export async function checkDesignJobStatus(
+export async function checkWorkflowJobStatus(
   jobId: string
 ): Promise<JobStatusResponse> {
   try {
@@ -70,7 +70,7 @@ export async function checkDesignJobStatus(
 
     return await response.json();
   } catch (error) {
-    console.error("checkDesignJobStatus error:", error);
+    console.error("checkWorkflowJobStatus error:", error);
     return {
       jobId,
       status: "error",
@@ -80,11 +80,11 @@ export async function checkDesignJobStatus(
 }
 
 /**
- * Cancel a running design generation job
+ * Cancel a running workflow generation job
  * @param jobId - The job ID to cancel
  * @returns Promise indicating success or failure
  */
-export async function cancelDesignJob(jobId: string): Promise<boolean> {
+export async function cancelWorkflowJob(jobId: string): Promise<boolean> {
   try {
     const endpoint = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.status}/${jobId}/cancel`;
     
@@ -95,7 +95,7 @@ export async function cancelDesignJob(jobId: string): Promise<boolean> {
 
     return response.ok;
   } catch (error) {
-    console.error("cancelDesignJob error:", error);
+    console.error("cancelWorkflowJob error:", error);
     return false;
   }
 }

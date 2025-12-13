@@ -3,9 +3,15 @@
 import { useState } from "react";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
 import PreviewModal from "../../PreviewModal";
-import { designDocuments } from "./documents";
-import { DocumentSelector, GeneratedDocumentsList, DesignActions } from ".";
-import { useDocumentSelection, useDocumentPreview, useDesignGeneration } from "./hooks";
+import { designDocuments, getAllDocIds, documentFiles } from "./documents";
+import { 
+  DocumentSelector, 
+  GeneratedDocumentsList, 
+  WorkflowActions,
+  useDocumentSelection,
+  useDocumentPreview,
+  useWorkflowGeneration
+} from "../shared";
 
 interface DesignStepProps {
     generatedWireframes: string[];
@@ -24,15 +30,16 @@ export default function DesignStep({
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
 
     // Custom hooks for state management
-    const documentSelection = useDocumentSelection();
-    const documentPreview = useDocumentPreview();
-    const designGeneration = useDesignGeneration(onGenerate);
+    const documentSelection = useDocumentSelection(getAllDocIds());
+    const documentPreview = useDocumentPreview(designDocuments, documentFiles);
+    const designGeneration = useWorkflowGeneration(onGenerate);
 
     const handleGenerateDocuments = async () => {
         const payload = {
             prompt,
             selectedFiles,
-            selectedDocIds: documentSelection.selectedDesignDocs,
+            selectedDocIds: documentSelection.selectedDocs,
+            stepType: 'design'
         };
 
         await designGeneration.generateDocuments(payload);
@@ -49,7 +56,7 @@ export default function DesignStep({
             {/* Document Selection Section */}
             <DocumentSelector
                 documents={designDocuments}
-                selectedDocs={documentSelection.selectedDesignDocs}
+                selectedDocs={documentSelection.selectedDocs}
                 expandedItems={documentSelection.expandedItems}
                 onDocumentToggle={documentSelection.handleDocumentToggle}
                 onToggleExpand={documentSelection.handleToggleExpand}
@@ -79,10 +86,10 @@ export default function DesignStep({
             )}
 
             {/* Generated Documents List */}
-            {generatedWireframes.length > 0 && documentSelection.selectedDesignDocs.length > 0 && (
+            {generatedWireframes.length > 0 && documentSelection.selectedDocs.length > 0 && (
                 <GeneratedDocumentsList
                     documents={designDocuments}
-                    selectedDocs={documentSelection.selectedDesignDocs}
+                    selectedDocs={documentSelection.selectedDocs}
                     onPreview={documentPreview.handlePreviewDocument}
                     getSelectedSubItems={documentSelection.getSelectedSubItems}
                 />
@@ -100,12 +107,13 @@ export default function DesignStep({
             )}
 
             {/* Action Buttons */}
-            <DesignActions
+            <WorkflowActions
                 hasGeneratedDocuments={generatedWireframes.length > 0}
                 isGenerating={designGeneration.isGenerating}
                 onGenerate={handleGenerateDocuments}
                 onNext={onNext}
                 onBack={onBack}
+                nextButtonText="Continue to Review"
             />
         </div>
     );

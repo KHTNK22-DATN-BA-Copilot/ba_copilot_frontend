@@ -1,19 +1,19 @@
 import { useState } from "react";
-import { generatePlanningDocuments } from "../api";
-import { GeneratePlanningPayload } from "../types";
+import { generateWorkflowDocuments } from "../api";
+import { GenerateWorkflowPayload } from "../types";
 
-export function usePlanningGeneration(onGenerate?: () => void) {
+export function useWorkflowGeneration(onGenerate?: () => void) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
 
-  const generateDocuments = async (payload: GeneratePlanningPayload) => {
+  const generateDocuments = async (payload: GenerateWorkflowPayload) => {
     setIsGenerating(true);
     setError(null);
     
     try {
       console.log("Sending generate request:", payload);
-      const response = await generatePlanningDocuments(payload);
+      const response = await generateWorkflowDocuments(payload);
       
       if (response.status === "error") {
         setError("Failed to generate documents. Please try again.");

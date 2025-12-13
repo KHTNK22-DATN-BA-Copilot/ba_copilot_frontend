@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { DesignDocument } from "../types";
-import { getAllDocIds } from "../documents";
+import { WorkflowDocument } from "../types";
 
-export function useDocumentSelection() {
-  const [selectedDesignDocs, setSelectedDesignDocs] = useState<string[]>(getAllDocIds());
+export function useDocumentSelection(initialDocIds: string[]) {
+  const [selectedDocs, setSelectedDocs] = useState<string[]>(initialDocIds);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   const handleDocumentToggle = (docId: string) => {
-    setSelectedDesignDocs(prev =>
+    setSelectedDocs(prev =>
       prev.includes(docId)
         ? prev.filter(id => id !== docId)
         : [...prev, docId]
@@ -22,55 +21,55 @@ export function useDocumentSelection() {
     );
   };
 
-  const isDocumentSelected = (doc: DesignDocument): boolean => {
-    if (selectedDesignDocs.includes(doc.id)) return true;
+  const isDocumentSelected = (doc: WorkflowDocument): boolean => {
+    if (selectedDocs.includes(doc.id)) return true;
     if (doc.subItems) {
-      return doc.subItems.some(sub => selectedDesignDocs.includes(sub.id));
+      return doc.subItems.some(sub => selectedDocs.includes(sub.id));
     }
     return false;
   };
 
-  const isDocumentIndeterminate = (doc: DesignDocument): boolean => {
+  const isDocumentIndeterminate = (doc: WorkflowDocument): boolean => {
     if (!doc.subItems) return false;
     const selectedSubItems = doc.subItems.filter(sub => 
-      selectedDesignDocs.includes(sub.id)
+      selectedDocs.includes(sub.id)
     );
     return selectedSubItems.length > 0 && selectedSubItems.length < doc.subItems.length;
   };
 
-  const handleParentToggle = (doc: DesignDocument) => {
+  const handleParentToggle = (doc: WorkflowDocument) => {
     if (!doc.subItems) {
       handleDocumentToggle(doc.id);
       return;
     }
 
     const allSelected = doc.subItems.every(sub => 
-      selectedDesignDocs.includes(sub.id)
+      selectedDocs.includes(sub.id)
     );
     
     if (allSelected) {
       // Deselect all sub-items
-      setSelectedDesignDocs(prev =>
+      setSelectedDocs(prev =>
         prev.filter(id => !doc.subItems!.some(sub => sub.id === id))
       );
     } else {
       // Select all sub-items
       const subItemIds = doc.subItems.map(sub => sub.id);
-      setSelectedDesignDocs(prev => [
+      setSelectedDocs(prev => [
         ...prev.filter(id => !doc.subItems!.some(sub => sub.id === id)),
         ...subItemIds
       ]);
     }
   };
 
-  const getSelectedSubItems = (doc: DesignDocument) => {
+  const getSelectedSubItems = (doc: WorkflowDocument) => {
     return doc.subItems?.filter(sub =>
-      selectedDesignDocs.includes(sub.id)
+      selectedDocs.includes(sub.id)
     ) || [];
   };
 
   return {
-    selectedDesignDocs,
+    selectedDocs,
     expandedItems,
     handleDocumentToggle,
     handleToggleExpand,

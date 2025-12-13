@@ -1,18 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, ChevronDown, ChevronRight } from "lucide-react";
-import { DesignDocument } from "./types";
+import { WorkflowDocument } from "../types";
 
 interface DocumentSelectorProps {
-    documents: DesignDocument[];
+    documents: WorkflowDocument[];
     selectedDocs: string[];
     expandedItems: string[];
     onDocumentToggle: (docId: string) => void;
     onToggleExpand: (docId: string) => void;
-    onParentToggle: (doc: DesignDocument) => void;
+    onParentToggle: (doc: WorkflowDocument) => void;
     onPreview: (docId: string) => void;
-    isDocumentSelected: (doc: DesignDocument) => boolean;
-    isDocumentIndeterminate: (doc: DesignDocument) => boolean;
+    isDocumentSelected: (doc: WorkflowDocument) => boolean;
+    isDocumentIndeterminate: (doc: WorkflowDocument) => boolean;
+    label?: string;
 }
 
 export function DocumentSelector({
@@ -25,11 +26,12 @@ export function DocumentSelector({
     onPreview,
     isDocumentSelected,
     isDocumentIndeterminate,
+    label = "Select Documents to Generate",
 }: DocumentSelectorProps) {
     return (
         <div className="space-y-3">
             <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                Select Documents to Generate
+                {label}
             </label>
             <div className="space-y-2">
                 {documents.map((doc) => (
