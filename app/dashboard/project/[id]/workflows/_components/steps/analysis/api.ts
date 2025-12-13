@@ -4,7 +4,7 @@ import { GenerateAnalysisPayload, AnalysisApiResponse, JobStatusResponse } from 
  * Base configuration for analysis API endpoints
  */
 const API_CONFIG = {
-  baseUrl: "/api/workflow/analysis",
+  baseUrl: "/api/workflow",
   endpoints: {
     generate: "/generate",
     status: "/status",

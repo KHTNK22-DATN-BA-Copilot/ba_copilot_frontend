@@ -4,7 +4,7 @@ import { GeneratePlanningPayload, PlanningApiResponse, JobStatusResponse } from 
  * Base configuration for planning API endpoints
  */
 const API_CONFIG = {
-  baseUrl: "/api/workflow/planning",
+  baseUrl: "/api/workflow",
   endpoints: {
     generate: "/generate",
     status: "/status",
