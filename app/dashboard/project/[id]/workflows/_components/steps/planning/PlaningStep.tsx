@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
 import PreviewModal from "../../PreviewModal";
 import { planningDocuments, getAllDocIds, documentFiles } from "./documents";
@@ -8,6 +8,7 @@ import {
     DocumentSelector,
     GeneratedDocumentsList,
     WorkflowActions,
+    GenerationLoadingDialog,
     useDocumentSelection,
     useDocumentPreview,
     useWorkflowGeneration
@@ -33,6 +34,23 @@ export default function PlanningStep({
     const documentSelection = useDocumentSelection(getAllDocIds());
     const documentPreview = useDocumentPreview(planningDocuments, documentFiles);
     const planningGeneration = useWorkflowGeneration(onGenerate);
+
+    // Get selected document names for the loading dialog
+    const selectedDocumentNames = useMemo(() => {
+        const names: string[] = [];
+        planningDocuments.forEach(doc => {
+            if (doc.subItems) {
+                doc.subItems.forEach(subItem => {
+                    if (documentSelection.selectedDocs.includes(subItem.id)) {
+                        names.push(subItem.name);
+                    }
+                });
+            } else if (documentSelection.selectedDocs.includes(doc.id)) {
+                names.push(doc.name);
+            }
+        });
+        return names;
+    }, [documentSelection.selectedDocs]);
 
     const handleGenerateDocuments = async () => {
         const payload = {
@@ -109,6 +127,12 @@ export default function PlanningStep({
                     content={documentPreview.previewContent}
                 />
             )}
+
+            {/* Generation Loading Dialog */}
+            <GenerationLoadingDialog
+                isOpen={planningGeneration.isGenerating}
+                documentNames={selectedDocumentNames}
+            />
 
             {/* Action Buttons */}
             <WorkflowActions
