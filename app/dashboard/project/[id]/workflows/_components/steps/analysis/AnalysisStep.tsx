@@ -64,6 +64,10 @@ export default function AnalysisStep({
                 onPreview={documentPreview.handlePreviewDocument}
                 isDocumentSelected={documentSelection.isDocumentSelected}
                 isDocumentIndeterminate={documentSelection.isDocumentIndeterminate}
+                label="Select type of Documents to Generate"
+                onSelectAll={documentSelection.handleSelectAll}
+                onDeselectAll={documentSelection.handleDeselectAll}
+                isAllSelected={documentSelection.isAllSelected(analysisDocuments)}
             />
 
             {/* Prompt and File Selection */}

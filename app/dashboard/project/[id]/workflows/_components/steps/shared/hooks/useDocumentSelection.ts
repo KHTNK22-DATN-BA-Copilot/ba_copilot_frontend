@@ -68,6 +68,32 @@ export function useDocumentSelection(initialDocIds: string[]) {
     ) || [];
   };
 
+  const handleSelectAll = (documents: WorkflowDocument[]) => {
+    const allDocIds: string[] = [];
+    documents.forEach(doc => {
+      if (doc.subItems) {
+        allDocIds.push(...doc.subItems.map(sub => sub.id));
+      } else {
+        allDocIds.push(doc.id);
+      }
+    });
+    setSelectedDocs(allDocIds);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedDocs([]);
+  };
+
+  const isAllSelected = (documents: WorkflowDocument[]): boolean => {
+    if (documents.length === 0) return false;
+    return documents.every(doc => {
+      if (doc.subItems) {
+        return doc.subItems.every(sub => selectedDocs.includes(sub.id));
+      }
+      return selectedDocs.includes(doc.id);
+    });
+  };
+
   return {
     selectedDocs,
     expandedItems,
@@ -77,5 +103,8 @@ export function useDocumentSelection(initialDocIds: string[]) {
     isDocumentIndeterminate,
     handleParentToggle,
     getSelectedSubItems,
+    handleSelectAll,
+    handleDeselectAll,
+    isAllSelected,
   };
 }

@@ -65,6 +65,9 @@ export default function PlanningStep({
                 isDocumentSelected={documentSelection.isDocumentSelected}
                 isDocumentIndeterminate={documentSelection.isDocumentIndeterminate}
                 label="Select type of Documents to Generate"
+                onSelectAll={documentSelection.handleSelectAll}
+                onDeselectAll={documentSelection.handleDeselectAll}
+                isAllSelected={documentSelection.isAllSelected(planningDocuments)}
             />
 
             {/* Prompt and File Selection */}

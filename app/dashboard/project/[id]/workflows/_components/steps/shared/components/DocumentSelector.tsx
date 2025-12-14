@@ -14,6 +14,9 @@ interface DocumentSelectorProps {
     isDocumentSelected: (doc: WorkflowDocument) => boolean;
     isDocumentIndeterminate: (doc: WorkflowDocument) => boolean;
     label?: string;
+    onSelectAll?: (documents: WorkflowDocument[]) => void;
+    onDeselectAll?: () => void;
+    isAllSelected?: boolean;
 }
 
 export function DocumentSelector({
@@ -27,12 +30,42 @@ export function DocumentSelector({
     isDocumentSelected,
     isDocumentIndeterminate,
     label = "Select Documents to Generate",
+    onSelectAll,
+    onDeselectAll,
+    isAllSelected,
 }: DocumentSelectorProps) {
+    const handleSelectAllToggle = () => {
+        if (isAllSelected) {
+            onDeselectAll?.();
+        } else {
+            onSelectAll?.(documents);
+        }
+    };
+
     return (
         <div className="space-y-3">
-            <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {label}
-            </label>
+            <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {label}
+                </label>
+                {onSelectAll && onDeselectAll && (
+                    <div className="flex items-center gap-2">
+
+                        <label
+                            htmlFor="select-all"
+                            className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+                        >
+                            {isAllSelected ? "Deselect All" : "Select All"}
+                        </label>
+                        <Checkbox
+                            id="select-all"
+                            checked={isAllSelected || false}
+                            onCheckedChange={handleSelectAllToggle}
+                            className="flex-shrink-0"
+                        />
+                    </div>
+                )}
+            </div>
             <div className="space-y-2">
                 {documents.map((doc) => (
                     <div key={doc.id} className="space-y-2">
