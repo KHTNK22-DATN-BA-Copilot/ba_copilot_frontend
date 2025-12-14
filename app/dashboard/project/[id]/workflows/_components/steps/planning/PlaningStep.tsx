@@ -101,7 +101,7 @@ export default function PlanningStep({
                 <PreviewModal
                     isOpen={!!documentPreview.previewDocument}
                     onClose={documentPreview.handleClosePreview}
-                    type="srs"
+                    type="document"
                     title={documentPreview.getPreviewTitle(documentPreview.previewDocument)}
                     content={documentPreview.previewContent}
                 />

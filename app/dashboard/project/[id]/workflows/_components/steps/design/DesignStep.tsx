@@ -4,13 +4,13 @@ import { useState } from "react";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
 import PreviewModal from "../../PreviewModal";
 import { designDocuments, getAllDocIds, documentFiles } from "./documents";
-import { 
-  DocumentSelector, 
-  GeneratedDocumentsList, 
-  WorkflowActions,
-  useDocumentSelection,
-  useDocumentPreview,
-  useWorkflowGeneration
+import {
+    DocumentSelector,
+    GeneratedDocumentsList,
+    WorkflowActions,
+    useDocumentSelection,
+    useDocumentPreview,
+    useWorkflowGeneration
 } from "../shared";
 
 interface DesignStepProps {
@@ -100,7 +100,7 @@ export default function DesignStep({
                 <PreviewModal
                     isOpen={!!documentPreview.previewDocument}
                     onClose={documentPreview.handleClosePreview}
-                    type="diagram"
+                    type="wireframe"
                     title={documentPreview.getPreviewTitle(documentPreview.previewDocument)}
                     content={documentPreview.previewContent}
                 />
