@@ -118,6 +118,7 @@ export default function PlanningStep({
                 onNext={onNext}
                 onBack={onBack}
                 nextButtonText="Continue to Analysis"
+                hasSelectedDocuments={documentSelection.selectedDocs.length > 0}
             />
         </div>
     );

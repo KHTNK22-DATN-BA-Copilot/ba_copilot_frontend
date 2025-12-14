@@ -9,6 +9,7 @@ interface WorkflowActionsProps {
     onBack: () => void;
     generateButtonText?: string;
     nextButtonText?: string;
+    hasSelectedDocuments?: boolean;
 }
 
 export function WorkflowActions({
@@ -19,6 +20,7 @@ export function WorkflowActions({
     onBack,
     generateButtonText = "Generate",
     nextButtonText = "Continue",
+    hasSelectedDocuments = true,
 }: WorkflowActionsProps) {
     return (
         <div className="flex justify-center items-center gap-3">
@@ -35,7 +37,7 @@ export function WorkflowActions({
                 <Button
                     onClick={onGenerate}
                     className="gap-2"
-                    disabled={isGenerating}
+                    disabled={isGenerating || !hasSelectedDocuments}
                 >
                     <Sparkles className="w-4 h-4" />
                     {isGenerating ? "Generating..." : generateButtonText}

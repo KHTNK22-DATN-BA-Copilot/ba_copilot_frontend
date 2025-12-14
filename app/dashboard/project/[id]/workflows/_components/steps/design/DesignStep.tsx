@@ -118,6 +118,7 @@ export default function DesignStep({
                 onNext={onNext}
                 onBack={onBack}
                 nextButtonText="Continue to Review"
+                hasSelectedDocuments={documentSelection.selectedDocs.length > 0}
             />
         </div>
     );

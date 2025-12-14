@@ -119,6 +119,7 @@ export default function AnalysisStep({
                 onBack={onBack}
                 generateButtonText="Generate Documents"
                 nextButtonText="Continue to Design"
+                hasSelectedDocuments={documentSelection.selectedDocs.length > 0}
             />
         </div>
     );
