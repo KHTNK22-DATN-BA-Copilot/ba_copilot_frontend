@@ -1,9 +1,15 @@
 'use client';
+import "github-markdown-css/github-markdown.css";
+import "github-markdown-css/github-markdown-dark.css";
+import "github-markdown-css/github-markdown-light.css";
+
+
 
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 import mermaid from "mermaid";
 import remarkGfm from "remark-gfm";
 import { createPortal } from 'react-dom';
@@ -88,9 +94,9 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
     }, [content]);
 
     return (
-        <div ref={ref} className="w-full">
+        <div ref={ref} className="w-full markdown-body">
             <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
+                remarkPlugins={[remarkGfm, remarkBreaks]}
                 components={{
                     code({ className, children }) {
                         const lang = className?.replace("language-", "");
@@ -293,17 +299,17 @@ Describe the scope of the software system, including:
                 </div>
 
                 {/* Modal Content */}
-                <div className="overflow-auto p-4" style={{ maxHeight: 'calc(90vh - 80px)' }}>
+                <div className="overflow-auto" style={{ maxHeight: 'calc(90vh - 80px)' }}>
                     {detectedType === 'diagram' && (
-                        <div className="w-full border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 p-4">
+                        <div className="w-full  bg-white dark:bg-gray-900 p-6">
                             <MarkdownWithMermaid content={content || getMockDiagramContent(title)} />
                         </div>
                     )}
 
                     {(detectedType === 'srs' || detectedType === 'document' || detectedType === 'markdown') && (
-                        <div className="w-full border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 p-6">
-                            <div className="prose prose-sm dark:prose-invert max-w-none">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        <div className="w-full bg-white  p-6">
+                            <div className="prose prose-sm dark:prose-invert max-w-none markdown-body">
+                                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
                                     {content || getMockSRSContent()}
                                 </ReactMarkdown>
                             </div>
@@ -311,7 +317,7 @@ Describe the scope of the software system, including:
                     )}
 
                     {detectedType === 'wireframe' && (
-                        <div className="h-[calc(90vh-80px)] border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900">
+                        <div className="h-[calc(90vh-80px)] bg-white">
                             <iframe
                                 srcDoc={content || getMockWireframeContent(title)}
                                 title="wireframe-preview"
