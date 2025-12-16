@@ -1,11 +1,19 @@
 'use client';
+import "github-markdown-css/github-markdown.css";
+import "github-markdown-css/github-markdown-dark.css";
+import "github-markdown-css/github-markdown-light.css";
 
-import { useEffect, useRef } from "react";
+
+
+import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 import mermaid from "mermaid";
 import remarkGfm from "remark-gfm";
+import { createPortal } from 'react-dom';
+
 
 const stripYamlFrontMatter = (s: string) => {
     if (!s) return s;
@@ -86,9 +94,9 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
     }, [content]);
 
     return (
-        <div ref={ref} className="w-full">
+        <div ref={ref} className="w-full markdown-body">
             <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
+                remarkPlugins={[remarkGfm, remarkBreaks]}
                 components={{
                     code({ className, children }) {
                         const lang = className?.replace("language-", "");
@@ -116,12 +124,12 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
     );
 };
 
-type PreviewType = 'diagram' | 'srs' | 'wireframe';
+type PreviewType = 'diagram' | 'srs' | 'wireframe' | 'document' | 'markdown';
 
 interface PreviewModalProps {
     isOpen: boolean;
     onClose: () => void;
-    type: PreviewType;
+    type?: PreviewType;
     title: string;
     content?: string;
 }
@@ -129,11 +137,41 @@ interface PreviewModalProps {
 export default function PreviewModal({
     isOpen,
     onClose,
-    type,
+    type = 'document',
     title,
     content
 }: PreviewModalProps) {
-    if (!isOpen) return null;
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        // Prevent background scrolling when modal is open
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
+
+    // Auto-detect type based on content if not specified or if type is generic
+    const detectedType = React.useMemo(() => {
+        if (type === 'wireframe' || type === 'diagram') return type;
+        if (!content) return type || 'document';
+
+        // Check if content contains mermaid diagram
+        if (content.includes('```mermaid')) return 'diagram';
+
+        // Check if content is HTML (wireframe)
+        if (content.trim().startsWith('<!DOCTYPE') || content.trim().startsWith('<html')) {
+            return 'wireframe';
+        }
+
+        // Default to document for markdown content
+        return 'document';
+    }, [content, type]);
+
+    if (!isOpen || !mounted) return null;
 
     const getMockWireframeContent = (wireframeName: string) => {
         const mockHtml = `
@@ -242,8 +280,8 @@ Describe the scope of the software system, including:
 **Note:** This is sample content. Actual SRS will be generated based on your requirements.`;
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    const modalContent = (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
             <div className="relative w-full max-w-6xl max-h-[90vh] bg-white dark:bg-gray-900 rounded-lg shadow-xl overflow-hidden">
                 {/* Modal Header */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
@@ -261,25 +299,25 @@ Describe the scope of the software system, including:
                 </div>
 
                 {/* Modal Content */}
-                <div className="overflow-auto p-4" style={{ maxHeight: 'calc(90vh - 80px)' }}>
-                    {type === 'diagram' && (
-                        <div className="w-full border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 p-4">
+                <div className="overflow-auto" style={{ maxHeight: 'calc(90vh - 80px)' }}>
+                    {detectedType === 'diagram' && (
+                        <div className="w-full  bg-white dark:bg-gray-900 p-6">
                             <MarkdownWithMermaid content={content || getMockDiagramContent(title)} />
                         </div>
                     )}
 
-                    {type === 'srs' && (
-                        <div className="w-full border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 p-6">
-                            <div className="prose prose-sm dark:prose-invert max-w-none">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {(detectedType === 'srs' || detectedType === 'document' || detectedType === 'markdown') && (
+                        <div className="w-full bg-white  p-6">
+                            <div className="prose prose-sm dark:prose-invert max-w-none markdown-body">
+                                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
                                     {content || getMockSRSContent()}
                                 </ReactMarkdown>
                             </div>
                         </div>
                     )}
 
-                    {type === 'wireframe' && (
-                        <div className="h-[calc(90vh-80px)] border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900">
+                    {detectedType === 'wireframe' && (
+                        <div className="h-[calc(90vh-80px)] bg-white">
                             <iframe
                                 srcDoc={content || getMockWireframeContent(title)}
                                 title="wireframe-preview"
@@ -292,4 +330,6 @@ Describe the scope of the software system, including:
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 }
