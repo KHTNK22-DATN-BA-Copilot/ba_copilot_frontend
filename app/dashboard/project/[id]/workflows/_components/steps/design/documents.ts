@@ -2,11 +2,6 @@ import { WorkflowDocument } from "../shared/types";
 
 export const designDocuments: WorkflowDocument[] = [
   {
-    id: "srs",
-    name: "Software Requirement Specification",
-    description: "Comprehensive documentation of functional and non-functional requirements"
-  },
-  {
     id: "hld",
     name: "HLD (High-Level Design)",
     description: "System-level architecture and design decisions",
@@ -15,6 +10,11 @@ export const designDocuments: WorkflowDocument[] = [
       { id: "hld-cloud", name: "Cloud Infrastructure (AWS/Azure) Setup" },
       { id: "hld-tech", name: "Tech Stack Selection" }
     ]
+  },
+  {
+    id: "srs",
+    name: "Software Requirement Specification",
+    description: "Comprehensive documentation of functional and non-functional requirements"
   },
   {
     id: "lld",

@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
         const formBody = new URLSearchParams();
         formBody.append("project_id", projectId.toString());
         formBody.append("project_name", projectName);
-        formBody.append("doc_type", selectedDocIds[0]);
+        formBody.append(stepType == 'design' ? "design_type" : "doc_type", selectedDocIds[0]);
         formBody.append("description", prompt);
 
         // Validate request payload
@@ -41,18 +41,10 @@ export async function POST(request: NextRequest) {
         const jobId = `job_${Date.now()}_${Math.random()
             .toString(36)
             .substr(2, 9)}`;
-        const step = (() => {
-            switch (stepType) {
-                case 'planning': return 'planning';
-                case 'analysis': return 'analysis';
-                case 'design': return 'design';
-                default: return 'general';
-            }
-        })();
 
         // TODO: Send request to backend service
         const response = await fetch(
-            `${process.env.BACKEND_DOMAIN}/api/v1/${step}/generate`,
+            `${process.env.BACKEND_DOMAIN}/api/v1/${stepType}/generate`,
             {
                 method: "POST",
                 headers: { 

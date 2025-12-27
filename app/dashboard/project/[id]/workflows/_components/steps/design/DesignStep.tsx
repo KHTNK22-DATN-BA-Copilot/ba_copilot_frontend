@@ -11,7 +11,8 @@ import {
     GenerationLoadingDialog,
     useDocumentSelection,
     useDocumentPreview,
-    useWorkflowGeneration
+    useWorkflowGeneration,
+    GenerateWorkflowPayload
 } from "../shared";
 import { ProjectType } from "../../types";
 
@@ -56,11 +57,13 @@ export default function DesignStep({
     }, [documentSelection.selectedDocs]);
 
     const handleGenerateDocuments = async () => {
-        const payload = {
+        const payload: GenerateWorkflowPayload = {
             prompt,
             selectedFiles,
             selectedDocIds: documentSelection.selectedDocs,
-            stepType: 'design'
+            stepType: 'design',
+            projectId: id,
+            projectName: name
         };
 
         await designGeneration.generateDocuments(payload);

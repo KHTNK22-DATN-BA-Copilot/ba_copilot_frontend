@@ -144,6 +144,8 @@ export default function WorkflowsMain({ projectId, projectName }: WorkflowsMainP
                             onGenerate={handleGenerateSRS}
                             onNext={handleNext}
                             onBack={handleBack}
+                            id={projectId}
+                            name={projectName}
                         />
                     )}
 
@@ -153,6 +155,8 @@ export default function WorkflowsMain({ projectId, projectName }: WorkflowsMainP
                             onGenerate={handleGenerateWireframes}
                             onNext={handleNext}
                             onBack={handleBack}
+                            id={projectId}
+                            name={projectName}
                         />
                     )}
 
