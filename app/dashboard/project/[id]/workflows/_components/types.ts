@@ -13,3 +13,8 @@ export interface WorkflowState {
     generatedDiagrams: string[];
     generatedWireframes: string[];
 }
+
+export type ProjectType = {
+    id: number;
+    name: string;
+}

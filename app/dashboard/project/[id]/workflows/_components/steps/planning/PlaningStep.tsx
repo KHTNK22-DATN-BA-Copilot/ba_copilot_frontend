@@ -11,21 +11,25 @@ import {
     GenerationLoadingDialog,
     useDocumentSelection,
     useDocumentPreview,
-    useWorkflowGeneration
+    useWorkflowGeneration,
+    GenerateWorkflowPayload
 } from "../shared";
+import { ProjectType } from "../../types";
 
-interface PlanningStepProps {
+type PlanningStepProps = {
     generatedDiagrams: string[];
     onGenerate: () => void;
     onNext: () => void;
     onBack: () => void;
-}
+} & ProjectType
 
 export default function PlanningStep({
     generatedDiagrams,
     onGenerate,
     onNext,
-    onBack
+    onBack,
+    name,
+    id
 }: PlanningStepProps) {
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
@@ -53,11 +57,13 @@ export default function PlanningStep({
     }, [documentSelection.selectedDocs]);
 
     const handleGenerateDocuments = async () => {
-        const payload = {
+        const payload: GenerateWorkflowPayload = {
             prompt,
             selectedFiles,
             selectedDocIds: documentSelection.selectedDocs,
-            stepType: 'planning'
+            stepType: 'planning',
+            projectId: id,
+            projectName: name
         };
 
         await planningGeneration.generateDocuments(payload);

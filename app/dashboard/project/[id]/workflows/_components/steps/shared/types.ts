@@ -16,8 +16,9 @@ export interface GenerateWorkflowPayload {
   prompt: string;
   selectedFiles: string[];
   selectedDocIds: string[];
-  projectId?: string;
+  projectId?: number;
   stepType?: string; // 'planning' | 'analysis' | 'design'
+  projectName?: string;
 }
 
 export interface WorkflowApiResponse {

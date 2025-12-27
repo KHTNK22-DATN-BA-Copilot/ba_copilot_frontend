@@ -15,7 +15,7 @@ export function useWorkflowGeneration(onGenerate?: () => void) {
       console.log("Sending generate request:", payload);
       
       // TODO: Remove this 30-second delay in production - it's for testing the loading dialog
-      await new Promise(resolve => setTimeout(resolve, 30000));
+      // await new Promise(resolve => setTimeout(resolve, 3000));
       
       const response = await generateWorkflowDocuments(payload);
       

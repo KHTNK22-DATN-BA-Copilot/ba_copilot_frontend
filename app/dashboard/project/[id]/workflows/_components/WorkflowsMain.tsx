@@ -8,17 +8,18 @@ import WorkflowHeader from "./WorkflowHeader";
 import WorkflowProgressBar from "./WorkflowProgressBar";
 import WorkflowStepIndicator from "./WorkflowStepIndicator";
 import RequirementsStep from "./steps/RequirementsStep";
-import DiagramsStep from "./steps/planning/PlaningStep";
-import SRSStep from "./steps/analysis/AnalysisStep";
-import DiagramStep from "./steps/design/DesignStep";
+import PlanningStep from "./steps/planning/PlaningStep";
+import AnalysisStep from "./steps/analysis/AnalysisStep";
+import DesignStep from "./steps/design/DesignStep";
 import ReviewStep from "./steps/ReviewStep";
 import { WorkflowStep } from "./types";
 
 interface WorkflowsMainProps {
-    projectId: string;
+    projectId: number;
+    projectName: string;
 }
 
-export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
+export default function WorkflowsMain({ projectId, projectName }: WorkflowsMainProps) {
     const [currentStep, setCurrentStep] = useState(0);
     const [requirements, setRequirements] = useState("");
     const [generatedSRS, setGeneratedSRS] = useState("");
@@ -127,16 +128,18 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
                     )}
 
                     {currentStep === 1 && (
-                        <DiagramsStep
+                        <PlanningStep
                             generatedDiagrams={generatedDiagrams}
                             onGenerate={handleGenerateDiagrams}
                             onNext={handleNext}
                             onBack={handleBack}
+                            id={projectId}
+                            name={projectName}
                         />
                     )}
 
                     {currentStep === 2 && (
-                        <SRSStep
+                        <AnalysisStep
                             generatedSRS={generatedSRS}
                             onGenerate={handleGenerateSRS}
                             onNext={handleNext}
@@ -145,7 +148,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
                     )}
 
                     {currentStep === 3 && (
-                        <DiagramStep
+                        <DesignStep
                             generatedWireframes={generatedWireframes}
                             onGenerate={handleGenerateWireframes}
                             onNext={handleNext}

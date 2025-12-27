@@ -13,19 +13,22 @@ import {
     useDocumentPreview,
     useWorkflowGeneration
 } from "../shared";
+import { ProjectType } from "../../types";
 
-interface DesignStepProps {
+type DesignStepProps = {
     generatedWireframes: string[];
     onGenerate: () => void;
     onNext: () => void;
     onBack: () => void;
-}
+} & ProjectType
 
 export default function DesignStep({
     generatedWireframes,
     onGenerate,
     onNext,
-    onBack
+    onBack,
+    name,
+    id
 }: DesignStepProps) {
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);

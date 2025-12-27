@@ -20,6 +20,28 @@ export async function getAllProjects() {
     return data.projects;
 }
 
+export async function getProjectById(id: any) {
+    const access_token = (await cookies()).get("access_token")?.value;
+    const res = await fetch(
+        `${process.env.BACKEND_DOMAIN}/api/v1/projects/${id}`,
+        {
+            headers: {
+                Authorization: `Bearer ${access_token}`,
+            },
+        }
+    );
+    if (!res.ok) {
+        console.error("Failed to fetch project:", res.statusText);
+        throw new Error("Failed to fetch project");
+    }
+    const data = await res.json();
+
+    return {
+        id: data.id,
+        name: data.name,
+    }
+}
+
 export async function getAllDiagrams(projectId: any): Promise<Diagram[]> {
     const access_token = (await cookies()).get("access_token")?.value;
     const res = await fetch(
