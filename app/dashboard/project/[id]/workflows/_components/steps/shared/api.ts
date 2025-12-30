@@ -173,6 +173,10 @@ export function generateWorkflowDocumentsWS(
 
   ws.onclose = (event) => {
     console.log(`[WebSocket] Closed for ${stepName} step`, { code: event.code, reason: event.reason });
+    onMessage({
+      status: "completed",
+      message: "WebSocket connection closed",
+    })
   };
 
   return ws;

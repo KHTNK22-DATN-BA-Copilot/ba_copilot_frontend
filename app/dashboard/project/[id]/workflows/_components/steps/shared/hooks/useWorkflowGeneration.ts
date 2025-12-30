@@ -25,8 +25,8 @@ export function useWorkflowGeneration(onGenerate?: () => void) {
     }
 
     // Handle completion
-    if (message.status === "completed" && message.result) {
-      setGeneratedDocuments(message.result.documents);
+    if (message.type === "step_finished" || message.status === "completed") {
+      //setGeneratedDocuments(message.result.documents);
       setIsGenerating(false);
       setProgress(100);
       

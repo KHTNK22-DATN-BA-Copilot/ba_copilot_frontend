@@ -56,6 +56,7 @@ export interface WorkflowWSMessage {
   result?: {
     documents: GeneratedDocument[];
   };
+  type?: string;
 }
 
 export interface GeneratedDocument {
