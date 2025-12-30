@@ -11,8 +11,10 @@ import {
     GenerationLoadingDialog,
     useDocumentSelection,
     useDocumentPreview,
-    useWorkflowGeneration
+    useWorkflowGeneration,
+    GenerateWorkflowPayload
 } from "../shared";
+import { useParams } from "next/navigation";
 
 interface AnalysisStepProps {
     generatedSRS: string;
@@ -27,6 +29,9 @@ export default function AnalysisStep({
     onNext,
     onBack
 }: AnalysisStepProps) {
+    const params = useParams();
+    const projectId = params?.id as string;
+
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
 
@@ -53,14 +58,18 @@ export default function AnalysisStep({
     }, [documentSelection.selectedDocs]);
 
     const handleGenerateDocuments = async () => {
-        const payload = {
-            prompt,
-            selectedFiles,
-            selectedDocIds: documentSelection.selectedDocs,
-            stepType: 'analysis'
+
+        const documents = documentSelection.selectedDocs.map(docId => ({
+            type: docId
+        }));
+        
+        const payload: GenerateWorkflowPayload = {
+            description: prompt || "Generate analysis documents.",
+            project_name: "Test Project",
+            documents: documents
         };
 
-        await analysisGeneration.generateDocuments(payload);
+        await analysisGeneration.generateDocuments(payload, projectId, 'analysis');
     };
 
     return (

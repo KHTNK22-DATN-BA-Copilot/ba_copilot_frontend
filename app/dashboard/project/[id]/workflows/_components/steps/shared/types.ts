@@ -12,7 +12,19 @@ export interface WorkflowDocument {
   subItems?: SubItem[];
 }
 
+// New payload structure for WebSocket API
+export interface WorkflowDocumentRequest {
+  type: string;
+}
+
 export interface GenerateWorkflowPayload {
+  project_name: string;
+  description: string;
+  documents: WorkflowDocumentRequest[];
+}
+
+// Legacy payload structure (keep for backward compatibility)
+export interface LegacyGenerateWorkflowPayload {
   prompt: string;
   selectedFiles: string[];
   selectedDocIds: string[];
@@ -33,4 +45,22 @@ export interface JobStatusResponse {
   progress?: number;
   message?: string;
   result?: any;
+}
+
+// WebSocket message types
+export interface WorkflowWSMessage {
+  status: "processing" | "completed" | "error";
+  progress?: number;
+  message?: string;
+  currentDocument?: string;
+  result?: {
+    documents: GeneratedDocument[];
+  };
+  type?: string;
+}
+
+export interface GeneratedDocument {
+  type: string;
+  content: string;
+  url?: string;
 }

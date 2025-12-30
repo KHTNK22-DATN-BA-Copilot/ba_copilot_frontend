@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from "react";
+import { useParams } from "next/navigation";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
 import PreviewModal from "../../PreviewModal";
 import { planningDocuments, getAllDocIds, documentFiles } from "./documents";
@@ -11,7 +12,8 @@ import {
     GenerationLoadingDialog,
     useDocumentSelection,
     useDocumentPreview,
-    useWorkflowGeneration
+    useWorkflowGeneration,
+    GenerateWorkflowPayload
 } from "../shared";
 
 interface PlanningStepProps {
@@ -27,6 +29,9 @@ export default function PlanningStep({
     onNext,
     onBack
 }: PlanningStepProps) {
+    const params = useParams();
+    const projectId = params?.id as string;
+
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
 
@@ -53,14 +58,31 @@ export default function PlanningStep({
     }, [documentSelection.selectedDocs]);
 
     const handleGenerateDocuments = async () => {
-        const payload = {
-            prompt,
-            selectedFiles,
-            selectedDocIds: documentSelection.selectedDocs,
-            stepType: 'planning'
+        console.log("=== PLANNING STEP - GENERATE DOCUMENTS ===");
+        console.log("Project ID:", projectId);
+        console.log("Selected Document IDs:", documentSelection.selectedDocs);
+        console.log("Prompt:", prompt);
+        console.log("Selected Files:", selectedFiles);
+
+        // Transform selected document IDs to the required format
+        const documents = documentSelection.selectedDocs.map(docId => ({
+            type: docId
+        }));    
+
+        // Create payload according to WebSocket API specification
+        const payload: GenerateWorkflowPayload = {
+            project_name: "Test Project", // TODO: Get from project context/state
+            description: prompt || "Generate planning documents for the project",
+            documents: documents
         };
 
-        await planningGeneration.generateDocuments(payload);
+        console.log("WebSocket Payload:", JSON.stringify(payload, null, 2));
+        console.log("Step Name: planning");
+        console.log("WebSocket URL will be:", `ws://localhost:8010/api/v1/ws/projects/${projectId}/planning?token=JWT_TOKEN`);
+        console.log("==========================================");
+
+        // Call WebSocket generation
+        await planningGeneration.generateDocuments(payload, projectId, 'planning');
     };
 
     return (
