@@ -73,20 +73,20 @@ export default function DesignStep({
     );
 
     // Get selected document names for the loading dialog
-    const selectedDocumentNames = useMemo(() => {
-        const names: string[] = [];
+    const selectedDocumentsForDialog = useMemo(() => {
+        const items: { id: string; name: string }[] = [];
         designDocuments.forEach(doc => {
             if (doc.subItems) {
                 doc.subItems.forEach(subItem => {
                     if (documentSelection.selectedDocs.includes(subItem.id)) {
-                        names.push(subItem.name);
+                        items.push({ id: subItem.id, name: subItem.name });
                     }
                 });
             } else if (documentSelection.selectedDocs.includes(doc.id)) {
-                names.push(doc.name);
+                items.push({ id: doc.id, name: doc.name });
             }
         });
-        return names;
+        return items;
     }, [documentSelection.selectedDocs]);
 
     const handleGenerateDocuments = async () => {
@@ -204,7 +204,8 @@ export default function DesignStep({
             {/* Generation Loading Dialog */}
             <GenerationLoadingDialog
                 isOpen={designGeneration.isGenerating}
-                documentNames={selectedDocumentNames}
+                documents={selectedDocumentsForDialog}
+                statuses={designGeneration.documentStatuses}
             />
 
             {/* Action Buttons */}

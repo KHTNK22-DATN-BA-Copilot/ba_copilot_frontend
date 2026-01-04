@@ -80,20 +80,20 @@ export default function PlanningStep({
     );
 
     // Get selected document names for the loading dialog
-    const selectedDocumentNames = useMemo(() => {
-        const names: string[] = [];
+    const selectedDocumentsForDialog = useMemo(() => {
+        const items: { id: string; name: string }[] = [];
         planningDocuments.forEach(doc => {
             if (doc.subItems) {
                 doc.subItems.forEach(subItem => {
                     if (documentSelection.selectedDocs.includes(subItem.id)) {
-                        names.push(subItem.name);
+                        items.push({ id: subItem.id, name: subItem.name });
                     }
                 });
             } else if (documentSelection.selectedDocs.includes(doc.id)) {
-                names.push(doc.name);
+                items.push({ id: doc.id, name: doc.name });
             }
         });
-        return names;
+        return items;
     }, [documentSelection.selectedDocs]);
 
     // Handle preview of fetched documents
@@ -213,7 +213,8 @@ export default function PlanningStep({
             {/* Generation Loading Dialog */}
             <GenerationLoadingDialog
                 isOpen={planningGeneration.isGenerating}
-                documentNames={selectedDocumentNames}
+                documents={selectedDocumentsForDialog}
+                statuses={planningGeneration.documentStatuses}
             />
 
             {/* Action Buttons */}

@@ -47,12 +47,26 @@ export interface JobStatusResponse {
   result?: any;
 }
 
+export type DocumentGenerationStatus = "pending" | "processing" | "completed" | "error";
+
+export interface GenerationDocumentItem {
+  id: string; // document type/id (e.g., "stakeholder-register")
+  name: string; // display name
+}
+
 // WebSocket message types
 export interface WorkflowWSMessage {
-  status: "processing" | "completed" | "error";
+  // Some backend events use `type` only (e.g. doc_start/doc_completed)
+  // so keep `status` optional.
+  status?: "processing" | "completed" | "error";
   progress?: number;
   message?: string;
   currentDocument?: string;
+  // Backend-specific fields (seen in WS events)
+  doc_type?: string;
+  index?: number;
+  step?: string;
+  data?: any;
   result?: {
     documents: GeneratedDocument[];
   };
