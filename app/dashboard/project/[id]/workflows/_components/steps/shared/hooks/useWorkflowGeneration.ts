@@ -2,7 +2,10 @@ import { useState, useRef, useCallback } from "react";
 import { generateWorkflowDocumentsWS, getAuthToken } from "../api";
 import { GenerateWorkflowPayload, WorkflowWSMessage, GeneratedDocument } from "../types";
 
-export function useWorkflowGeneration(onGenerate?: () => void) {
+export function useWorkflowGeneration(
+  onGenerate?: () => void,
+  onGenerationComplete?: () => void
+) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
@@ -33,6 +36,11 @@ export function useWorkflowGeneration(onGenerate?: () => void) {
       if (onGenerate) {
         onGenerate();
       }
+
+      // Call the completion callback to fetch documents list
+      if (onGenerationComplete) {
+        onGenerationComplete();
+      }
     }
 
     // Handle error
@@ -40,7 +48,7 @@ export function useWorkflowGeneration(onGenerate?: () => void) {
       setError(message.message || "Generation failed");
       setIsGenerating(false);
     }
-  }, [onGenerate]);
+  }, [onGenerate, onGenerationComplete]);
 
   const generateDocuments = useCallback(async (
     payload: GenerateWorkflowPayload,

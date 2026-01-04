@@ -64,3 +64,21 @@ export interface GeneratedDocument {
   content: string;
   url?: string;
 }
+
+// Document list response types
+export interface DocumentListItem {
+  document_id: string;
+  project_name: string;
+  content: string;
+  design_type: string;
+  status: string;
+  updated_at: string;
+}
+
+export interface DocumentListResponse {
+  status: "success" | "error";
+  documents?: DocumentListItem[];
+  message?: string;
+}
+
+export type StepName = "planning" | "analysis" | "design";

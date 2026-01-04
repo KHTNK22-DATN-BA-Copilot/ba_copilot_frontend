@@ -1,4 +1,4 @@
-import { GenerateWorkflowPayload, LegacyGenerateWorkflowPayload, WorkflowApiResponse, JobStatusResponse, WorkflowWSMessage } from "./types";
+import { GenerateWorkflowPayload, LegacyGenerateWorkflowPayload, WorkflowApiResponse, JobStatusResponse, WorkflowWSMessage, DocumentListResponse, StepName } from "./types";
 
 /**
  * Base configuration for workflow API endpoints
@@ -181,3 +181,73 @@ export function generateWorkflowDocumentsWS(
 
   return ws;
 }
+
+/**
+ * Get list of documents for a specific step and project
+ * @param stepName - The workflow step name (planning, analysis, design)
+ * @param projectId - The project ID
+ * @returns Promise with list of documents
+ */
+export async function getDocumentsList(
+  stepName: StepName,
+  projectId: string
+): Promise<DocumentListResponse> {
+  try {
+    const endpoint = `${API_CONFIG.baseUrl}/${stepName}/list/${projectId}`;
+    
+    const response = await fetch(endpoint, {
+      method: "GET",
+      headers: API_CONFIG.headers,
+      credentials: "include", // Include cookies for authentication
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || `Failed to fetch ${stepName} documents: ${response.status}`
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(`getDocumentsList error (${stepName}):`, error);
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Unknown error occurred",
+    };
+  }
+}
+
+/**
+ * Get list of planning documents for a project
+ * @param projectId - The project ID
+ * @returns Promise with list of planning documents
+ */
+export async function getPlanningDocuments(
+  projectId: string
+): Promise<DocumentListResponse> {
+  return getDocumentsList("planning", projectId);
+}
+
+/**
+ * Get list of analysis documents for a project
+ * @param projectId - The project ID
+ * @returns Promise with list of analysis documents
+ */
+export async function getAnalysisDocuments(
+  projectId: string
+): Promise<DocumentListResponse> {
+  return getDocumentsList("analysis", projectId);
+}
+
+/**
+ * Get list of design documents for a project
+ * @param projectId - The project ID
+ * @returns Promise with list of design documents
+ */
+export async function getDesignDocuments(
+  projectId: string
+): Promise<DocumentListResponse> {
+  return getDocumentsList("design", projectId);
+}
+
