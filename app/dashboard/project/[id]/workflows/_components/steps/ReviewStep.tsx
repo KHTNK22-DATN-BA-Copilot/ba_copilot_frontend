@@ -95,9 +95,6 @@ export default function ReviewStep({
                     <p className="text-sm text-gray-700 dark:text-gray-300">
                         Total generated documents: <span className="font-medium">{totalDocs}</span>
                     </p>
-                    {projectId && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Project: {projectId}</p>
-                    )}
                 </div>
                 <Button
                     variant="outline"
