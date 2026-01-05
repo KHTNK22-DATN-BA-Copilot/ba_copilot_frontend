@@ -15,6 +15,8 @@ export function useWorkflowGeneration(
   const docTypesRef = useRef<string[]>([]);
   
   const wsRef = useRef<WebSocket | null>(null);
+  const isCancelingRef = useRef(false);
+  const isFinishedRef = useRef(false);
 
   const recomputeProgress = useCallback((nextStatuses: Record<string, DocumentGenerationStatus>) => {
     const total = docTypesRef.current.length;
@@ -34,6 +36,16 @@ export function useWorkflowGeneration(
 
   const handleWSMessage = useCallback((message: WorkflowWSMessage) => {
     console.log("[useWorkflowGeneration] WebSocket message:", message);
+
+    // Handle socket close separately (to avoid treating user cancel as success)
+    if (message.type === "socket_closed") {
+      if (isCancelingRef.current || isFinishedRef.current) {
+        return;
+      }
+      setError(message.message || "WebSocket connection closed unexpectedly");
+      setIsGenerating(false);
+      return;
+    }
 
     const docType = message.doc_type ?? message.currentDocument;
 
@@ -59,6 +71,7 @@ export function useWorkflowGeneration(
 
     // Handle completion
     if (message.type === "step_finished" || message.status === "completed") {
+      isFinishedRef.current = true;
       //setGeneratedDocuments(message.result.documents);
       // Mark any remaining docs as completed to avoid hanging spinners
       setDocumentStatuses((prev) => {
@@ -86,6 +99,7 @@ export function useWorkflowGeneration(
 
     // Handle error
     if (message.status === "error") {
+      isFinishedRef.current = true;
       setError(message.message || "Generation failed");
       if (docType) {
         setDocStatus(docType, "error");
@@ -99,6 +113,8 @@ export function useWorkflowGeneration(
     projectId: string,
     stepName: 'planning' | 'analysis' | 'design'
   ) => {
+    isCancelingRef.current = false;
+    isFinishedRef.current = false;
     setIsGenerating(true);
     setError(null);
     setProgress(0);
@@ -143,6 +159,7 @@ export function useWorkflowGeneration(
 
   const cancelGeneration = useCallback(() => {
     console.log("[useWorkflowGeneration] Canceling generation");
+    isCancelingRef.current = true;
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
@@ -154,6 +171,8 @@ export function useWorkflowGeneration(
 
   const resetGeneration = useCallback(() => {
     console.log("[useWorkflowGeneration] Resetting generation state");
+    isCancelingRef.current = false;
+    isFinishedRef.current = false;
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;

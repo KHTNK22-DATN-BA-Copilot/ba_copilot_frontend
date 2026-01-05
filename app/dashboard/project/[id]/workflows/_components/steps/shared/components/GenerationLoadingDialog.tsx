@@ -2,10 +2,12 @@ import {
     Dialog,
     DialogContent,
     DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle2, Clock, FileText, Loader2 } from "lucide-react";
 import { DocumentGenerationStatus, GenerationDocumentItem } from "../types";
 
@@ -13,12 +15,14 @@ interface GenerationLoadingDialogProps {
     isOpen: boolean;
     documents: GenerationDocumentItem[];
     statuses?: Record<string, DocumentGenerationStatus>;
+    onCancel?: () => void;
 }
 
 export function GenerationLoadingDialog({
     isOpen,
     documents,
     statuses = {},
+    onCancel,
 }: GenerationLoadingDialogProps) {
     const total = documents.length;
     const completed = documents.reduce(
@@ -26,6 +30,7 @@ export function GenerationLoadingDialog({
         0
     );
     const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+    const isDone = total > 0 && completed === total;
 
     const renderStatusIcon = (status: DocumentGenerationStatus | undefined) => {
         if (status === "completed") {
@@ -98,6 +103,19 @@ export function GenerationLoadingDialog({
                         </p>
                     </div>
                 </div>
+
+                {onCancel && (
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onCancel}
+                            disabled={isDone}
+                        >
+                            Cancel
+                        </Button>
+                    </DialogFooter>
+                )}
             </DialogContent>
         </Dialog>
     );

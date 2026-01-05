@@ -194,6 +194,7 @@ export default function AnalysisStep({
                 isOpen={analysisGeneration.isGenerating}
                 documents={selectedDocumentsForDialog}
                 statuses={analysisGeneration.documentStatuses}
+                onCancel={analysisGeneration.cancelGeneration}
             />
 
             {/* Action Buttons */}

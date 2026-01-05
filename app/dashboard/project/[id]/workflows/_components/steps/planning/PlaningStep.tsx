@@ -215,6 +215,7 @@ export default function PlanningStep({
                 isOpen={planningGeneration.isGenerating}
                 documents={selectedDocumentsForDialog}
                 statuses={planningGeneration.documentStatuses}
+                onCancel={planningGeneration.cancelGeneration}
             />
 
             {/* Action Buttons */}

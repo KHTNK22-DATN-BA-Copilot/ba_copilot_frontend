@@ -206,6 +206,7 @@ export default function DesignStep({
                 isOpen={designGeneration.isGenerating}
                 documents={selectedDocumentsForDialog}
                 statuses={designGeneration.documentStatuses}
+                onCancel={designGeneration.cancelGeneration}
             />
 
             {/* Action Buttons */}

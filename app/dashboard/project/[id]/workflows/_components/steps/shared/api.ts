@@ -173,10 +173,13 @@ export function generateWorkflowDocumentsWS(
 
   ws.onclose = (event) => {
     console.log(`[WebSocket] Closed for ${stepName} step`, { code: event.code, reason: event.reason });
+    // Do not treat a socket close as a successful completion.
+    // The backend should explicitly send completion events (e.g., step_finished).
     onMessage({
-      status: "completed",
+      type: "socket_closed",
       message: "WebSocket connection closed",
-    })
+      data: { code: event.code, reason: event.reason, wasClean: event.wasClean },
+    });
   };
 
   return ws;
