@@ -27,16 +27,16 @@ export function DesignActions({
                 <ArrowLeft className="w-4 h-4" />
                 Back
             </Button>
-            {!hasGeneratedDocuments ? (
-                <Button
-                    onClick={onGenerate}
-                    className="gap-2"
-                    disabled={isGenerating}
-                >
-                    <Sparkles className="w-4 h-4" />
-                    {isGenerating ? "Generating..." : "Generate"}
-                </Button>
-            ) : (
+            <Button
+                onClick={onGenerate}
+                className="gap-2"
+                disabled={isGenerating}
+            >
+                <Sparkles className="w-4 h-4" />
+                {isGenerating ? "Generating..." : "Generate"}
+            </Button>
+
+            {hasGeneratedDocuments && (
                 <Button
                     onClick={onNext}
                     className="gap-2"

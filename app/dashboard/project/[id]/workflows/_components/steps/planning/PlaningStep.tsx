@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
 import PreviewModal from "../../PreviewModal";
@@ -8,12 +8,15 @@ import { planningDocuments, getAllDocIds, documentFiles } from "./documents";
 import {
     DocumentSelector,
     GeneratedDocumentsList,
+    FetchedDocumentsList,
     WorkflowActions,
     GenerationLoadingDialog,
     useDocumentSelection,
     useDocumentPreview,
     useWorkflowGeneration,
-    GenerateWorkflowPayload
+    GenerateWorkflowPayload,
+    DocumentListItem,
+    getPlanningDocuments
 } from "../shared";
 
 interface PlanningStepProps {
@@ -34,28 +37,70 @@ export default function PlanningStep({
 
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+    const [fetchedDocuments, setFetchedDocuments] = useState<DocumentListItem[]>([]);
+    const [isFetchingDocs, setIsFetchingDocs] = useState(false);
+    const [previewFetchedDoc, setPreviewFetchedDoc] = useState<DocumentListItem | null>(null);
 
     // Custom hooks for state management
     const documentSelection = useDocumentSelection(getAllDocIds());
     const documentPreview = useDocumentPreview(planningDocuments, documentFiles);
-    const planningGeneration = useWorkflowGeneration(onGenerate);
+
+    // Fetch documents list function
+    const fetchDocumentsList = useCallback(async () => {
+        if (!projectId) return;
+
+        console.log("[PlanningStep] Fetching documents list for project:", projectId);
+        setIsFetchingDocs(true);
+
+        try {
+            const response = await getPlanningDocuments(projectId);
+
+            if (response.status === "success" && response.documents) {
+                console.log("[PlanningStep] Documents fetched successfully:", response.documents);
+                setFetchedDocuments(response.documents);
+            } else {
+                console.error("[PlanningStep] Error fetching documents:", response.message);
+            }
+        } catch (error) {
+            console.error("[PlanningStep] Error fetching documents:", error);
+        } finally {
+            setIsFetchingDocs(false);
+        }
+    }, [projectId]);
+
+    // Fetch documents on component mount
+    useEffect(() => {
+        fetchDocumentsList();
+    }, [fetchDocumentsList]);
+
+    // Workflow generation with callback to fetch documents after completion
+    const planningGeneration = useWorkflowGeneration(
+        onGenerate,
+        fetchDocumentsList // This will be called after generation completes
+    );
 
     // Get selected document names for the loading dialog
-    const selectedDocumentNames = useMemo(() => {
-        const names: string[] = [];
+    const selectedDocumentsForDialog = useMemo(() => {
+        const items: { id: string; name: string }[] = [];
         planningDocuments.forEach(doc => {
             if (doc.subItems) {
                 doc.subItems.forEach(subItem => {
                     if (documentSelection.selectedDocs.includes(subItem.id)) {
-                        names.push(subItem.name);
+                        items.push({ id: subItem.id, name: subItem.name });
                     }
                 });
             } else if (documentSelection.selectedDocs.includes(doc.id)) {
-                names.push(doc.name);
+                items.push({ id: doc.id, name: doc.name });
             }
         });
-        return names;
+        return items;
     }, [documentSelection.selectedDocs]);
+
+    // Handle preview of fetched documents
+    const handlePreviewFetchedDocument = useCallback((doc: DocumentListItem) => {
+        console.log("[PlanningStep] Preview fetched document:", doc);
+        setPreviewFetchedDoc(doc);
+    }, []);
 
     const handleGenerateDocuments = async () => {
         console.log("=== PLANNING STEP - GENERATE DOCUMENTS ===");
@@ -67,7 +112,7 @@ export default function PlanningStep({
         // Transform selected document IDs to the required format
         const documents = documentSelection.selectedDocs.map(docId => ({
             type: docId
-        }));    
+        }));
 
         // Create payload according to WebSocket API specification
         const payload: GenerateWorkflowPayload = {
@@ -129,17 +174,21 @@ export default function PlanningStep({
                 </div>
             )}
 
-            {/* Generated Documents List */}
-            {generatedDiagrams.length > 0 && documentSelection.selectedDocs.length > 0 && (
-                <GeneratedDocumentsList
-                    documents={planningDocuments}
-                    selectedDocs={documentSelection.selectedDocs}
-                    onPreview={documentPreview.handlePreviewDocument}
-                    getSelectedSubItems={documentSelection.getSelectedSubItems}
+            {/* Generated Documents List - Fetched from API */}
+            {isFetchingDocs ? (
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <p className="text-sm text-blue-600 dark:text-blue-400">
+                        Loading generated documents...
+                    </p>
+                </div>
+            ) : (
+                <FetchedDocumentsList
+                    documents={fetchedDocuments}
+                    onPreview={handlePreviewFetchedDocument}
                 />
             )}
 
-            {/* Preview Modal */}
+            {/* Preview Modal for Template Documents */}
             {documentPreview.previewDocument && (
                 <PreviewModal
                     isOpen={!!documentPreview.previewDocument}
@@ -150,15 +199,28 @@ export default function PlanningStep({
                 />
             )}
 
+            {/* Preview Modal for Fetched Documents */}
+            {previewFetchedDoc && (
+                <PreviewModal
+                    isOpen={!!previewFetchedDoc}
+                    onClose={() => setPreviewFetchedDoc(null)}
+                    type="document"
+                    title={`${previewFetchedDoc.design_type} - ${previewFetchedDoc.project_name}`}
+                    content={previewFetchedDoc.content || "No content available"}
+                />
+            )}
+
             {/* Generation Loading Dialog */}
             <GenerationLoadingDialog
                 isOpen={planningGeneration.isGenerating}
-                documentNames={selectedDocumentNames}
+                documents={selectedDocumentsForDialog}
+                statuses={planningGeneration.documentStatuses}
+                onCancel={planningGeneration.cancelGeneration}
             />
 
             {/* Action Buttons */}
             <WorkflowActions
-                hasGeneratedDocuments={generatedDiagrams.length > 0}
+                hasGeneratedDocuments={fetchedDocuments.length > 0}
                 isGenerating={planningGeneration.isGenerating}
                 onGenerate={handleGenerateDocuments}
                 onNext={onNext}
