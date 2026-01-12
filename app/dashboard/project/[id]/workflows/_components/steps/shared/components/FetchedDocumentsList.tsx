@@ -1,16 +1,80 @@
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Eye, FileText } from "lucide-react";
+import { CheckCircle2, Eye, FileText, RefreshCw } from "lucide-react";
 import { DocumentListItem } from "../types";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
+import { toast } from "sonner";
+import { regenerateDocument } from "../api";
+import type { StepName } from "../types";
 
 interface FetchedDocumentsListProps {
     documents: DocumentListItem[];
     onPreview?: (doc: DocumentListItem) => void;
+    stepName: StepName;
+    projectId: string;
+    onRegenerateSuccess?: () => void;
 }
 
 export function FetchedDocumentsList({
     documents,
     onPreview,
+    stepName,
+    projectId,
+    onRegenerateSuccess,
 }: FetchedDocumentsListProps) {
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [selectedDoc, setSelectedDoc] = useState<DocumentListItem | null>(null);
+    const [isRegenerating, setIsRegenerating] = useState(false);
+
+    const handleRegenerateClick = (doc: DocumentListItem) => {
+        setSelectedDoc(doc);
+        setIsDialogOpen(true);
+    };
+
+    const handleRegenerateConfirm = async () => {
+        if (!selectedDoc) return;
+
+        setIsRegenerating(true);
+        setIsDialogOpen(false);
+
+        // Show processing notification
+        toast.info(`Regenerating "${selectedDoc.design_type}"...`, {
+            duration: 2000,
+        });
+
+        try {
+            const data = await regenerateDocument(
+                stepName,
+                projectId,
+                selectedDoc.document_id
+            );
+
+            // Check if request was successful (not error status)
+            if (data.status !== "error") {
+                toast.success("Document regenerated successfully");
+                onRegenerateSuccess?.();
+            } else {
+                throw new Error(data.message || "Failed to regenerate document");
+            }
+        } catch (error) {
+            console.error("Error regenerating document:", error);
+            const errorMessage = error instanceof Error ? error.message : "Failed to regenerate document";
+            toast.error(errorMessage);
+        } finally {
+            setIsRegenerating(false);
+            setSelectedDoc(null);
+        }
+    };
+
     if (!documents || documents.length === 0) {
         return null;
     }
@@ -48,15 +112,15 @@ export function FetchedDocumentsList({
                                         {doc.design_type}
                                     </p>
                                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                        Project: {doc.project_name}
+                                        {doc.project_name}
                                     </p>
                                 </div>
 
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                     <span
                                         className={`text-xs px-2 py-1 rounded-full ${doc.status === "completed"
-                                                ? "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400"
-                                                : "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400"
+                                            ? "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400"
+                                            : "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400"
                                             }`}
                                     >
                                         {doc.status}
@@ -76,22 +140,56 @@ export function FetchedDocumentsList({
                                     Updated: {new Date(doc.updated_at).toLocaleString()}
                                 </p>
 
-                                {onPreview && (
+                                <div className="flex items-center gap-2">
                                     <Button
                                         variant="outline"
                                         size="sm"
                                         className="gap-2"
-                                        onClick={() => onPreview(doc)}
+                                        onClick={() => handleRegenerateClick(doc)}
+                                        disabled={isRegenerating}
                                     >
-                                        <Eye className="w-4 h-4" />
-                                        View
+                                        <RefreshCw className="w-4 h-4" />
+                                        Regenerate
                                     </Button>
-                                )}
+
+                                    {onPreview && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-2"
+                                            onClick={() => onPreview(doc)}
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                            View
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
+
+            <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Regenerate Document</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to regenerate this document? This action will create a new version
+                            of "{selectedDoc?.design_type}".
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isRegenerating}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleRegenerateConfirm}
+                            disabled={isRegenerating}
+                        >
+                            {isRegenerating ? "Regenerating..." : "OK"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

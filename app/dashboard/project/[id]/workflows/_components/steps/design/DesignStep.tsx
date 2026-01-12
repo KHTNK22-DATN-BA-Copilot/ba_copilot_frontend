@@ -176,6 +176,9 @@ export default function DesignStep({
                 <FetchedDocumentsList
                     documents={fetchedDocuments}
                     onPreview={handlePreviewFetchedDocument}
+                    stepName="design"
+                    projectId={projectId}
+                    onRegenerateSuccess={fetchDocumentsList}
                 />
             )}
 

@@ -185,6 +185,9 @@ export default function PlanningStep({
                 <FetchedDocumentsList
                     documents={fetchedDocuments}
                     onPreview={handlePreviewFetchedDocument}
+                    stepName="planning"
+                    projectId={projectId}
+                    onRegenerateSuccess={fetchDocumentsList}
                 />
             )}
 

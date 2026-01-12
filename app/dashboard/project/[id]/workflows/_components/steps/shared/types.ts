@@ -96,3 +96,10 @@ export interface DocumentListResponse {
 }
 
 export type StepName = "planning" | "analysis" | "design";
+
+// Regenerate response (proxied by /api/workflow/:stepName/regenerate/:projectId/:documentId)
+export interface RegenerateDocumentResponse {
+  status: "success" | "error";
+  message?: string;
+  result?: any; // Backend response data
+}

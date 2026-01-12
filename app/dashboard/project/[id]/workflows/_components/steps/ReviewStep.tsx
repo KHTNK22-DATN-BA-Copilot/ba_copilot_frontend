@@ -132,7 +132,13 @@ export default function ReviewStep({
                             Planning Step Documents
                         </h3>
                     </div>
-                    <FetchedDocumentsList documents={planningDocs} onPreview={setPreviewDoc} />
+                    <FetchedDocumentsList
+                        documents={planningDocs}
+                        onPreview={setPreviewDoc}
+                        stepName="planning"
+                        projectId={projectId}
+                        onRegenerateSuccess={fetchAllGeneratedDocuments}
+                    />
                     {!isLoading && planningDocs.length === 0 && (
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                             No planning documents generated yet.
@@ -149,7 +155,13 @@ export default function ReviewStep({
                             Analysis Step Documents
                         </h3>
                     </div>
-                    <FetchedDocumentsList documents={analysisDocs} onPreview={setPreviewDoc} />
+                    <FetchedDocumentsList
+                        documents={analysisDocs}
+                        onPreview={setPreviewDoc}
+                        stepName="analysis"
+                        projectId={projectId}
+                        onRegenerateSuccess={fetchAllGeneratedDocuments}
+                    />
                     {!isLoading && analysisDocs.length === 0 && (
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                             No analysis documents generated yet.
@@ -166,7 +178,13 @@ export default function ReviewStep({
                             Design Step Documents
                         </h3>
                     </div>
-                    <FetchedDocumentsList documents={designDocs} onPreview={setPreviewDoc} />
+                    <FetchedDocumentsList
+                        documents={designDocs}
+                        onPreview={setPreviewDoc}
+                        stepName="design"
+                        projectId={projectId}
+                        onRegenerateSuccess={fetchAllGeneratedDocuments}
+                    />
                     {!isLoading && designDocs.length === 0 && (
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                             No design documents generated yet.

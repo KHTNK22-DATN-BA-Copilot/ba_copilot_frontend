@@ -1,4 +1,4 @@
-import { GenerateWorkflowPayload, LegacyGenerateWorkflowPayload, WorkflowApiResponse, JobStatusResponse, WorkflowWSMessage, DocumentListResponse, StepName } from "./types";
+import { GenerateWorkflowPayload, LegacyGenerateWorkflowPayload, WorkflowApiResponse, JobStatusResponse, WorkflowWSMessage, DocumentListResponse, RegenerateDocumentResponse, StepName } from "./types";
 
 /**
  * Base configuration for workflow API endpoints
@@ -214,6 +214,43 @@ export async function getDocumentsList(
     return await response.json();
   } catch (error) {
     console.error(`getDocumentsList error (${stepName}):`, error);
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Unknown error occurred",
+    };
+  }
+}
+
+/**
+ * Regenerate a specific document for a step and project
+ * @param stepName - The workflow step name (planning, analysis, design)
+ * @param projectId - The project ID
+ * @param documentId - The document ID
+ */
+export async function regenerateDocument(
+  stepName: StepName,
+  projectId: string,
+  documentId: string
+): Promise<RegenerateDocumentResponse> {
+  try {
+    const endpoint = `${API_CONFIG.baseUrl}/${stepName}/regenerate/${projectId}/${documentId}`;
+
+    const response = await fetch(endpoint, {
+      method: "PATCH",
+      headers: API_CONFIG.headers,
+      credentials: "include", // Include cookies for authentication
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || `Failed to regenerate document: ${response.status}`
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(`regenerateDocument error (${stepName}):`, error);
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Unknown error occurred",
