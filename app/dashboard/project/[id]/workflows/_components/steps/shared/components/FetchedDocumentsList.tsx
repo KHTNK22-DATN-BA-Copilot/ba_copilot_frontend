@@ -33,7 +33,7 @@ export function FetchedDocumentsList({
 }: FetchedDocumentsListProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedDoc, setSelectedDoc] = useState<DocumentListItem | null>(null);
-    const [isRegenerating, setIsRegenerating] = useState(false);
+    const [regeneratingDocId, setRegeneratingDocId] = useState<string | null>(null);
 
     const handleRegenerateClick = (doc: DocumentListItem) => {
         setSelectedDoc(doc);
@@ -43,7 +43,7 @@ export function FetchedDocumentsList({
     const handleRegenerateConfirm = async () => {
         if (!selectedDoc) return;
 
-        setIsRegenerating(true);
+        setRegeneratingDocId(selectedDoc.document_id);
         setIsDialogOpen(false);
 
         // Show processing notification
@@ -70,7 +70,7 @@ export function FetchedDocumentsList({
             const errorMessage = error instanceof Error ? error.message : "Failed to regenerate document";
             toast.error(errorMessage);
         } finally {
-            setIsRegenerating(false);
+            setRegeneratingDocId(null);
             setSelectedDoc(null);
         }
     };
@@ -146,10 +146,10 @@ export function FetchedDocumentsList({
                                         size="sm"
                                         className="gap-2"
                                         onClick={() => handleRegenerateClick(doc)}
-                                        disabled={isRegenerating}
+                                        disabled={regeneratingDocId !== null}
                                     >
-                                        <RefreshCw className="w-4 h-4" />
-                                        Regenerate
+                                        <RefreshCw className={`w-4 h-4 ${regeneratingDocId === doc.document_id ? 'animate-spin' : ''}`} />
+                                        {regeneratingDocId === doc.document_id ? 'Regenerating...' : 'Regenerate'}
                                     </Button>
 
                                     {onPreview && (
@@ -180,12 +180,12 @@ export function FetchedDocumentsList({
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isRegenerating}>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel disabled={regeneratingDocId !== null}>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleRegenerateConfirm}
-                            disabled={isRegenerating}
+                            disabled={regeneratingDocId !== null}
                         >
-                            {isRegenerating ? "Regenerating..." : "OK"}
+                            {regeneratingDocId !== null ? "Regenerating..." : "OK"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
