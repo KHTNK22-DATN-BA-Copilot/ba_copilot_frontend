@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
     title: "BA Copilot",
     description: "AI-powered code completion",
+    icons: {
+        icon: '/ic_ba_copilot.svg',
+    },
 };
 
 export default function RootLayout({
