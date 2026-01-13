@@ -164,6 +164,9 @@ export default function AnalysisStep({
                 <FetchedDocumentsList
                     documents={fetchedDocuments}
                     onPreview={handlePreviewFetchedDocument}
+                    stepName="analysis"
+                    projectId={projectId}
+                    onRegenerateSuccess={fetchDocumentsList}
                 />
             )}
 
