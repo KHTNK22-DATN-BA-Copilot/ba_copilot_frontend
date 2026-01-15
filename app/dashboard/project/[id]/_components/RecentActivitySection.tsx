@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Activity } from './types';
 import { projectIcons, IconType } from '@/components/icons/project-icons';
+import Link from 'next/link';
 
 interface RecentActivitySectionProps {
     activities: Activity[];
@@ -19,7 +20,7 @@ export default function RecentActivitySection({ activities }: RecentActivitySect
                     {activities.map((activity) => {
                         const Icon = projectIcons[activity.type as IconType] || projectIcons.srs;
                         return (
-                            <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                            <Link href={activity.link} key={activity.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                                 <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
                                     <Icon className="w-4 h-4" />
                                 </div>
@@ -27,11 +28,9 @@ export default function RecentActivitySection({ activities }: RecentActivitySect
                                     <p className="font-medium text-gray-900 dark:text-gray-100">
                                         {activity.title}
                                     </p>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                        {activity.user} • {activity.time}
-                                    </p>
+                                    <p>{activity.description}</p>
                                 </div>
-                            </div>
+                            </Link>
                         );
                     })}
                 </div>
