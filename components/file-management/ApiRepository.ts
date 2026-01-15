@@ -97,13 +97,28 @@ export class ApiRepository implements IFileRepository {
         });
 
         (tree.files || []).forEach((fi: any) => {
+            console.log("Processing file from API:", fi.file_metadata?.size);
+            const sizeBytes = fi.file_metadata?.size ?? 0;
+            const formattedSize = sizeBytes < 1024 * 1024 
+                ? `${(sizeBytes / 1024)} KB` 
+                : `${(sizeBytes / (1024 * 1024)).toFixed(2)} MB`;
 
-            return out.push({
+            const rawDate = fi.created_at ?? fi.updated_at;
+            let formattedDate = "";
+            if (rawDate) {
+                const d = new Date(rawDate);
+                const day = String(d.getDate()).padStart(2, "0");
+                const month = String(d.getMonth() + 1).padStart(2, "0");
+                const year = d.getFullYear();
+                formattedDate = `${day}-${month}-${year}`;
+            }
+
+            out.push({
                 id: fi.id,
                 name: fi.name,
                 type: "file",
-                size: `${(fi.file_metadata?.size ?? 0 / (1024 * 1024)).toFixed(2)} MB`,
-                uploadedDate: fi.created_at ?? fi.updated_at ?? "",
+                size: formattedSize,
+                uploadedDate: formattedDate,
                 fileType: fi.extension ?? fi.file_type ?? "",
                 file: (null as unknown) as File,
             });
