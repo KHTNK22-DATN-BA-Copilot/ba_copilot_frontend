@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 export function useRegisterForm() {
     const router = useRouter();
     const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        password: '',
-        confirmPassword: ''
+        name: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
     });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +18,7 @@ export function useRegisterForm() {
         uppercase: false,
         lowercase: false,
         number: false,
-        special: false
+        special: false,
     });
 
     const checkPasswordRequirements = (password: string) => {
@@ -27,30 +27,28 @@ export function useRegisterForm() {
             uppercase: /[A-Z]/.test(password),
             lowercase: /[a-z]/.test(password),
             number: /\d/.test(password),
-            special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+            special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
         });
     };
 
     const isFormValid = () => {
         // Check if all fields are filled
-        const allFieldsFilled = (
-            formData.name.trim() !== '' &&
-            formData.email.trim() !== '' &&
-            formData.password.trim() !== '' &&
-            formData.confirmPassword.trim() !== ''
-        );
+        const allFieldsFilled =
+            formData.name.trim() !== "" &&
+            formData.email.trim() !== "" &&
+            formData.password.trim() !== "" &&
+            formData.confirmPassword.trim() !== "";
 
         // Check if email format is valid
         const emailValid = /\S+@\S+\.\S+/.test(formData.email);
 
         // Check if password meets all requirements
-        const passwordValid = (
+        const passwordValid =
             passwordRequirements.length &&
             passwordRequirements.uppercase &&
             passwordRequirements.lowercase &&
             passwordRequirements.number &&
-            passwordRequirements.special
-        );
+            passwordRequirements.special;
 
         // Check if passwords match
         const passwordsMatch = formData.password === formData.confirmPassword;
@@ -58,7 +56,13 @@ export function useRegisterForm() {
         // Check if name is at least 2 characters
         const nameValid = formData.name.trim().length >= 2;
 
-        return allFieldsFilled && emailValid && passwordValid && passwordsMatch && nameValid;
+        return (
+            allFieldsFilled &&
+            emailValid &&
+            passwordValid &&
+            passwordsMatch &&
+            nameValid
+        );
     };
 
     const validateForm = () => {
@@ -66,50 +70,52 @@ export function useRegisterForm() {
 
         // Name validation
         if (!formData.name.trim()) {
-            newErrors.name = 'Name is required';
+            newErrors.name = "Name is required";
         } else if (formData.name.trim().length < 2) {
-            newErrors.name = 'Name must be at least 2 characters';
+            newErrors.name = "Name must be at least 2 characters";
         }
 
         // Email validation
         if (!formData.email) {
-            newErrors.email = 'Email is required';
+            newErrors.email = "Email is required";
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'Please enter a valid email address';
+            newErrors.email = "Please enter a valid email address";
         }
 
         // Password validation
         if (!formData.password) {
-            newErrors.password = 'Password is required';
+            newErrors.password = "Password is required";
         } else {
             const passwordErrors = [];
 
             if (formData.password.length < 8) {
-                passwordErrors.push('at least 8 characters');
+                passwordErrors.push("at least 8 characters");
             }
             if (!/[A-Z]/.test(formData.password)) {
-                passwordErrors.push('one uppercase letter');
+                passwordErrors.push("one uppercase letter");
             }
             if (!/[a-z]/.test(formData.password)) {
-                passwordErrors.push('one lowercase letter');
+                passwordErrors.push("one lowercase letter");
             }
             if (!/\d/.test(formData.password)) {
-                passwordErrors.push('one number');
+                passwordErrors.push("one number");
             }
-            if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)) {
-                passwordErrors.push('one special character');
+            if (
+                !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)
+            ) {
+                passwordErrors.push("one special character");
             }
 
             if (passwordErrors.length > 0) {
-                newErrors.password = `Password must contain ${passwordErrors.join(', ')}.`;
+                newErrors.password = `Password must contain ${passwordErrors.join(", ")}.`;
             }
         }
 
         // Confirm password validation
         if (!formData.confirmPassword) {
-            newErrors.confirmPassword = 'Please confirm your password';
+            newErrors.confirmPassword = "Please confirm your password";
         } else if (formData.password !== formData.confirmPassword) {
-            newErrors.confirmPassword = 'Passwords do not match';
+            newErrors.confirmPassword = "Passwords do not match";
         }
 
         setErrors(newErrors);
@@ -129,22 +135,21 @@ export function useRegisterForm() {
             const payload = {
                 name: formData.name,
                 email: formData.email,
-                passwordhash: formData.password
-            }
+                passwordhash: formData.password,
+            };
 
-            const respond = await axios.post(
-                `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/auth/register`,
-                payload
-            )
+            const respond = await axios.post("/api/register", payload);
 
-            console.log('Registration successful:', respond.data);
+            console.log("Registration successful:", respond.data);
 
-            router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+            router.push(
+                `/verify-email?email=${encodeURIComponent(formData.email)}`,
+            );
         } catch (error) {
-            console.error('Registration error:', error);
+            console.error("Registration error:", error);
 
             if (axios.isAxiosError(error) && error.response) {
-                alert("Registration failed: " + error.response.data.detail); 
+                alert("Registration failed: " + error.response.data.detail);
             } else {
                 alert("An unexpected error occurred. Please try again.");
             }
@@ -155,21 +160,21 @@ export function useRegisterForm() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
-            [name]: value
+            [name]: value,
         }));
 
         // Real-time password validation
-        if (name === 'password') {
+        if (name === "password") {
             checkPasswordRequirements(value);
         }
 
         // Clear error when user starts typing
         if (errors[name]) {
-            setErrors(prev => ({
+            setErrors((prev) => ({
                 ...prev,
-                [name]: ''
+                [name]: "",
             }));
         }
     };
@@ -178,7 +183,7 @@ export function useRegisterForm() {
         setIsLoginLoading(true);
 
         // Simulate Google login process
-    }
+    };
 
     return {
         formData,
@@ -190,5 +195,5 @@ export function useRegisterForm() {
         handleSubmit,
         handleChange,
         handleGoogleLogin,
-    }
+    };
 }
