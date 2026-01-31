@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Eye, FileText, RefreshCw } from "lucide-react";
+import { CheckCircle2, Download, Eye, FileText, RefreshCw } from "lucide-react";
 import { DocumentListItem } from "../types";
 import {
     AlertDialog,
@@ -13,12 +13,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { toast } from "sonner";
-import { regenerateDocument } from "../api";
+import { regenerateDocument, exportDocument } from "../api";
 import type { StepName } from "../types";
+import { DocumentPreviewModal } from "./DocumentPreviewModal";
 
 interface FetchedDocumentsListProps {
     documents: DocumentListItem[];
-    onPreview?: (doc: DocumentListItem) => void;
     stepName: StepName;
     projectId: string;
     onRegenerateSuccess?: () => void;
@@ -26,7 +26,6 @@ interface FetchedDocumentsListProps {
 
 export function FetchedDocumentsList({
     documents,
-    onPreview,
     stepName,
     projectId,
     onRegenerateSuccess,
@@ -34,10 +33,61 @@ export function FetchedDocumentsList({
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedDoc, setSelectedDoc] = useState<DocumentListItem | null>(null);
     const [regeneratingDocId, setRegeneratingDocId] = useState<string | null>(null);
+    const [downloadingDocId, setDownloadingDocId] = useState<string | null>(null);
+    const [previewDoc, setPreviewDoc] = useState<DocumentListItem | null>(null);
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
     const handleRegenerateClick = (doc: DocumentListItem) => {
         setSelectedDoc(doc);
         setIsDialogOpen(true);
+    };
+
+    const handlePreview = (doc: DocumentListItem) => {
+        setPreviewDoc(doc);
+        setIsPreviewOpen(true);
+    };
+
+    const handleRegenerateFromModal = async (documentId: string) => {
+        setRegeneratingDocId(documentId);
+
+        toast.info(`Regenerating document...`, {
+            duration: 2000,
+        });
+
+        try {
+            const data = await regenerateDocument(
+                stepName,
+                projectId,
+                documentId
+            );
+
+            if (data.status !== "error") {
+                toast.success("Document regenerated successfully");
+                onRegenerateSuccess?.();
+            } else {
+                throw new Error(data.message || "Failed to regenerate document");
+            }
+        } catch (error) {
+            console.error("Error regenerating document:", error);
+            const errorMessage = error instanceof Error ? error.message : "Failed to regenerate document";
+            toast.error(errorMessage);
+        } finally {
+            setRegeneratingDocId(null);
+        }
+    };
+
+    const handleDownload = async (doc: DocumentListItem) => {
+        setDownloadingDocId(doc.document_id);
+        try {
+            await exportDocument(stepName, projectId, doc.document_id);
+            toast.success(`Document "${doc.design_type}" downloaded successfully`);
+        } catch (error) {
+            console.error("Error downloading document:", error);
+            const errorMessage = error instanceof Error ? error.message : "Failed to download document";
+            toast.error(errorMessage);
+        } finally {
+            setDownloadingDocId(null);
+        }
     };
 
     const handleRegenerateConfirm = async () => {
@@ -143,32 +193,51 @@ export function FetchedDocumentsList({
                                 <div className="flex items-center gap-2">
                                     <Button
                                         variant="outline"
+                                        size="icon"
+                                        onClick={() => handleDownload(doc)}
+                                        disabled={downloadingDocId !== null || regeneratingDocId !== null}
+                                        title="Download"
+                                    >
+                                        <Download className={`w-4 h-4 ${downloadingDocId === doc.document_id ? 'animate-pulse' : ''}`} />
+                                    </Button>
+
+                                    <Button
+                                        variant="outline"
                                         size="sm"
                                         className="gap-2"
                                         onClick={() => handleRegenerateClick(doc)}
-                                        disabled={regeneratingDocId !== null}
+                                        disabled={regeneratingDocId !== null || downloadingDocId !== null}
                                     >
                                         <RefreshCw className={`w-4 h-4 ${regeneratingDocId === doc.document_id ? 'animate-spin' : ''}`} />
                                         {regeneratingDocId === doc.document_id ? 'Regenerating...' : 'Regenerate'}
                                     </Button>
 
-                                    {onPreview && (
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="gap-2"
-                                            onClick={() => onPreview(doc)}
-                                        >
-                                            <Eye className="w-4 h-4" />
-                                            View
-                                        </Button>
-                                    )}
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-2"
+                                        onClick={() => handlePreview(doc)}
+                                    >
+                                        <Eye className="w-4 h-4" />
+                                        View
+                                    </Button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
+
+            <DocumentPreviewModal
+                document={previewDoc}
+                isOpen={isPreviewOpen}
+                onClose={() => setIsPreviewOpen(false)}
+                projectId={projectId}
+                stepName={stepName}
+                onRegenerateSuccess={onRegenerateSuccess}
+                isRegenerating={regeneratingDocId === previewDoc?.document_id}
+                onRegenerate={handleRegenerateFromModal}
+            />
 
             <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <AlertDialogContent>

@@ -291,3 +291,57 @@ export async function getDesignDocuments(
   return getDocumentsList("design", projectId);
 }
 
+/**
+ * Export a document as markdown file
+ * @param stepName - The workflow step name (planning, analysis, design)
+ * @param projectId - The project ID
+ * @param documentId - The document ID to export
+ * @returns Promise that resolves when download starts
+ */
+export async function exportDocument(
+  stepName: StepName,
+  projectId: string,
+  documentId: string
+): Promise<void> {
+  try {
+    // Call backend API endpoint directly
+    const endpoint = `http://localhost:8010/api/v1/${stepName}/export/${projectId}/${documentId}`;
+    
+    const response = await fetch(endpoint, {
+      method: "GET",
+      credentials: "include", // Include cookies for authentication
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || `Failed to export document: ${response.status}`
+      );
+    }
+
+    // Get the blob from response
+    const blob = await response.blob();
+    
+    // Create download link
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    
+    // Extract filename from Content-Disposition header or use default
+    const contentDisposition = response.headers.get("Content-Disposition");
+    const filenameMatch = contentDisposition?.match(/filename="?(.+)"?/i);
+    const filename = filenameMatch?.[1] || `${documentId}.md`;
+    
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    
+    // Cleanup
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error(`exportDocument error (${stepName}):`, error);
+    throw error;
+  }
+}
+

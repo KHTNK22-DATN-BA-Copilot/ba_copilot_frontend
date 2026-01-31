@@ -38,7 +38,6 @@ export default function DesignStep({
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
     const [fetchedDocuments, setFetchedDocuments] = useState<DocumentListItem[]>([]);
     const [isFetchingDocs, setIsFetchingDocs] = useState(false);
-    const [previewFetchedDoc, setPreviewFetchedDoc] = useState<DocumentListItem | null>(null);
 
     // Custom hooks for state management
     const documentSelection = useDocumentSelection(getAllDocIds());
@@ -117,10 +116,6 @@ export default function DesignStep({
         await designGeneration.generateDocuments(payload, projectId, 'design');
     };
 
-    const handlePreviewFetchedDocument = useCallback((doc: DocumentListItem) => {
-        setPreviewFetchedDoc(doc);
-    }, []);
-
     return (
         <div className="space-y-6">
             <div>
@@ -175,7 +170,6 @@ export default function DesignStep({
             ) : (
                 <FetchedDocumentsList
                     documents={fetchedDocuments}
-                    onPreview={handlePreviewFetchedDocument}
                     stepName="design"
                     projectId={projectId}
                     onRegenerateSuccess={fetchDocumentsList}
@@ -190,17 +184,6 @@ export default function DesignStep({
                     type="wireframe"
                     title={documentPreview.getPreviewTitle(documentPreview.previewDocument)}
                     content={documentPreview.previewContent}
-                />
-            )}
-
-            {/* Preview Modal for Fetched Documents */}
-            {previewFetchedDoc && (
-                <PreviewModal
-                    isOpen={!!previewFetchedDoc}
-                    onClose={() => setPreviewFetchedDoc(null)}
-                    type="document"
-                    title={`${previewFetchedDoc.design_type} - ${previewFetchedDoc.project_name}`}
-                    content={previewFetchedDoc.content || "No content available"}
                 />
             )}
 
