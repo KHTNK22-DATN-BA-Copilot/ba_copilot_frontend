@@ -23,6 +23,8 @@ const WS_CONFIG = {
   reconnectDelay: 2000,
 } as const;
 
+const BaseAPIURL = process.env.NEXT_PUBLIC_BASE_API_URL || "";
+
 /**
  * Generate workflow documents based on the provided payload (Legacy)
  * @param payload - The generation payload including prompt, files, and selected documents
@@ -305,7 +307,7 @@ export async function exportDocument(
 ): Promise<void> {
   try {
     // Call backend API endpoint directly
-    const endpoint = `http://localhost:8010/api/v1/${stepName}/export/${projectId}/${documentId}`;
+    const endpoint = `/api/v1/files/export/${documentId}`;
     
     const response = await fetch(endpoint, {
       method: "GET",
