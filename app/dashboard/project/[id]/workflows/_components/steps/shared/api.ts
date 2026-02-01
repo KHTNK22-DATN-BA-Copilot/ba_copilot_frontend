@@ -306,11 +306,20 @@ export async function exportDocument(
   documentId: string
 ): Promise<void> {
   try {
+    // Get auth token for authorization
+    const token = await getAuthToken();
+    if (!token) {
+      throw new Error("Authentication token not found. Please login again.");
+    }
+
     // Call backend API endpoint directly
-    const endpoint = `/api/v1/files/export/${documentId}`;
+    const endpoint = `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/files/export/${documentId}`;
     
     const response = await fetch(endpoint, {
       method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
       credentials: "include", // Include cookies for authentication
     });
 
