@@ -23,6 +23,8 @@ const WS_CONFIG = {
   reconnectDelay: 2000,
 } as const;
 
+const BaseAPIURL = process.env.NEXT_PUBLIC_BASE_API_URL || "";
+
 /**
  * Generate workflow documents based on the provided payload (Legacy)
  * @param payload - The generation payload including prompt, files, and selected documents
@@ -289,5 +291,68 @@ export async function getDesignDocuments(
   projectId: string
 ): Promise<DocumentListResponse> {
   return getDocumentsList("design", projectId);
+}
+
+/**
+ * Export a document as markdown file
+ * @param stepName - The workflow step name (planning, analysis, design)
+ * @param projectId - The project ID
+ * @param documentId - The document ID to export
+ * @returns Promise that resolves when download starts
+ */
+export async function exportDocument(
+  stepName: StepName,
+  projectId: string,
+  documentId: string
+): Promise<void> {
+  try {
+    // Get auth token for authorization
+    const token = await getAuthToken();
+    if (!token) {
+      throw new Error("Authentication token not found. Please login again.");
+    }
+
+    // Call backend API endpoint directly
+    const endpoint = `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/files/export/${documentId}`;
+    
+    const response = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+      credentials: "include", // Include cookies for authentication
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || `Failed to export document: ${response.status}`
+      );
+    }
+
+    // Get the blob from response
+    const blob = await response.blob();
+    
+    // Create download link
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    
+    // Extract filename from Content-Disposition header or use default
+    const contentDisposition = response.headers.get("Content-Disposition");
+    const filenameMatch = contentDisposition?.match(/filename="?(.+)"?/i);
+    const filename = filenameMatch?.[1] || `${documentId}.md`;
+    
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    
+    // Cleanup
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error(`exportDocument error (${stepName}):`, error);
+    throw error;
+  }
 }
 
