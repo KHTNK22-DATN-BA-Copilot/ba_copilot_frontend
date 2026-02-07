@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  fe-ci:
+  build:
     runs-on: 
       - self-hosted
     steps:
