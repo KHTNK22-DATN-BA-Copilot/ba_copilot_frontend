@@ -2,12 +2,14 @@ name: FE CI
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: 
+      - main
   pull_request:
 
 jobs:
   fe-ci:
-    runs-on: [self-hosted]
+    runs-on: 
+      - self-hosted
     steps:
       - run: echo "RUNNER IS WORKING"
 
