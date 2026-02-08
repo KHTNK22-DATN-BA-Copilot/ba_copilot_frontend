@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
     rules: {
         "@typescript-eslint/no-explicit-any": "off", // or 'warn'
     },
+    output: "standalone",
 };
 
 export default nextConfig;
