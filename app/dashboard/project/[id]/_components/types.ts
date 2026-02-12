@@ -14,10 +14,10 @@ export interface Project {
 
 export interface Activity {
     id: number;
-    type: 'srs' | 'wireframe' | 'diagram' | 'conversation';
+    type: 'srs' | 'wireframe' | 'diagram' | 'conversation' | 'oneclick';
     title: string;
-    time: string;
-    user: string;
+    description: string;
+    link: string;
 }
 
 export interface QuickStat {

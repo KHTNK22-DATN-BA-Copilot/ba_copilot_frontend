@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -15,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
     title: "BA Copilot",
     description: "AI-powered code completion",
+    icons: {
+        icon: '/ic_ba_copilot.svg',
+    },
 };
 
 export default function RootLayout({
@@ -32,6 +36,7 @@ export default function RootLayout({
                     <div className="absolute top-0 right-2/7 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 dark:opacity-30 animate-blob animation-delay-2000"></div>
                     <div className="absolute bottom-0 right-1/5 w-114 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 dark:opacity-30 animate-blob animation-delay-4000"></div>
                 </div>
+                <Toaster position="top-right" richColors />
                 {children}
             </body>
         </html>

@@ -218,16 +218,14 @@ export default function FileManagement({projectId}: {projectId: string}) {
     };
 
     const handleDownload = async (file: FileNode) => {
-        if(file.type !== "file") return;
-        // implement download logic, e.g., create a link and trigger click
-        const url = URL.createObjectURL(file.file);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = file.name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        if (file.type !== "file" || !file.id) return;
+        
+        try {
+            await fileRepository.exportFile(file.id as number);
+        } catch (err) {
+            console.error("Failed to download file:", err);
+            alert("Failed to download file. Please try again.");
+        }
     };
 
     return (

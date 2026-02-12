@@ -1,18 +1,22 @@
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
 import PreviewModal from "../../PreviewModal";
 import { analysisDocuments, getAllDocIds, documentFiles } from "./documents";
 import {
     DocumentSelector,
-    GeneratedDocumentsList,
+    FetchedDocumentsList,
     WorkflowActions,
     GenerationLoadingDialog,
     useDocumentSelection,
     useDocumentPreview,
-    useWorkflowGeneration
+    useWorkflowGeneration,
+    GenerateWorkflowPayload,
+    DocumentListItem,
+    getAnalysisDocuments
 } from "../shared";
+import { useParams } from "next/navigation";
 
 interface AnalysisStepProps {
     generatedSRS: string;
@@ -27,41 +31,83 @@ export default function AnalysisStep({
     onNext,
     onBack
 }: AnalysisStepProps) {
+    const params = useParams();
+    const projectId = params?.id as string;
+
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+    const [fetchedDocuments, setFetchedDocuments] = useState<DocumentListItem[]>([]);
+    const [isFetchingDocs, setIsFetchingDocs] = useState(false);
+    const [previewFetchedDoc, setPreviewFetchedDoc] = useState<DocumentListItem | null>(null);
 
     // Custom hooks for state management
     const documentSelection = useDocumentSelection(getAllDocIds());
     const documentPreview = useDocumentPreview(analysisDocuments, documentFiles);
-    const analysisGeneration = useWorkflowGeneration(onGenerate);
+
+    const fetchDocumentsList = useCallback(async () => {
+        if (!projectId) return;
+
+        setIsFetchingDocs(true);
+        try {
+            const response = await getAnalysisDocuments(projectId);
+
+            if (response.status === "success" && response.documents) {
+                setFetchedDocuments(response.documents);
+            } else {
+                console.error("[AnalysisStep] Error fetching documents:", response.message);
+            }
+        } catch (error) {
+            console.error("[AnalysisStep] Error fetching documents:", error);
+        } finally {
+            setIsFetchingDocs(false);
+        }
+    }, [projectId]);
+
+    useEffect(() => {
+        fetchDocumentsList();
+    }, [fetchDocumentsList]);
+
+    // Workflow generation with callback to fetch documents after completion
+    const analysisGeneration = useWorkflowGeneration(
+        onGenerate,
+        fetchDocumentsList
+    );
 
     // Get selected document names for the loading dialog
-    const selectedDocumentNames = useMemo(() => {
-        const names: string[] = [];
+    const selectedDocumentsForDialog = useMemo(() => {
+        const items: { id: string; name: string }[] = [];
         analysisDocuments.forEach(doc => {
             if (doc.subItems) {
                 doc.subItems.forEach(subItem => {
                     if (documentSelection.selectedDocs.includes(subItem.id)) {
-                        names.push(subItem.name);
+                        items.push({ id: subItem.id, name: subItem.name });
                     }
                 });
             } else if (documentSelection.selectedDocs.includes(doc.id)) {
-                names.push(doc.name);
+                items.push({ id: doc.id, name: doc.name });
             }
         });
-        return names;
+        return items;
     }, [documentSelection.selectedDocs]);
 
     const handleGenerateDocuments = async () => {
-        const payload = {
-            prompt,
-            selectedFiles,
-            selectedDocIds: documentSelection.selectedDocs,
-            stepType: 'analysis'
+
+        const documents = documentSelection.selectedDocs.map(docId => ({
+            type: docId
+        }));
+
+        const payload: GenerateWorkflowPayload = {
+            description: prompt || "Generate analysis documents.",
+            project_name: "Test Project",
+            documents: documents
         };
 
-        await analysisGeneration.generateDocuments(payload);
+        await analysisGeneration.generateDocuments(payload, projectId, 'analysis');
     };
+
+    const handlePreviewFetchedDocument = useCallback((doc: DocumentListItem) => {
+        setPreviewFetchedDoc(doc);
+    }, []);
 
     return (
         <div className="space-y-6">
@@ -107,13 +153,20 @@ export default function AnalysisStep({
                 </div>
             )}
 
-            {/* Generated Documents List */}
-            {generatedSRS && documentSelection.selectedDocs.length > 0 && (
-                <GeneratedDocumentsList
-                    documents={analysisDocuments}
-                    selectedDocs={documentSelection.selectedDocs}
-                    onPreview={documentPreview.handlePreviewDocument}
-                    getSelectedSubItems={documentSelection.getSelectedSubItems}
+            {/* Generated Documents List - Fetched from API */}
+            {isFetchingDocs ? (
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <p className="text-sm text-blue-600 dark:text-blue-400">
+                        Loading generated documents...
+                    </p>
+                </div>
+            ) : (
+                <FetchedDocumentsList
+                    documents={fetchedDocuments}
+                    onPreview={handlePreviewFetchedDocument}
+                    stepName="analysis"
+                    projectId={projectId}
+                    onRegenerateSuccess={fetchDocumentsList}
                 />
             )}
 
@@ -128,15 +181,28 @@ export default function AnalysisStep({
                 />
             )}
 
+            {/* Preview Modal for Fetched Documents */}
+            {previewFetchedDoc && (
+                <PreviewModal
+                    isOpen={!!previewFetchedDoc}
+                    onClose={() => setPreviewFetchedDoc(null)}
+                    type="document"
+                    title={`${previewFetchedDoc.design_type} - ${previewFetchedDoc.project_name}`}
+                    content={previewFetchedDoc.content || "No content available"}
+                />
+            )}
+
             {/* Generation Loading Dialog */}
             <GenerationLoadingDialog
                 isOpen={analysisGeneration.isGenerating}
-                documentNames={selectedDocumentNames}
+                documents={selectedDocumentsForDialog}
+                statuses={analysisGeneration.documentStatuses}
+                onCancel={analysisGeneration.cancelGeneration}
             />
 
             {/* Action Buttons */}
             <WorkflowActions
-                hasGeneratedDocuments={!!generatedSRS}
+                hasGeneratedDocuments={fetchedDocuments.length > 0 || !!generatedSRS}
                 isGenerating={analysisGeneration.isGenerating}
                 onGenerate={handleGenerateDocuments}
                 onNext={onNext}

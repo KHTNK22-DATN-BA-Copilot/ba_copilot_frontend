@@ -2,21 +2,49 @@ import {
     Dialog,
     DialogContent,
     DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { Loader2, FileText, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, CheckCircle2, Clock, FileText, Loader2 } from "lucide-react";
+import { DocumentGenerationStatus, GenerationDocumentItem } from "../types";
 
 interface GenerationLoadingDialogProps {
     isOpen: boolean;
-    documentNames: string[];
+    documents: GenerationDocumentItem[];
+    statuses?: Record<string, DocumentGenerationStatus>;
+    onCancel?: () => void;
 }
 
 export function GenerationLoadingDialog({
     isOpen,
-    documentNames,
+    documents,
+    statuses = {},
+    onCancel,
 }: GenerationLoadingDialogProps) {
+    const total = documents.length;
+    const completed = documents.reduce(
+        (acc, d) => acc + (statuses[d.id] === "completed" ? 1 : 0),
+        0
+    );
+    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+    const isDone = total > 0 && completed === total;
+
+    const renderStatusIcon = (status: DocumentGenerationStatus | undefined) => {
+        if (status === "completed") {
+            return <CheckCircle2 className="w-3 h-3 text-green-600 dark:text-green-400 flex-shrink-0" />;
+        }
+        if (status === "processing") {
+            return <Loader2 className="w-3 h-3 animate-spin text-gray-400 flex-shrink-0" />;
+        }
+        if (status === "error") {
+            return <AlertCircle className="w-3 h-3 text-red-600 dark:text-red-400 flex-shrink-0" />;
+        }
+        return <Clock className="w-3 h-3 text-gray-400 flex-shrink-0" />;
+    };
+
     return (
         <Dialog open={isOpen}>
             <DialogContent className="sm:max-w-md" showCloseButton={false}>
@@ -35,10 +63,13 @@ export function GenerationLoadingDialog({
                     <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
                             <span className="text-gray-600 dark:text-gray-400">
-                                Processing...
+                                {total > 0 ? `Processing... (${completed}/${total})` : "Processing..."}
                             </span>
+                            {total > 0 && (
+                                <span className="text-gray-600 dark:text-gray-400">{percent}%</span>
+                            )}
                         </div>
-                        <Progress value={undefined} className="h-2" />
+                        <Progress value={total > 0 ? percent : undefined} className="h-2" />
                     </div>
 
                     {/* Document List */}
@@ -47,14 +78,14 @@ export function GenerationLoadingDialog({
                             Documents being generated:
                         </p>
                         <div className="max-h-48 overflow-y-auto space-y-2 bg-gray-50 dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                            {documentNames.map((name, index) => (
+                            {documents.map((doc) => (
                                 <div
-                                    key={index}
+                                    key={doc.id}
                                     className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
                                 >
                                     <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                                    <span className="flex-1">{name}</span>
-                                    <Loader2 className="w-3 h-3 animate-spin text-gray-400 flex-shrink-0" />
+                                    <span className="flex-1">{doc.name}</span>
+                                    {renderStatusIcon(statuses[doc.id])}
                                 </div>
                             ))}
                         </div>
@@ -72,6 +103,19 @@ export function GenerationLoadingDialog({
                         </p>
                     </div>
                 </div>
+
+                {onCancel && (
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onCancel}
+                            disabled={isDone}
+                        >
+                            Cancel
+                        </Button>
+                    </DialogFooter>
+                )}
             </DialogContent>
         </Dialog>
     );

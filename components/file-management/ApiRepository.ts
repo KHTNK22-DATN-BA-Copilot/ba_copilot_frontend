@@ -97,13 +97,28 @@ export class ApiRepository implements IFileRepository {
         });
 
         (tree.files || []).forEach((fi: any) => {
+            console.log("Processing file from API:", fi.file_metadata?.size);
+            const sizeBytes = fi.file_metadata?.size ?? 0;
+            const formattedSize = sizeBytes < 1024 * 1024 
+                ? `${(sizeBytes / 1024)} KB` 
+                : `${(sizeBytes / (1024 * 1024)).toFixed(2)} MB`;
 
-            return out.push({
+            const rawDate = fi.created_at ?? fi.updated_at;
+            let formattedDate = "";
+            if (rawDate) {
+                const d = new Date(rawDate);
+                const day = String(d.getDate()).padStart(2, "0");
+                const month = String(d.getMonth() + 1).padStart(2, "0");
+                const year = d.getFullYear();
+                formattedDate = `${day}-${month}-${year}`;
+            }
+
+            out.push({
                 id: fi.id,
                 name: fi.name,
                 type: "file",
-                size: `${(fi.file_metadata?.size ?? 0 / (1024 * 1024)).toFixed(2)} MB`,
-                uploadedDate: fi.created_at ?? fi.updated_at ?? "",
+                size: formattedSize,
+                uploadedDate: formattedDate,
                 fileType: fi.extension ?? fi.file_type ?? "",
                 file: (null as unknown) as File,
             });
@@ -263,5 +278,39 @@ export class ApiRepository implements IFileRepository {
             }
             return acc;
         }, []);
+    }
+
+    async exportFile(documentId: number): Promise<void> {
+        const resp = await fetch(`http://localhost:8010/api/v1/files/export/${documentId}`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${await getAccessToken()}`,
+            }
+        });
+        
+        if (!resp.ok) throw new Error(`Failed to export file: ${resp.status}`);
+        
+        // Get the blob from response
+        const blob = await resp.blob();
+        
+        // Get filename from Content-Disposition header or use default
+        const contentDisposition = resp.headers.get('Content-Disposition');
+        let filename = 'download';
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+            if (filenameMatch && filenameMatch[1]) {
+                filename = filenameMatch[1].replace(/['"]/g, '');
+            }
+        }
+        
+        // Create download link and trigger download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
     }
 }

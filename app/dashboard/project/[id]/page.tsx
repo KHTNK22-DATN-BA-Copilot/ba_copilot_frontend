@@ -21,10 +21,11 @@ export default function ProjectOverviewPage() {
 
     // Mock data for sections (these should eventually come from API)
     const recentActivities: Activity[] = [
-        { id: 1, type: "srs", title: "SRS Document Updated", time: "2 hours ago", user: "John Doe" },
-        { id: 2, type: "wireframe", title: "Dashboard Wireframe Created", time: "5 hours ago", user: "Jane Smith" },
-        { id: 3, type: "diagram", title: "Sequence Diagram Generated", time: "1 day ago", user: "Mike Johnson" },
-        { id: 4, type: "conversation", title: "AI Conversation: User Flow", time: "2 days ago", user: "Sarah Williams" },
+        { id: 0, type: "oneclick", title: "Onclick Workflow", description: "Workflow created using one-click feature", link: `/dashboard/project/${projectId}/workflows` },
+        { id: 1, type: "srs", title: "SRS Document Updated", description: "Updated the SRS document with new requirements", link: `/dashboard/project/${projectId}/srsgenerator` },
+        { id: 2, type: "wireframe", title: "Dashboard Wireframe Created", description: "Created initial wireframe for the dashboard", link: `/dashboard/project/${projectId}/wireframegenerator` },
+        { id: 3, type: "diagram", title: "Sequence Diagram Generated", description: "Generated sequence diagram for user login flow", link: `/dashboard/project/${projectId}/diagrams` },
+        { id: 4, type: "conversation", title: "AI Conversation: User Flow", description: "Started AI conversation to discuss user flow", link: `/dashboard/project/${projectId}/aiconversations` },
     ];
 
     const quickStats: QuickStat[] = [
