@@ -98,14 +98,21 @@ export function useWorkflowGeneration(
     }
 
     //Handle constraint failed
-    if(message.status === "error") {
-      
+
+    if(message.type === "socket_closed") {
+      isFinishedRef.current = true;
+      setError(message.message || "WebSocket connection closed unexpectedly");
+      if (docType) {
+        setDocStatus(docType, "error");
+      }
+      setIsGenerating(false);
     }
 
+
     // Handle error
-    if (message.status === "error") {
+    if (message.type === "doc_error") {
       isFinishedRef.current = true;
-      setError(message.message || "Generation failed");
+      setError(message.message || message.error?.message || "Generation failed");
       if (docType) {
         setDocStatus(docType, "error");
       }

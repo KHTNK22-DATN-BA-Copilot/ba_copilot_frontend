@@ -71,6 +71,9 @@ export interface WorkflowWSMessage {
     documents: GeneratedDocument[];
   };
   type?: string;
+  error?: {
+    message: string;
+  }
 }
 
 export interface GeneratedDocument {
