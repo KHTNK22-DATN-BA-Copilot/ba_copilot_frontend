@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -8,14 +8,14 @@ import { MockFileRepository } from "./MockFileRepository ";
 import { FileItem, FileNode, FolderData } from "./type";
 import { FolderComposite } from "./FolderComposite";
 import { Button } from "../ui/button";
-import {ApiRepository} from "./ApiRepository";
+import { ApiRepository } from "./ApiRepository";
 
 const fileRepository: IFileRepository = new ApiRepository();
 
-export default function FileManagement({projectId}: {projectId: string}) {
+export default function FileManagement({ projectId }: { projectId: string }) {
     const [fileNode, setFileNode] = useState<FileNode[]>([]);
     const [expandedFolders, setExpandedFolders] = useState<Set<number>>(
-        new Set()
+        new Set(),
     );
     const [creating, setCreating] = useState(false);
     const [creatingParent, setCreatingParent] = useState<number | null>(null);
@@ -66,13 +66,25 @@ export default function FileManagement({projectId}: {projectId: string}) {
 
             if (file) {
                 const tempId = Date.now();
+
+                let formattedDate = "";
+                if (tempId) {
+                    const d = new Date(tempId);
+                    const day = String(d.getDate()).padStart(2, "0");
+                    const month = String(d.getMonth() + 1).padStart(2, "0");
+                    const year = d.getFullYear();
+                    formattedDate = `${day}-${month}-${year}`;
+                }
                 const tempFileNode: FileNode = {
                     id: tempId,
                     name: file.name,
                     type: "file",
-                    size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-                    uploadedDate: new Date().toISOString(),
-                    fileType: file.name.split('.').pop() || "",
+                    size:
+                        file.size < 1024 * 1024
+                            ? `${(file.size / 1024).toFixed(2)} KB`
+                            : `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+                    uploadedDate: formattedDate,
+                    fileType: file.name.split(".").pop() || "",
                     file: file,
                 };
 
@@ -80,10 +92,16 @@ export default function FileManagement({projectId}: {projectId: string}) {
                 const addFileToFolder = (nodes: FileNode[]): FileNode[] => {
                     return nodes.map((node) => {
                         if (node.id === folderId && node.type === "folder") {
-                            return { ...node, children: [...node.children, tempFileNode] };
+                            return {
+                                ...node,
+                                children: [...node.children, tempFileNode],
+                            };
                         }
                         if (node.type === "folder" && node.children) {
-                            return { ...node, children: addFileToFolder(node.children) };
+                            return {
+                                ...node,
+                                children: addFileToFolder(node.children),
+                            };
                         }
                         return node;
                     });
@@ -105,7 +123,7 @@ export default function FileManagement({projectId}: {projectId: string}) {
                         fileNode,
                         folderId,
                         file,
-                        projectId
+                        projectId,
                     );
                 } catch (err) {
                     console.error("Failed to upload file:", err);
@@ -120,7 +138,7 @@ export default function FileManagement({projectId}: {projectId: string}) {
 
     const handleDeleteFile = async (folderId: number, fileId: number) => {
         setFileNode((prevNodes) =>
-            fileRepository.deleteFile(prevNodes, fileId, folderId)
+            fileRepository.deleteFile(prevNodes, fileId, folderId),
         );
     };
 
@@ -139,7 +157,7 @@ export default function FileManagement({projectId}: {projectId: string}) {
                     fileNode,
                     parentId,
                     newFolder,
-                    projectId
+                    projectId,
                 );
                 console.log("Updated file node after adding folder:", updated);
                 setFileNode(updated);
@@ -156,7 +174,7 @@ export default function FileManagement({projectId}: {projectId: string}) {
                 console.error("Failed to create folder:", err);
             }
         },
-        [fileNode, projectId]
+        [fileNode, projectId],
     );
 
     const handleRemoveFolder = async (folderId: number) => {
@@ -164,7 +182,7 @@ export default function FileManagement({projectId}: {projectId: string}) {
             const updated = await fileRepository.removeFolderRecursive(
                 fileNode,
                 folderId,
-                projectId
+                projectId,
             );
             setFileNode(updated);
 
@@ -186,14 +204,14 @@ export default function FileManagement({projectId}: {projectId: string}) {
                     fileNode,
                     folderId,
                     newName,
-                    projectId
+                    projectId,
                 );
                 setFileNode(updated);
             } catch (err) {
                 console.error("Failed to rename folder:", err);
             }
         },
-        [fileNode, projectId]
+        [fileNode, projectId],
     );
 
     const handleCreateConfirm = () => {
@@ -219,7 +237,7 @@ export default function FileManagement({projectId}: {projectId: string}) {
 
     const handleDownload = async (file: FileNode) => {
         if (file.type !== "file" || !file.id) return;
-        
+
         try {
             await fileRepository.exportFile(file.id as number);
         } catch (err) {
@@ -276,7 +294,7 @@ export default function FileManagement({projectId}: {projectId: string}) {
                                     key={`${folder.id}-${index}`}
                                     folder={folder}
                                     expanded={expandedFolders.has(
-                                        folder.id as number
+                                        folder.id as number,
                                     )}
                                     toggle={toggleFolder}
                                     onUpload={handleFileUpload}

@@ -12,6 +12,7 @@ import AnalysisStep from "./steps/analysis/AnalysisStep";
 import DesignStep from "./steps/design/DesignStep";
 import ReviewStep from "./steps/ReviewStep";
 import { WorkflowStep } from "./types";
+import { useProjectData } from "../../_components/useProjectData";
 
 interface WorkflowsMainProps {
     projectId: string;
@@ -23,6 +24,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
     const [generatedSRS, setGeneratedSRS] = useState("");
     const [generatedDiagrams, setGeneratedDiagrams] = useState<string[]>([]);
     const [generatedWireframes, setGeneratedWireframes] = useState<string[]>([]);
+    const { project } = useProjectData(projectId as string)
 
     const steps: WorkflowStep[] = [
         {
@@ -131,6 +133,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
                             onGenerate={handleGenerateDiagrams}
                             onNext={handleNext}
                             onBack={handleBack}
+                            projectName={project.name}
                         />
                     )}
 
@@ -140,6 +143,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
                             onGenerate={handleGenerateSRS}
                             onNext={handleNext}
                             onBack={handleBack}
+                            projectName={project.name}
                         />
                     )}
 
@@ -149,6 +153,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
                             onGenerate={handleGenerateWireframes}
                             onNext={handleNext}
                             onBack={handleBack}
+                            projectName={project.name}
                         />
                     )}
 

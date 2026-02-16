@@ -23,13 +23,15 @@ interface DesignStepProps {
     onGenerate: () => void;
     onNext: () => void;
     onBack: () => void;
+    projectName?: string;
 }
 
 export default function DesignStep({
     generatedWireframes,
     onGenerate,
     onNext,
-    onBack
+    onBack,
+    projectName
 }: DesignStepProps) {
     const params = useParams();
     const projectId = params?.id as string;
@@ -102,7 +104,7 @@ export default function DesignStep({
 
         // Create payload according to WebSocket API specification
         const payload: GenerateWorkflowPayload = {
-            project_name: "Test Project", // TODO: Get from project context/state
+            project_name: projectName || "Test Project", // TODO: Get from project context/state
             description: prompt || "Generate design documents for the project",
             documents: documents
         };

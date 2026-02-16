@@ -23,13 +23,15 @@ interface AnalysisStepProps {
     onGenerate: () => void;
     onNext: () => void;
     onBack: () => void;
+    projectName?: string;
 }
 
 export default function AnalysisStep({
     generatedSRS,
     onGenerate,
     onNext,
-    onBack
+    onBack,
+    projectName
 }: AnalysisStepProps) {
     const params = useParams();
     const projectId = params?.id as string;
@@ -98,7 +100,7 @@ export default function AnalysisStep({
 
         const payload: GenerateWorkflowPayload = {
             description: prompt || "Generate analysis documents.",
-            project_name: "Test Project",
+            project_name: projectName || "Test Project",
             documents: documents
         };
 
