@@ -10,5 +10,5 @@ export interface IFileRepository {
     addFolderRecursive(nodes: FileNode[], parentId: number | null, newFolder: FileNode, project_id: string): Promise<FileNode[]>
     removeFolderRecursive(nodes: FileNode[], targetId: number, project_id: string): Promise<FileNode[]>
     renameFolderRecursive(nodes: FileNode[], targetId: number, newName: string, project_id: string): Promise<FileNode[]>
-    exportFile(documentId: number): Promise<void>
+    exportFile(documentId: number | string): Promise<void>
 }

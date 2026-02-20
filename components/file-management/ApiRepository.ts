@@ -280,12 +280,14 @@ export class ApiRepository implements IFileRepository {
         }, []);
     }
 
-    async exportFile(documentId: number): Promise<void> {
-        const resp = await fetch(`http://localhost:8010/api/v1/files/export/${documentId}`, {
+    async exportFile(documentId: number | string): Promise<void> {
+        const backend = `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/files/export/${documentId}`
+        const resp = await fetch(backend, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${await getAccessToken()}`,
-            }
+            },
+            credentials: "include"
         });
         
         if (!resp.ok) throw new Error(`Failed to export file: ${resp.status}`);

@@ -239,7 +239,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
         if (file.type !== "file" || !file.id) return;
 
         try {
-            await fileRepository.exportFile(file.id as number);
+            await fileRepository.exportFile(file.id as string);
         } catch (err) {
             console.error("Failed to download file:", err);
             alert("Failed to download file. Please try again.");
