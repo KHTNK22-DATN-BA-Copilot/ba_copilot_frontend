@@ -3,19 +3,20 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
 import PreviewModal from "../../PreviewModal";
-import { analysisDocuments, getAllDocIds, documentFiles } from "./documents";
+import { analysisDocuments, documentFiles } from "./documents";
 import {
     DocumentSelector,
     FetchedDocumentsList,
     WorkflowActions,
     GenerationLoadingDialog,
-    useDocumentSelection,
     useDocumentPreview,
     useWorkflowGeneration,
     GenerateWorkflowPayload,
     DocumentListItem,
-    getAnalysisDocuments
+    getAnalysisDocuments,
+    getPlanningDocuments
 } from "../shared";
+import { useDocumentConstraints } from "../shared/hooks/useDocumentConstraints";
 import { useParams } from "next/navigation";
 
 interface AnalysisStepProps {
@@ -42,9 +43,31 @@ export default function AnalysisStep({
     const [isFetchingDocs, setIsFetchingDocs] = useState(false);
     const [previewFetchedDoc, setPreviewFetchedDoc] = useState<DocumentListItem | null>(null);
 
-    // Custom hooks for state management
-    const documentSelection = useDocumentSelection(getAllDocIds());
+    // Track documents already generated in previous steps (for cross-step constraints)
+    const [existingDocIds, setExistingDocIds] = useState<string[]>([]);
+
+    // Constraint-aware document selection
+    const constraints = useDocumentConstraints({
+        documents: analysisDocuments,
+        existingDocIds,
+    });
     const documentPreview = useDocumentPreview(analysisDocuments, documentFiles);
+
+    // Fetch existing documents from Planning step (cross-step prerequisites)
+    const fetchExistingDocs = useCallback(async () => {
+        if (!projectId) return;
+        try {
+            const planningResp = await getPlanningDocuments(projectId);
+            console.log(planningResp)
+            const ids: string[] = [];
+            if (planningResp.status === "success" && planningResp.documents) {
+                ids.push(...planningResp.documents.map((d) => d.doc_type || d.design_type));
+            }
+            setExistingDocIds(ids);
+        } catch (error) {
+            console.error("[AnalysisStep] Error fetching existing docs:", error);
+        }
+    }, [projectId]);
 
     const fetchDocumentsList = useCallback(async () => {
         if (!projectId) return;
@@ -66,8 +89,9 @@ export default function AnalysisStep({
     }, [projectId]);
 
     useEffect(() => {
+        fetchExistingDocs();
         fetchDocumentsList();
-    }, [fetchDocumentsList]);
+    }, [fetchExistingDocs, fetchDocumentsList]);
 
     // Workflow generation with callback to fetch documents after completion
     const analysisGeneration = useWorkflowGeneration(
@@ -78,23 +102,20 @@ export default function AnalysisStep({
     // Get selected document names for the loading dialog
     const selectedDocumentsForDialog = useMemo(() => {
         const items: { id: string; name: string }[] = [];
-        analysisDocuments.forEach(doc => {
+        for (const doc of constraints.constrainedDocuments) {
             if (doc.subItems) {
-                doc.subItems.forEach(subItem => {
-                    if (documentSelection.selectedDocs.includes(subItem.id)) {
-                        items.push({ id: subItem.id, name: subItem.name });
-                    }
-                });
-            } else if (documentSelection.selectedDocs.includes(doc.id)) {
+                for (const sub of doc.subItems) {
+                    if (sub.isChecked) items.push({ id: sub.id, name: sub.name });
+                }
+            } else if (doc.isChecked) {
                 items.push({ id: doc.id, name: doc.name });
             }
-        });
+        }
         return items;
-    }, [documentSelection.selectedDocs]);
+    }, [constraints.constrainedDocuments]);
 
     const handleGenerateDocuments = async () => {
-
-        const documents = documentSelection.selectedDocs.map(docId => ({
+        const documents = constraints.checkedDocIds.map(docId => ({
             type: docId
         }));
 
@@ -119,21 +140,18 @@ export default function AnalysisStep({
                 </h2>
             </div>
 
-            {/* Document Selection Section */}
+            {/* Document Selection with Constraints */}
             <DocumentSelector
-                documents={analysisDocuments}
-                selectedDocs={documentSelection.selectedDocs}
-                expandedItems={documentSelection.expandedItems}
-                onDocumentToggle={documentSelection.handleDocumentToggle}
-                onToggleExpand={documentSelection.handleToggleExpand}
-                onParentToggle={documentSelection.handleParentToggle}
+                documents={constraints.constrainedDocuments}
+                expandedItems={constraints.expandedItems}
+                onToggle={constraints.toggleDocument}
+                onToggleParent={constraints.toggleParent}
+                onToggleExpand={constraints.toggleExpand}
                 onPreview={documentPreview.handlePreviewDocument}
-                isDocumentSelected={documentSelection.isDocumentSelected}
-                isDocumentIndeterminate={documentSelection.isDocumentIndeterminate}
                 label="Select type of Documents to Generate"
-                onSelectAll={documentSelection.handleSelectAll}
-                onDeselectAll={documentSelection.handleDeselectAll}
-                isAllSelected={documentSelection.isAllSelected(analysisDocuments)}
+                onSelectAll={constraints.selectAll}
+                onDeselectAll={constraints.deselectAll}
+                isAllSelected={constraints.isAllSelected}
             />
 
             {/* Prompt and File Selection */}
@@ -211,7 +229,7 @@ export default function AnalysisStep({
                 onBack={onBack}
                 generateButtonText="Generate Documents"
                 nextButtonText="Continue to Design"
-                hasSelectedDocuments={documentSelection.selectedDocs.length > 0}
+                hasSelectedDocuments={constraints.checkedDocIds.length > 0}
             />
         </div>
     );
