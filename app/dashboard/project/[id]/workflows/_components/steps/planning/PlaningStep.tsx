@@ -4,33 +4,34 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
 import PreviewModal from "../../PreviewModal";
-import { planningDocuments, getAllDocIds, documentFiles } from "./documents";
+import { planningDocuments, documentFiles } from "./documents";
 import {
     DocumentSelector,
-    GeneratedDocumentsList,
     FetchedDocumentsList,
     WorkflowActions,
     GenerationLoadingDialog,
-    useDocumentSelection,
     useDocumentPreview,
     useWorkflowGeneration,
     GenerateWorkflowPayload,
     DocumentListItem,
     getPlanningDocuments
 } from "../shared";
+import { useDocumentConstraints } from "../shared/hooks/useDocumentConstraints";
 
 interface PlanningStepProps {
     generatedDiagrams: string[];
     onGenerate: () => void;
     onNext: () => void;
     onBack: () => void;
+    projectName?: string;
 }
 
 export default function PlanningStep({
     generatedDiagrams,
     onGenerate,
     onNext,
-    onBack
+    onBack,
+    projectName
 }: PlanningStepProps) {
     const params = useParams();
     const projectId = params?.id as string;
@@ -41,8 +42,10 @@ export default function PlanningStep({
     const [isFetchingDocs, setIsFetchingDocs] = useState(false);
     const [previewFetchedDoc, setPreviewFetchedDoc] = useState<DocumentListItem | null>(null);
 
-    // Custom hooks for state management
-    const documentSelection = useDocumentSelection(getAllDocIds());
+    // Constraint-aware document selection (Planning is first step — no external deps)
+    const constraints = useDocumentConstraints({
+        documents: planningDocuments,
+    });
     const documentPreview = useDocumentPreview(planningDocuments, documentFiles);
 
     // Fetch documents list function
@@ -76,25 +79,23 @@ export default function PlanningStep({
     // Workflow generation with callback to fetch documents after completion
     const planningGeneration = useWorkflowGeneration(
         onGenerate,
-        fetchDocumentsList // This will be called after generation completes
+        fetchDocumentsList
     );
 
     // Get selected document names for the loading dialog
     const selectedDocumentsForDialog = useMemo(() => {
         const items: { id: string; name: string }[] = [];
-        planningDocuments.forEach(doc => {
+        for (const doc of constraints.constrainedDocuments) {
             if (doc.subItems) {
-                doc.subItems.forEach(subItem => {
-                    if (documentSelection.selectedDocs.includes(subItem.id)) {
-                        items.push({ id: subItem.id, name: subItem.name });
-                    }
-                });
-            } else if (documentSelection.selectedDocs.includes(doc.id)) {
+                for (const sub of doc.subItems) {
+                    if (sub.isChecked) items.push({ id: sub.id, name: sub.name });
+                }
+            } else if (doc.isChecked) {
                 items.push({ id: doc.id, name: doc.name });
             }
-        });
+        }
         return items;
-    }, [documentSelection.selectedDocs]);
+    }, [constraints.constrainedDocuments]);
 
     // Handle preview of fetched documents
     const handlePreviewFetchedDocument = useCallback((doc: DocumentListItem) => {
@@ -105,28 +106,23 @@ export default function PlanningStep({
     const handleGenerateDocuments = async () => {
         console.log("=== PLANNING STEP - GENERATE DOCUMENTS ===");
         console.log("Project ID:", projectId);
-        console.log("Selected Document IDs:", documentSelection.selectedDocs);
+        console.log("Selected Document IDs:", constraints.checkedDocIds);
         console.log("Prompt:", prompt);
-        console.log("Selected Files:", selectedFiles);
 
-        // Transform selected document IDs to the required format
-        const documents = documentSelection.selectedDocs.map(docId => ({
+        const documents = constraints.checkedDocIds.map(docId => ({
             type: docId
         }));
 
-        // Create payload according to WebSocket API specification
         const payload: GenerateWorkflowPayload = {
-            project_name: "Test Project", // TODO: Get from project context/state
+            project_name: projectName || "Test Project",
             description: prompt || "Generate planning documents for the project",
             documents: documents
         };
 
         console.log("WebSocket Payload:", JSON.stringify(payload, null, 2));
         console.log("Step Name: planning");
-        console.log("WebSocket URL will be:", `ws://localhost:8010/api/v1/ws/projects/${projectId}/planning?token=JWT_TOKEN`);
         console.log("==========================================");
 
-        // Call WebSocket generation
         await planningGeneration.generateDocuments(payload, projectId, 'planning');
     };
 
@@ -138,21 +134,18 @@ export default function PlanningStep({
                 </h2>
             </div>
 
-            {/* Document Selection Section */}
+            {/* Document Selection with Constraints */}
             <DocumentSelector
-                documents={planningDocuments}
-                selectedDocs={documentSelection.selectedDocs}
-                expandedItems={documentSelection.expandedItems}
-                onDocumentToggle={documentSelection.handleDocumentToggle}
-                onToggleExpand={documentSelection.handleToggleExpand}
-                onParentToggle={documentSelection.handleParentToggle}
+                documents={constraints.constrainedDocuments}
+                expandedItems={constraints.expandedItems}
+                onToggle={constraints.toggleDocument}
+                onToggleParent={constraints.toggleParent}
+                onToggleExpand={constraints.toggleExpand}
                 onPreview={documentPreview.handlePreviewDocument}
-                isDocumentSelected={documentSelection.isDocumentSelected}
-                isDocumentIndeterminate={documentSelection.isDocumentIndeterminate}
                 label="Select type of Documents to Generate"
-                onSelectAll={documentSelection.handleSelectAll}
-                onDeselectAll={documentSelection.handleDeselectAll}
-                isAllSelected={documentSelection.isAllSelected(planningDocuments)}
+                onSelectAll={constraints.selectAll}
+                onDeselectAll={constraints.deselectAll}
+                isAllSelected={constraints.isAllSelected}
             />
 
             {/* Prompt and File Selection */}
@@ -229,7 +222,7 @@ export default function PlanningStep({
                 onNext={onNext}
                 onBack={onBack}
                 nextButtonText="Continue to Analysis"
-                hasSelectedDocuments={documentSelection.selectedDocs.length > 0}
+                hasSelectedDocuments={constraints.checkedDocIds.length > 0}
             />
         </div>
     );

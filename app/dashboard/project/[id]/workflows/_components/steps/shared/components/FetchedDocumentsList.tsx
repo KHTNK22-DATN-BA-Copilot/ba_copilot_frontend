@@ -21,6 +21,7 @@ interface FetchedDocumentsListProps {
     documents: DocumentListItem[];
     stepName: StepName;
     projectId: string;
+    onPreview?: (doc: DocumentListItem) => void;
     onRegenerateSuccess?: () => void;
 }
 
@@ -29,6 +30,7 @@ export function FetchedDocumentsList({
     stepName,
     projectId,
     onRegenerateSuccess,
+    onPreview
 }: FetchedDocumentsListProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedDoc, setSelectedDoc] = useState<DocumentListItem | null>(null);
@@ -43,6 +45,7 @@ export function FetchedDocumentsList({
     };
 
     const handlePreview = (doc: DocumentListItem) => {
+        onPreview?.(doc);
         setPreviewDoc(doc);
         setIsPreviewOpen(true);
     };

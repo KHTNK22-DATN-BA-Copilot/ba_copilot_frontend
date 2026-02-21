@@ -279,4 +279,40 @@ export class ApiRepository implements IFileRepository {
             return acc;
         }, []);
     }
+
+    async exportFile(documentId: number | string): Promise<void> {
+        const backend = `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/files/export/${documentId}`
+        const resp = await fetch(backend, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${await getAccessToken()}`,
+            },
+            credentials: "include"
+        });
+        
+        if (!resp.ok) throw new Error(`Failed to export file: ${resp.status}`);
+        
+        // Get the blob from response
+        const blob = await resp.blob();
+        
+        // Get filename from Content-Disposition header or use default
+        const contentDisposition = resp.headers.get('Content-Disposition');
+        let filename = 'download';
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+            if (filenameMatch && filenameMatch[1]) {
+                filename = filenameMatch[1].replace(/['"]/g, '');
+            }
+        }
+        
+        // Create download link and trigger download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
 }

@@ -5,14 +5,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2 } from "lucide-react";
 import { SRSIcon, DiagramIcon, WireframeIcon, HomeIcon } from "@/components/icons/project-icons";
 import WorkflowHeader from "./WorkflowHeader";
-import WorkflowProgressBar from "./WorkflowProgressBar";
 import WorkflowStepIndicator from "./WorkflowStepIndicator";
 import RequirementsStep from "./steps/RequirementsStep";
-import DiagramsStep from "./steps/planning/PlaningStep";
-import SRSStep from "./steps/analysis/AnalysisStep";
-import DiagramStep from "./steps/design/DesignStep";
+import PlanningStep from "./steps/planning/PlaningStep";
+import AnalysisStep from "./steps/analysis/AnalysisStep";
+import DesignStep from "./steps/design/DesignStep";
 import ReviewStep from "./steps/ReviewStep";
 import { WorkflowStep } from "./types";
+import { useProjectData } from "../../_components/useProjectData";
 
 interface WorkflowsMainProps {
     projectId: string;
@@ -24,6 +24,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
     const [generatedSRS, setGeneratedSRS] = useState("");
     const [generatedDiagrams, setGeneratedDiagrams] = useState<string[]>([]);
     const [generatedWireframes, setGeneratedWireframes] = useState<string[]>([]);
+    const { project } = useProjectData(projectId as string)
 
     const steps: WorkflowStep[] = [
         {
@@ -127,29 +128,32 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
                     )}
 
                     {currentStep === 1 && (
-                        <DiagramsStep
+                        <PlanningStep
                             generatedDiagrams={generatedDiagrams}
                             onGenerate={handleGenerateDiagrams}
                             onNext={handleNext}
                             onBack={handleBack}
+                            projectName={project.name}
                         />
                     )}
 
                     {currentStep === 2 && (
-                        <SRSStep
+                        <AnalysisStep
                             generatedSRS={generatedSRS}
                             onGenerate={handleGenerateSRS}
                             onNext={handleNext}
                             onBack={handleBack}
+                            projectName={project.name}
                         />
                     )}
 
                     {currentStep === 3 && (
-                        <DiagramStep
+                        <DesignStep
                             generatedWireframes={generatedWireframes}
                             onGenerate={handleGenerateWireframes}
                             onNext={handleNext}
                             onBack={handleBack}
+                            projectName={project.name}
                         />
                     )}
 

@@ -1,15 +1,56 @@
 // Common interfaces shared across all workflow steps
 
-export interface SubItem {
-  id: string;
-  name: string;
+/** @deprecated Use ConstrainedDocument instead for constraint-aware components */
+type Dependency = {
+  requiredDocumentIds?: string[];
+  affectedDocumentIds?: string[];
 }
 
-export interface WorkflowDocument {
+export type SubItem = {
+  id: string;
+  name: string;
+  /** @deprecated Dependency data now lives in documentDependencies.ts */
+  dependency?: {
+    requiredDocuments?: string[];
+    affectedDocuments?: string[];
+  };
+  isChecked?: boolean;
+  isDisabled?: boolean;
+};
+
+export type WorkflowDocument = {
   id: string;
   name: string;
   description: string;
+
+  /** @deprecated Dependency data now lives in documentDependencies.ts */
+  dependency?: Dependency;
+
   subItems?: SubItem[];
+  isChecked?: boolean;
+  isDisabled?: boolean;
+}
+
+// ─── Constrained document types (used by useDocumentConstraints) ─────
+
+export type ConstrainedSubItem = {
+  id: string;
+  name: string;
+  isChecked: boolean;
+  isDisabled: boolean;
+  /** Human-readable reason why this document is disabled */
+  disabledReason?: string;
+};
+
+export type ConstrainedDocument = {
+  id: string;
+  name: string;
+  description: string;
+  isChecked: boolean;
+  isDisabled: boolean;
+  /** Human-readable reason why this document is disabled */
+  disabledReason?: string;
+  subItems?: ConstrainedSubItem[];
 }
 
 // New payload structure for WebSocket API
@@ -71,6 +112,9 @@ export interface WorkflowWSMessage {
     documents: GeneratedDocument[];
   };
   type?: string;
+  error?: {
+    message: string;
+  }
 }
 
 export interface GeneratedDocument {
@@ -87,6 +131,7 @@ export interface DocumentListItem {
   design_type: string;
   status: string;
   updated_at: string;
+  doc_type?: string;
 }
 
 export interface DocumentListResponse {
