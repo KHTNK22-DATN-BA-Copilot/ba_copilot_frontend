@@ -6,7 +6,7 @@ import {
     FolderMinus,
     Edit2,
 } from "lucide-react";
-import { FileItem, FileNode } from "./type";
+import { FileNode } from "./type";
 import { Button } from "../ui/button";
 import { FileLeaf } from "./FileLeaf";
 import {
@@ -15,6 +15,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useEffect, useRef, useState } from "react";
+import { countFiles } from "./utils";
 
 type FolderCompositeProps = {
     folder: FileNode;
@@ -24,16 +25,11 @@ type FolderCompositeProps = {
     onUpload: (folderId: number) => void;
     onDelete: (folderId: number, fileId: number) => void;
     onDownload?: (file: FileNode) => void;
-    onSelect?: (file: FileItem) => void;
+    onSelect?: (file: FileNode) => void;
     onCreateFolder?: (parentId: number, name: string) => void;
     onRemoveFolder: (folderId: number) => void;
     onRenameFolder?: (folderId: number, newName: string) => void;
 };
-
-function CalTotalFiles(folder: FileNode): number {
-    if(folder.type === "file") return 1;
-    return folder.children.reduce((total, child) => total + CalTotalFiles(child), 0);
-}
 
 export const FolderComposite = ({
     folder,
@@ -122,10 +118,6 @@ export const FolderComposite = ({
         onRemoveFolder?.(folder.id as number);
     };
 
-    const handleDownload = (file: FileNode) => {
-        onDownload?.(file);
-    }
-
     return (
         <div className="border rounded-lg w-full overflow-hidden">
             <div
@@ -159,9 +151,9 @@ export const FolderComposite = ({
                             <p>{folder.name}</p>
                         )}
                         <p className="text-sm text-muted-foreground">
-                            {folder.type == "folder" && CalTotalFiles(folder)}{" "}
-                            {folder.type == "folder" &&
-                            CalTotalFiles(folder) === 1
+                            {folder.type === "folder" && countFiles([folder])}{" "}
+                            {folder.type === "folder" &&
+                            countFiles([folder]) === 1
                                 ? "file"
                                 : "files"}
                         </p>
@@ -250,7 +242,7 @@ export const FolderComposite = ({
 
             {expanded && (
                 <div className="p-4">
-                    {folder.type == "folder" &&
+                    {folder.type === "folder" &&
                     folder.children.length === 0 &&
                     !creating ? (
                         <div className="text-center py-8 text-muted-foreground">
@@ -289,7 +281,7 @@ export const FolderComposite = ({
                                 </div>
                             )}
 
-                            {folder.type == "folder" &&
+                            {folder.type === "folder" &&
                                 folder.children.map((file, index) =>
                                     file.type === "file" ? (
                                         <FileLeaf

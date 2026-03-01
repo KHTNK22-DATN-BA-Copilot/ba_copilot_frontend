@@ -23,7 +23,7 @@ function getLeafIds(documents: WorkflowDocument[]): string[] {
  */
 function buildDisabledReason(missingIds: string[]): string | undefined {
   if (missingIds.length === 0) return undefined;
-  return `Requires: ${missingIds.join(", ")}`;
+  return `Missing: ${missingIds.join(", ")} in your database or checkbox`;
 }
 
 // ─── Hook ────────────────────────────────────────────────────────────
@@ -91,6 +91,7 @@ export function useDocumentConstraints({
     (docId: string): string[] => {
       const required = getRequiredDocs(docId);
       return required.filter((reqId) => {
+        if(externalIds.has(reqId)) return false; // Available from previous steps
         if (stepLeafIds.has(reqId)) return !checkedSet.has(reqId);
         // External (cross-step) prerequisite
         return !externalIds.has(reqId);
@@ -179,8 +180,15 @@ export function useDocumentConstraints({
           // UNCHECK — cascade: also uncheck all transitive dependents
           // that belong to this step.
           next.delete(docId);
+          let transitive: string[] = []
+          if(Array.from(externalIds).includes(docId)) {
+            // do nothing
+          }
+          else {
+            transitive = getTransitiveDependents(docId, Array.from(externalIds));
+          }
 
-          const transitive = getTransitiveDependents(docId);
+          console.info("Transitive dependents of", docId, ":", transitive);
           for (const depId of transitive) {
             if (stepLeafIds.has(depId)) {
               next.delete(depId);
@@ -192,8 +200,8 @@ export function useDocumentConstraints({
           // But first verify the doc is not disabled (all required met).
           const required = getRequiredDocs(docId);
           const allMet = required.every((reqId) => {
-            if (stepLeafIds.has(reqId)) return next.has(reqId);
-            return externalIds.has(reqId);
+            if (stepLeafIds.has(reqId) || externalIds.has(reqId)) return true;
+            return false;
           });
           if (allMet) {
             next.add(docId);
@@ -207,8 +215,9 @@ export function useDocumentConstraints({
   );
 
   const toggleParent = useCallback(
-    (parentId: string) => {
+    async (parentId: string) => {
       const parentDoc = documents.find((d) => d.id === parentId);
+      const transitive = getTransitiveDependents(parentId, Array.from(externalIds));
       if (!parentDoc?.subItems) {
         // Treat as leaf toggle
         toggleDocument(parentId);
@@ -230,13 +239,16 @@ export function useDocumentConstraints({
         const allEnabledChecked = enabledSubs.every((sub) => next.has(sub.id));
 
         if (allEnabledChecked && enabledSubs.length > 0) {
-          // Deselect all — with cascade
+          // Deselect all — cascade only for sub-items NOT persisted in DB
           for (const sub of enabledSubs) {
             next.delete(sub.id);
-            const transitive = getTransitiveDependents(sub.id);
-            for (const depId of transitive) {
-              if (stepLeafIds.has(depId)) {
-                next.delete(depId);
+
+            // Only cascade if this sub-item doesn't exist in DB
+            if (!externalIds.has(sub.id)) {
+              for (const depId of transitive) {
+                if (stepLeafIds.has(depId)) {
+                  next.delete(depId);
+                }
               }
             }
           }

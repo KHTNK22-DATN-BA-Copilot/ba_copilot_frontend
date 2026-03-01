@@ -8,6 +8,9 @@
  *                 constraint in the UI).
  */
 
+import { getPlanningDocuments, getDesignDocuments, getAnalysisDocuments } from "./api";
+import { DocumentListResponse } from "./types";
+
 export interface DocumentDependency {
   required: string[];
   recommended: string[];
@@ -129,27 +132,33 @@ export function getRecommendedDocs(docId: string): string[] {
  * Reverse lookup — return all doc IDs that **directly** depend on `docId`
  * (i.e. have `docId` in their `required` list).
  */
-export function getDirectDependents(docId: string): string[] {
+export function getDirectDependents(docId: string, existingDocIds: string[]): string[] {
   const dependents: string[] = [];
   for (const [id, dep] of Object.entries(DOCUMENT_DEPENDENCIES)) {
     if (dep.required.includes(docId)) {
       dependents.push(id);
     }
   }
-  return dependents;
+  
+  const missingDependents = dependents.filter(d => !existingDocIds.includes(d));
+  return missingDependents;
 }
 
 /**
  * Return all doc IDs that **transitively** depend on `docId` (BFS).
  * Includes direct and indirect dependents.
  */
-export function getTransitiveDependents(docId: string): string[] {
+export function getTransitiveDependents(docId: string, existingDocIds: string[]): string[] {
   const visited = new Set<string>();
   const queue = [docId];
 
   while (queue.length > 0) {
     const current = queue.shift()!;
-    const directDeps = getDirectDependents(current);
+    const directDeps = getDirectDependents(current, existingDocIds);
+    console.log("Direct dependents of", current, ":", directDeps);
+
+    if (directDeps.length === 0) break; // BFS: skip node, don't abort
+
     for (const dep of directDeps) {
       if (!visited.has(dep)) {
         visited.add(dep);
@@ -170,4 +179,31 @@ export function getMissingRequired(
   availableIds: Set<string>,
 ): string[] {
   return getRequiredDocs(docId).filter((req) => !availableIds.has(req));
+}
+
+export async function isDocumentExistsInDatabase(
+  docId: string,
+  projectId: string
+): Promise<boolean> {
+
+  const [planningDocs, designDocs, analysisDocs] = await Promise.all([
+    getPlanningDocuments(projectId),
+    getDesignDocuments(projectId),
+    getAnalysisDocuments(projectId),
+  ]);
+
+  const allDocs = [planningDocs, designDocs, analysisDocs];
+
+  for (const doc of allDocs) {
+    for (const d of doc.documents ?? []) {
+      if(d.doc_type) {
+        return d.doc_type === docId;
+      }
+      else {
+        return d.design_type === docId
+      }
+    }
+  }
+
+  return false;
 }

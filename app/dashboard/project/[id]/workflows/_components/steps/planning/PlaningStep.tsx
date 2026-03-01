@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
@@ -14,7 +14,7 @@ import {
     useWorkflowGeneration,
     GenerateWorkflowPayload,
     DocumentListItem,
-    getPlanningDocuments
+    getPlanningDocuments,
 } from "../shared";
 import { useDocumentConstraints } from "../shared/hooks/useDocumentConstraints";
 
@@ -31,37 +31,55 @@ export default function PlanningStep({
     onGenerate,
     onNext,
     onBack,
-    projectName
+    projectName,
 }: PlanningStepProps) {
     const params = useParams();
     const projectId = params?.id as string;
 
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
-    const [fetchedDocuments, setFetchedDocuments] = useState<DocumentListItem[]>([]);
+    const [fetchedDocuments, setFetchedDocuments] = useState<
+        DocumentListItem[]
+    >([]);
     const [isFetchingDocs, setIsFetchingDocs] = useState(false);
+    const [previewFetchedDoc, setPreviewFetchedDoc] =
+        useState<DocumentListItem | null>(null);
+    const [existingDocIds, setExistingDocIds] = useState<string[]>([]);
 
     // Constraint-aware document selection (Planning is first step — no external deps)
     const constraints = useDocumentConstraints({
         documents: planningDocuments,
+        existingDocIds: existingDocIds,
     });
-    const documentPreview = useDocumentPreview(planningDocuments, documentFiles);
+    const documentPreview = useDocumentPreview(
+        planningDocuments,
+        documentFiles,
+    );
 
     // Fetch documents list function
     const fetchDocumentsList = useCallback(async () => {
         if (!projectId) return;
 
-        console.log("[PlanningStep] Fetching documents list for project:", projectId);
+        console.log(
+            "[PlanningStep] Fetching documents list for project:",
+            projectId,
+        );
         setIsFetchingDocs(true);
 
         try {
             const response = await getPlanningDocuments(projectId);
 
             if (response.status === "success" && response.documents) {
-                console.log("[PlanningStep] Documents fetched successfully:", response.documents);
+                console.log(
+                    "[PlanningStep] Documents fetched successfully:",
+                    response.documents,
+                );
                 setFetchedDocuments(response.documents);
             } else {
-                console.error("[PlanningStep] Error fetching documents:", response.message);
+                console.error(
+                    "[PlanningStep] Error fetching documents:",
+                    response.message,
+                );
             }
         } catch (error) {
             console.error("[PlanningStep] Error fetching documents:", error);
@@ -70,15 +88,39 @@ export default function PlanningStep({
         }
     }, [projectId]);
 
+    //fetch data in api
+    
+
+    const fetchExistingDocs = useCallback(async () => {
+        if (!projectId) return;
+        try {
+            const [planningResp] = await Promise.all([
+                getPlanningDocuments(projectId),
+            ]);
+            const ids: string[] = [];
+            if (planningResp.status === "success" && planningResp.documents) {
+                ids.push(
+                    ...planningResp.documents.map(
+                        (d) => d.doc_type || d.design_type,
+                    ),
+                );
+            }
+            setExistingDocIds(ids);
+        } catch (error) {
+            console.error("[PlanningStep] Error fetching existing docs:", error);
+        }
+    }, [projectId]);
+
     // Fetch documents on component mount
     useEffect(() => {
         fetchDocumentsList();
-    }, [fetchDocumentsList]);
+        fetchExistingDocs();
+    }, [fetchDocumentsList, fetchExistingDocs]);
 
     // Workflow generation with callback to fetch documents after completion
     const planningGeneration = useWorkflowGeneration(
         onGenerate,
-        fetchDocumentsList
+        fetchDocumentsList,
     );
 
     // Get selected document names for the loading dialog
@@ -87,7 +129,8 @@ export default function PlanningStep({
         for (const doc of constraints.constrainedDocuments) {
             if (doc.subItems) {
                 for (const sub of doc.subItems) {
-                    if (sub.isChecked) items.push({ id: sub.id, name: sub.name });
+                    if (sub.isChecked)
+                        items.push({ id: sub.id, name: sub.name });
                 }
             } else if (doc.isChecked) {
                 items.push({ id: doc.id, name: doc.name });
@@ -96,27 +139,41 @@ export default function PlanningStep({
         return items;
     }, [constraints.constrainedDocuments]);
 
+    // Handle preview of fetched documents
+    const handlePreviewFetchedDocument = useCallback(
+        (doc: DocumentListItem) => {
+            console.log("[PlanningStep] Preview fetched document:", doc);
+            setPreviewFetchedDoc(doc);
+        },
+        [],
+    );
+
     const handleGenerateDocuments = async () => {
         console.log("=== PLANNING STEP - GENERATE DOCUMENTS ===");
         console.log("Project ID:", projectId);
         console.log("Selected Document IDs:", constraints.checkedDocIds);
         console.log("Prompt:", prompt);
 
-        const documents = constraints.checkedDocIds.map(docId => ({
-            type: docId
+        const documents = constraints.checkedDocIds.map((docId) => ({
+            type: docId,
         }));
 
         const payload: GenerateWorkflowPayload = {
             project_name: projectName || "Test Project",
-            description: prompt || "Generate planning documents for the project",
-            documents: documents
+            description:
+                prompt || "Generate planning documents for the project",
+            documents: documents,
         };
 
         console.log("WebSocket Payload:", JSON.stringify(payload, null, 2));
         console.log("Step Name: planning");
         console.log("==========================================");
 
-        await planningGeneration.generateDocuments(payload, projectId, 'planning');
+        await planningGeneration.generateDocuments(
+            payload,
+            projectId,
+            "planning",
+        );
     };
 
     return (
@@ -182,8 +239,23 @@ export default function PlanningStep({
                     isOpen={!!documentPreview.previewDocument}
                     onClose={documentPreview.handleClosePreview}
                     type="document"
-                    title={documentPreview.getPreviewTitle(documentPreview.previewDocument)}
+                    title={documentPreview.getPreviewTitle(
+                        documentPreview.previewDocument,
+                    )}
                     content={documentPreview.previewContent}
+                />
+            )}
+
+            {/* Preview Modal for Fetched Documents */}
+            {previewFetchedDoc && (
+                <PreviewModal
+                    isOpen={!!previewFetchedDoc}
+                    onClose={() => setPreviewFetchedDoc(null)}
+                    type="document"
+                    title={`${previewFetchedDoc.design_type} - ${previewFetchedDoc.project_name}`}
+                    content={
+                        previewFetchedDoc.content || "No content available"
+                    }
                 />
             )}
 

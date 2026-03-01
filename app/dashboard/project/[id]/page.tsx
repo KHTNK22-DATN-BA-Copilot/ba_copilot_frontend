@@ -18,6 +18,7 @@ export default function ProjectOverviewPage() {
 
     // Use custom hook for data fetching
     const { project, isLoading, error, updateProject } = useProjectData(projectId as string);
+    localStorage.setItem('projectId', projectId as string);
 
     // Mock data for sections (these should eventually come from API)
     const recentActivities: Activity[] = [
