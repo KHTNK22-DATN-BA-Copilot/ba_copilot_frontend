@@ -53,15 +53,20 @@ export default function AnalysisStep({
     });
     const documentPreview = useDocumentPreview(analysisDocuments, documentFiles);
 
-    // Fetch existing documents from Planning step (cross-step prerequisites)
+    // Fetch existing documents from Planning + Analysis steps (for DB-aware constraints)
     const fetchExistingDocs = useCallback(async () => {
         if (!projectId) return;
         try {
-            const planningResp = await getPlanningDocuments(projectId);
-            console.log(planningResp)
+            const [planningResp, analysisResp] = await Promise.all([
+                getPlanningDocuments(projectId),
+                getAnalysisDocuments(projectId),
+            ]);
             const ids: string[] = [];
             if (planningResp.status === "success" && planningResp.documents) {
                 ids.push(...planningResp.documents.map((d) => d.doc_type || d.design_type));
+            }
+            if (analysisResp.status === "success" && analysisResp.documents) {
+                ids.push(...analysisResp.documents.map((d) => d.doc_type || d.design_type));
             }
             setExistingDocIds(ids);
         } catch (error) {

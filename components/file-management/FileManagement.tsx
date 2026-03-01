@@ -3,12 +3,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { IFileRepository } from "./IFileRepository ";
-import { MockFileRepository } from "./MockFileRepository ";
-import { FileItem, FileNode, FolderData } from "./type";
+import { IFileRepository } from "./IFileRepository";
+import { FileNode } from "./type";
 import { FolderComposite } from "./FolderComposite";
 import { Button } from "../ui/button";
 import { ApiRepository } from "./ApiRepository";
+import { formatFileSize, formatDate, addChildToNode, countFiles } from "./utils";
 
 const fileRepository: IFileRepository = new ApiRepository();
 
@@ -59,78 +59,33 @@ export default function FileManagement({ projectId }: { projectId: string }) {
     const handleFileUpload = async (folderId: number) => {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
-        fileInput.multiple = false; // Set to true if you want to allow multiple files
+        fileInput.multiple = false;
         fileInput.onchange = async (e: Event) => {
             const target = e.target as HTMLInputElement;
             const file = target.files?.[0];
+            if (!file) return;
 
-            if (file) {
-                const tempId = Date.now();
+            const tempFileNode: FileNode = {
+                id: Date.now(),
+                name: file.name,
+                type: "file",
+                size: formatFileSize(file.size),
+                uploadedDate: formatDate(Date.now()),
+                fileType: file.name.split(".").pop() || "",
+                file,
+            };
 
-                let formattedDate = "";
-                if (tempId) {
-                    const d = new Date(tempId);
-                    const day = String(d.getDate()).padStart(2, "0");
-                    const month = String(d.getMonth() + 1).padStart(2, "0");
-                    const year = d.getFullYear();
-                    formattedDate = `${day}-${month}-${year}`;
-                }
-                const tempFileNode: FileNode = {
-                    id: tempId,
-                    name: file.name,
-                    type: "file",
-                    size:
-                        file.size < 1024 * 1024
-                            ? `${(file.size / 1024).toFixed(2)} KB`
-                            : `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-                    uploadedDate: formattedDate,
-                    fileType: file.name.split(".").pop() || "",
-                    file: file,
-                };
+            // Optimistic update
+            const previousState = fileNode;
+            setFileNode(addChildToNode(fileNode, folderId, tempFileNode));
+            setExpandedFolders((prev) => new Set(prev).add(folderId));
 
-                // Optimistic update: thêm file vào UI ngay lập tức
-                const addFileToFolder = (nodes: FileNode[]): FileNode[] => {
-                    return nodes.map((node) => {
-                        if (node.id === folderId && node.type === "folder") {
-                            return {
-                                ...node,
-                                children: [...node.children, tempFileNode],
-                            };
-                        }
-                        if (node.type === "folder" && node.children) {
-                            return {
-                                ...node,
-                                children: addFileToFolder(node.children),
-                            };
-                        }
-                        return node;
-                    });
-                };
-
-                const previousState = fileNode;
-                setFileNode(addFileToFolder(fileNode));
-
-                // Expand folder
-                setExpandedFolders((prev) => {
-                    const next = new Set(prev);
-                    next.add(folderId);
-                    return next;
-                });
-
-                // Gọi API trong background
-                try {
-                    const updated = await fileRepository.uploadFile(
-                        fileNode,
-                        folderId,
-                        file,
-                        projectId,
-                    );
-                } catch (err) {
-                    console.error("Failed to upload file:", err);
-                    // Rollback nếu API fail
-                    setFileNode(previousState);
-                    alert("Failed to upload file. Please try again.");
-                }
+            try {
+                await fileRepository.uploadFile(fileNode, folderId, file, projectId);
+            } catch (err) {
+                console.error("Failed to upload file:", err);
+                setFileNode(previousState);
+                alert("Failed to upload file. Please try again.");
             }
         };
         fileInput.click();
@@ -150,7 +105,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                 type: "folder",
                 systemFileType: false,
                 children: [],
-            } as FileNode;
+            };
 
             try {
                 const updated = await fileRepository.addFolderRecursive(
@@ -247,13 +202,13 @@ export default function FileManagement({ projectId }: { projectId: string }) {
     };
 
     return (
-        <div className="mt-6 w-ful">
+        <div className="mt-6 w-full">
             <Card>
                 <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-6">
                         <h2>File Management</h2>
                         <Badge variant="secondary">
-                            {fileRepository.getTotalFilesCount(fileNode)} Files
+                            {countFiles(fileNode)} Files
                         </Badge>
                         <Button
                             onClick={() => {

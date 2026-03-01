@@ -1,13 +1,15 @@
 import { DownloadIcon, FileIcon, Trash2 } from "lucide-react";
-import { FileItem, FileNode } from "./type";
+import { FileNode } from "./type";
 import { Button } from "../ui/button";
 
-export const FileLeaf: React.FC<{
+type FileLeafProps = {
     file: FileNode;
     onDelete: (fileId: number) => void;
     onDownload?: (file: FileNode) => void;
-    onSelect?: (file: FileItem) => void;
-}> = ({ file, onDelete, onDownload, onSelect }) => {
+    onSelect?: (file: FileNode) => void;
+};
+
+export const FileLeaf: React.FC<FileLeafProps> = ({ file, onDelete, onDownload, onSelect }) => {
     return (
         <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border">
             <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -21,11 +23,13 @@ export const FileLeaf: React.FC<{
                     >
                         {file.name}
                     </button>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{file.type == "file" && file.size}</span>
-                        <span>•</span>
-                        <span>{file.type == "file" && file.uploadedDate}</span>
-                    </div>
+                    {file.type === "file" && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>{file.size}</span>
+                            <span>•</span>
+                            <span>{file.uploadedDate}</span>
+                        </div>
+                    )}
                 </div>
             </div>
 
