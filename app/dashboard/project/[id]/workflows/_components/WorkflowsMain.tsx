@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import {useCallback, useState} from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2 } from "lucide-react";
 import { SRSIcon, DiagramIcon, WireframeIcon, HomeIcon } from "@/components/icons/project-icons";
@@ -13,6 +13,11 @@ import DesignStep from "./steps/design/DesignStep";
 import ReviewStep from "./steps/ReviewStep";
 import { WorkflowStep } from "./types";
 import { useProjectData } from "../../_components/useProjectData";
+import {
+    getAnalysisDocuments, getDesignDocuments,
+    getPlanningDocuments
+} from "@/app/dashboard/project/[id]/workflows/_components/steps/shared";
+import useSWR from "swr";
 
 interface WorkflowsMainProps {
     projectId: string;
@@ -65,27 +70,55 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
         },
     ];
 
-    const handleNext = () => {
+    const fetchAllDocument = async (projectId: string): Promise<string[]> => {
+        const [planningDocuments, analysisDocuments, designDocuments] = await Promise.all([
+            getPlanningDocuments(projectId),
+            getAnalysisDocuments(projectId),
+            getDesignDocuments(projectId)
+        ])
+
+        let result: string[] = []
+        if(planningDocuments.documents && analysisDocuments.documents && designDocuments.documents) {
+            result = [
+                ...planningDocuments.documents.map(doc => doc.doc_type ? doc.doc_type : doc.design_type),
+                ...analysisDocuments.documents.map(doc => doc.doc_type ? doc.doc_type : doc.design_type),
+                ...designDocuments.documents.map(doc => doc.doc_type ? doc.doc_type : doc.design_type)
+            ]
+            return result;
+        }
+        else {
+            return []
+        }
+    }
+
+    const {
+        data: fetchedDocuments = [],
+    } = useSWR(projectId, fetchAllDocument, {
+        revalidateOnFocus: false,
+        dedupingInterval: 5000
+    })
+
+    const handleNext = useCallback(() => {
         if (currentStep < steps.length - 1) {
             setCurrentStep(currentStep + 1);
         }
-    };
+    }, [currentStep, steps.length]);
 
-    const handleBack = () => {
+    const handleBack = useCallback(() => {
         if (currentStep > 0) {
             setCurrentStep(currentStep - 1);
         }
-    };
+    }, [currentStep]);
 
-    const handleGenerateDiagrams = () => {
+    const handleGenerateDiagrams = useCallback(() => {
         // Simulate diagram generation
         setGeneratedDiagrams(["Usecase Diagram", "Class Diagram", "Activity Diagram"]);
-    };
+    }, []);
 
-    const handleGenerateSRS = () => {
+    const handleGenerateSRS = useCallback(() => {
         // Simulate SRS generation
         setGeneratedSRS("Software Requirements Specification document has been generated based on your input.");
-    };
+    }, []);
 
     const handleGenerateWireframes = () => {
         // Simulate wireframe generation
@@ -134,6 +167,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
                             onNext={handleNext}
                             onBack={handleBack}
                             projectName={project.name}
+                            existingDocIds={fetchedDocuments}
                         />
                     )}
 
@@ -144,6 +178,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
                             onNext={handleNext}
                             onBack={handleBack}
                             projectName={project.name}
+                            existingDocIds={fetchedDocuments}
                         />
                     )}
 
@@ -154,6 +189,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
                             onNext={handleNext}
                             onBack={handleBack}
                             projectName={project.name}
+                            existingDocIds={fetchedDocuments}
                         />
                     )}
 

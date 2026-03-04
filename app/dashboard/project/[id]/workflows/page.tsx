@@ -1,10 +1,7 @@
-'use client';
-
-import { useParams } from 'next/navigation';
 import WorkflowsMain from './_components/WorkflowsMain';
 
-export default function WorkflowsPage() {
-    const { id } = useParams();
+export default async function WorkflowsPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

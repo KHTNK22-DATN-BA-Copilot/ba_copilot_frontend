@@ -1,4 +1,5 @@
 import useSWR from "swr"
+import { StepName } from "@/app/dashboard/project/[id]/workflows/_components/steps/shared/types"
 
 const fetcher = async (url: string, { arg }: { arg: any }) => {
     return fetch(`${window.location.origin}/api${url}`, {

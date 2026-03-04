@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
+import { memo } from 'react'
 
 interface WorkflowActionsProps {
     hasGeneratedDocuments: boolean;
@@ -12,7 +13,7 @@ interface WorkflowActionsProps {
     hasSelectedDocuments?: boolean;
 }
 
-export function WorkflowActions({
+export const WorkflowActions = memo(function Component ({
     hasGeneratedDocuments,
     isGenerating,
     onGenerate,
@@ -54,4 +55,4 @@ export function WorkflowActions({
             )}
         </div>
     );
-}
+})
