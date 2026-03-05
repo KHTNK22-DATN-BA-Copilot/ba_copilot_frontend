@@ -13,20 +13,17 @@ import {
     useWorkflowGeneration,
     GenerateWorkflowPayload,
     DocumentListItem,
-    getAnalysisDocuments,
-    getPlanningDocuments
 } from "../shared";
 import { useDocumentConstraints } from "../shared/hooks/useDocumentConstraints";
-import { useParams } from "next/navigation";
 import useSWR from "swr";
+import { getAnalysisDocuments, fetchAllDocument } from "@/lib/helper";
 
 interface AnalysisStepProps {
     generatedSRS: string;
     onGenerate: () => void;
     onNext: () => void;
     onBack: () => void;
-    projectName?: string;
-    existingDocIds: string[]
+    projectName?: string
 }
 
 export default function AnalysisStep({
@@ -34,11 +31,9 @@ export default function AnalysisStep({
     onGenerate,
     onNext,
     onBack,
-    projectName,
-    existingDocIds
+    projectName
 }: AnalysisStepProps) {
-    const params = useParams();
-    const projectId = params?.id as string;
+    const projectId = localStorage.getItem("projectId") as string;
 
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
@@ -46,8 +41,8 @@ export default function AnalysisStep({
 
     const documentPreview = useDocumentPreview(analysisDocuments, documentFiles);
 
-    const fetchAnalysisDocuments = useCallback(async ([key, pId, step]: [string, string, string]) => {
-        console.log(`[SWR] Fetching for Project: ${pId}, Step: ${step}`);
+    const fetchAnalysisDocuments = useCallback(async ([pId, step]: [string, string]) => {
+        console.log(`[SWR] Fetching for Project: ${pId}`);
         const response = await getAnalysisDocuments(pId);
 
         if (response.status === "success" && response.documents) {
@@ -56,13 +51,23 @@ export default function AnalysisStep({
         throw new Error(response.message || "Failed to fetch documents");
     }, []);
 
+    const {
+        data: existingDocIds = [],
+    } = useSWR (
+        projectId,
+        fetchAllDocument,
+        {
+            revalidateOnFocus: false,
+        }
+    )
+
 
     const {
         data: fetchedDocuments = [], // Default là mảng rỗng nếu chưa có data
         isValidating: isFetchingDocs, // Tương đương loading state
         mutate: refreshDocs // Hàm để ép gọi lại API bằng tay
     } = useSWR(
-        projectId ? ['planning_docs', projectId, 'analysis'] : null,
+        projectId ? [projectId, 'analysis'] : null,
         fetchAnalysisDocuments,
         {
             revalidateOnFocus: false, // Tắt cái này đi để không bị gọi lại API mỗi khi chuyển tab trình duyệt

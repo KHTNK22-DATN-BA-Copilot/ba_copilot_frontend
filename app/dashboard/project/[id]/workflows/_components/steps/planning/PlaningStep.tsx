@@ -13,10 +13,10 @@ import {
     useWorkflowGeneration,
     GenerateWorkflowPayload,
     DocumentListItem,
-    getPlanningDocuments,
 } from "../shared";
 import { useDocumentConstraints } from "../shared/hooks/useDocumentConstraints";
 import useSWR from "swr";
+import { fetchAllDocument, getPlanningDocuments } from "@/lib/helper";
 
 interface PlanningStepProps {
     generatedDiagrams: string[];
@@ -24,7 +24,6 @@ interface PlanningStepProps {
     onNext: () => void;
     onBack: () => void;
     projectName?: string;
-    existingDocIds: string[];
 }
 
 function PlanningStep({
@@ -32,7 +31,6 @@ function PlanningStep({
     onNext,
     onBack,
     projectName,
-    existingDocIds
 }: PlanningStepProps) {
     const projectId = localStorage.getItem("projectId") as string;
 
@@ -40,11 +38,21 @@ function PlanningStep({
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
     const [previewFetchedDoc, setPreviewFetchedDoc] =
         useState<DocumentListItem | null>(null);
+    
+    const {
+        data: existingDocIds = [],
+    } = useSWR(
+        projectId,
+        fetchAllDocument,
+        {
+            revalidateOnFocus: false,
+        }
+    )
 
-
-    const fetchDocuments = async ([key, pId, step]: [string, string, string]) => {
+    const fetchDocuments = async ([pId, step]: [string, string, string]) => {
         console.log(`[SWR] Fetching for Project: ${pId}, Step: ${step}`);
         const response = await getPlanningDocuments(pId);
+        console.log(`[SWR] Response for Project: ${pId}, Step: ${step}`, response);
 
         if (response.status === "success" && response.documents) {
             return response.documents;
@@ -57,11 +65,10 @@ function PlanningStep({
         isLoading: isFetchingDocs, // Tương đương loading state
         mutate: refreshDocs // Hàm để ép gọi lại API bằng tay
     } = useSWR(
-        projectId ? ['planning_docs', projectId, 'planning'] : null,
+        projectId ? [projectId, 'planning'] : null,
         fetchDocuments,
         {
             revalidateOnFocus: false,
-            dedupingInterval: 5000,
         }
     );
 

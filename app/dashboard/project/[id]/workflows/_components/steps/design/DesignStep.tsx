@@ -12,18 +12,17 @@ import {
     useDocumentPreview,
     useWorkflowGeneration,
     GenerateWorkflowPayload,
-    getDesignDocuments,
 } from "../shared";
 import { useDocumentConstraints } from "../shared/hooks/useDocumentConstraints";
 import useSWR from "swr";
+import { getDesignDocuments, fetchAllDocument } from "@/lib/helper";
 
 interface DesignStepProps {
     generatedWireframes: string[];
     onGenerate: () => void;
     onNext: () => void;
     onBack: () => void;
-    projectName?: string;
-    existingDocIds: string[]
+    projectName?: string
 }
 
 export default function DesignStep({
@@ -31,13 +30,22 @@ export default function DesignStep({
     onGenerate,
     onNext,
     onBack,
-    projectName,
-    existingDocIds
+    projectName
 }: DesignStepProps) {
     const projectId = localStorage.getItem("projectId") as string
 
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+
+    const {
+        data: existingDocIds = [],
+    } = useSWR (
+        projectId,
+        fetchAllDocument,
+        {
+            revalidateOnFocus: false,
+        }
+    )
 
 
     // Constraint-aware document selection
