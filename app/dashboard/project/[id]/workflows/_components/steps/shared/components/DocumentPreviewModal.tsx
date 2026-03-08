@@ -11,10 +11,61 @@ import ReactMarkdown from "react-markdown";
 import { useEffect, useState } from "react";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
-import { Download, X, Send, Loader2 } from "lucide-react";
+import { Download, X, Send, Loader2, GitCompare, Eye } from "lucide-react";
 import { exportDocument, regenerateDocument } from "../api";
 import { toast } from "sonner";
 import type { StepName } from "../types";
+import { diffLines } from "diff";
+import { cn } from "@/lib/utils";
+
+const DiffView = ({ original, modified }: { original: string; modified: string }) => {
+    const changes = diffLines(original, modified);
+    return (
+        <div className="font-mono text-xs leading-5 overflow-x-auto">
+            {changes.map((part, idx) => {
+                const lines = part.value.split("\n");
+                if (lines[lines.length - 1] === "") lines.pop();
+                return lines.map((line, lineIdx) => (
+                    <div
+                        key={`${idx}-${lineIdx}`}
+                        className={cn(
+                            "flex px-2 py-0.5 whitespace-pre-wrap break-words",
+                            part.added
+                                ? "bg-green-50 dark:bg-green-950"
+                                : part.removed
+                                    ? "bg-red-50 dark:bg-red-950"
+                                    : ""
+                        )}
+                    >
+                        <span
+                            className={cn(
+                                "select-none mr-3 w-3 flex-shrink-0 font-bold",
+                                part.added
+                                    ? "text-green-600 dark:text-green-400"
+                                    : part.removed
+                                        ? "text-red-600 dark:text-red-400"
+                                        : "text-gray-400"
+                            )}
+                        >
+                            {part.added ? "+" : part.removed ? "-" : " "}
+                        </span>
+                        <span
+                            className={cn(
+                                part.added
+                                    ? "text-green-800 dark:text-green-200"
+                                    : part.removed
+                                        ? "text-red-800 dark:text-red-200"
+                                        : "text-gray-700 dark:text-gray-300"
+                            )}
+                        >
+                            {line}
+                        </span>
+                    </div>
+                ));
+            })}
+        </div>
+    );
+};
 
 interface DocumentPreviewModalProps {
     document: DocumentListItem | null;
@@ -41,6 +92,7 @@ export function DocumentPreviewModal({
     const [content, setContent] = useState("");
     const [downloadingDoc, setDownloadingDoc] = useState(false);
     const [chatInput, setChatInput] = useState("");
+    const [diffMode, setDiffMode] = useState(false);
 
     useEffect(() => {
         if (document) {
@@ -144,7 +196,7 @@ export function DocumentPreviewModal({
                                 </div>
                             </div>
 
-                            {/* <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                            <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
                                 {edit && (
                                     <Button
                                         variant="default"
@@ -172,7 +224,7 @@ export function DocumentPreviewModal({
                                     <Download className={`w-4 h-4 ${downloadingDoc ? 'animate-pulse' : ''}`} />
                                     <span className="hidden sm:inline">{downloadingDoc ? "Downloading..." : "Download"}</span>
                                 </Button>
-                            </div> */}
+                            </div>
                         </div>
                     </DialogHeader>
 
@@ -236,20 +288,41 @@ export function DocumentPreviewModal({
 
                                     {/* Preview Panel */}
                                     <div className="flex flex-col h-full min-h-0 min-w-0">
-                                        <h3 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex-shrink-0">
-                                            Live Preview
-                                        </h3>
-                                        <div className="flex-1 overflow-y-auto overflow-x-hidden border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 p-2 sm:p-4 min-h-0">
-                                            <div className="markdown-body bg-transparent">
-                                                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
-                                                    {content}
-                                                </ReactMarkdown>
-                                            </div>
+                                        <div className="flex items-center justify-between mb-2 flex-shrink-0">
+                                            <h3 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                {diffMode ? "Diff View" : "Live Preview"}
+                                            </h3>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-6 px-2 gap-1 text-xs"
+                                                onClick={() => setDiffMode((v) => !v)}
+                                            >
+                                                {diffMode ? (
+                                                    <><Eye className="w-3 h-3" /> Preview</>
+                                                ) : (
+                                                    <><GitCompare className="w-3 h-3" /> Diff</>
+                                                )}
+                                            </Button>
+                                        </div>
+                                        <div className="flex-1 overflow-y-auto overflow-x-hidden border border-gray-300 dark:border-gray-600 rounded-lg bg-white min-h-0">
+                                            {diffMode ? (
+                                                <DiffView
+                                                    original={document.content || ""}
+                                                    modified={content}
+                                                />
+                                            ) : (
+                                                <div className="markdown-body bg-transparent p-2 sm:p-4">
+                                                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                                                        {content}
+                                                    </ReactMarkdown>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
                             ) : (
-                                <div className="h-full min-h-0 min-w-0 overflow-y-auto overflow-x-hidden border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 p-2 sm:p-4">
+                                <div className="h-full min-h-0 min-w-0 overflow-y-auto overflow-x-hidden border border-gray-300 dark:border-gray-700 rounded-lg bg-white p-2 sm:p-4">
                                     <div className="markdown-body bg-transparent">
                                         <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
                                             {document.content || "No content available"}
