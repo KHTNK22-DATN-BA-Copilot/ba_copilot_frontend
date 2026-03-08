@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
-import PreviewModal from "../../PreviewModal";
 import { planningDocuments, documentFiles } from "./documents";
 import {
     DocumentSelector,
@@ -42,8 +41,6 @@ export default function PlanningStep({
         DocumentListItem[]
     >([]);
     const [isFetchingDocs, setIsFetchingDocs] = useState(false);
-    const [previewFetchedDoc, setPreviewFetchedDoc] =
-        useState<DocumentListItem | null>(null);
     const [existingDocIds, setExistingDocIds] = useState<string[]>([]);
 
     // Constraint-aware document selection (Planning is first step — no external deps)
@@ -89,7 +86,7 @@ export default function PlanningStep({
     }, [projectId]);
 
     //fetch data in api
-    
+
 
     const fetchExistingDocs = useCallback(async () => {
         if (!projectId) return;
@@ -138,15 +135,6 @@ export default function PlanningStep({
         }
         return items;
     }, [constraints.constrainedDocuments]);
-
-    // Handle preview of fetched documents
-    const handlePreviewFetchedDocument = useCallback(
-        (doc: DocumentListItem) => {
-            console.log("[PlanningStep] Preview fetched document:", doc);
-            setPreviewFetchedDoc(doc);
-        },
-        [],
-    );
 
     const handleGenerateDocuments = async () => {
         console.log("=== PLANNING STEP - GENERATE DOCUMENTS ===");
@@ -230,32 +218,6 @@ export default function PlanningStep({
                     stepName="planning"
                     projectId={projectId}
                     onRegenerateSuccess={fetchDocumentsList}
-                />
-            )}
-
-            {/* Preview Modal for Template Documents */}
-            {documentPreview.previewDocument && (
-                <PreviewModal
-                    isOpen={!!documentPreview.previewDocument}
-                    onClose={documentPreview.handleClosePreview}
-                    type="document"
-                    title={documentPreview.getPreviewTitle(
-                        documentPreview.previewDocument,
-                    )}
-                    content={documentPreview.previewContent}
-                />
-            )}
-
-            {/* Preview Modal for Fetched Documents */}
-            {previewFetchedDoc && (
-                <PreviewModal
-                    isOpen={!!previewFetchedDoc}
-                    onClose={() => setPreviewFetchedDoc(null)}
-                    type="document"
-                    title={`${previewFetchedDoc.design_type} - ${previewFetchedDoc.project_name}`}
-                    content={
-                        previewFetchedDoc.content || "No content available"
-                    }
                 />
             )}
 

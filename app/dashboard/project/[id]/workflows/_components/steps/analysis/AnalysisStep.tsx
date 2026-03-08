@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
-import PreviewModal from "../../PreviewModal";
 import { analysisDocuments, documentFiles } from "./documents";
 import {
     DocumentSelector,
@@ -41,7 +40,6 @@ export default function AnalysisStep({
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
     const [fetchedDocuments, setFetchedDocuments] = useState<DocumentListItem[]>([]);
     const [isFetchingDocs, setIsFetchingDocs] = useState(false);
-    const [previewFetchedDoc, setPreviewFetchedDoc] = useState<DocumentListItem | null>(null);
 
     // Track documents already generated in previous steps (for cross-step constraints)
     const [existingDocIds, setExistingDocIds] = useState<string[]>([]);
@@ -133,10 +131,6 @@ export default function AnalysisStep({
         await analysisGeneration.generateDocuments(payload, projectId, 'analysis');
     };
 
-    const handlePreviewFetchedDocument = useCallback((doc: DocumentListItem) => {
-        setPreviewFetchedDoc(doc);
-    }, []);
-
     return (
         <div className="space-y-6">
             <div>
@@ -188,32 +182,9 @@ export default function AnalysisStep({
             ) : (
                 <FetchedDocumentsList
                     documents={fetchedDocuments}
-                    onPreview={handlePreviewFetchedDocument}
                     stepName="analysis"
                     projectId={projectId}
                     onRegenerateSuccess={fetchDocumentsList}
-                />
-            )}
-
-            {/* Preview Modal */}
-            {documentPreview.previewDocument && (
-                <PreviewModal
-                    isOpen={!!documentPreview.previewDocument}
-                    onClose={documentPreview.handleClosePreview}
-                    type="document"
-                    title={documentPreview.getPreviewTitle(documentPreview.previewDocument)}
-                    content={documentPreview.previewContent}
-                />
-            )}
-
-            {/* Preview Modal for Fetched Documents */}
-            {previewFetchedDoc && (
-                <PreviewModal
-                    isOpen={!!previewFetchedDoc}
-                    onClose={() => setPreviewFetchedDoc(null)}
-                    type="document"
-                    title={`${previewFetchedDoc.design_type} - ${previewFetchedDoc.project_name}`}
-                    content={previewFetchedDoc.content || "No content available"}
                 />
             )}
 

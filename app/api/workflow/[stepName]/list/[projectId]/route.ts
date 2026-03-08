@@ -44,7 +44,7 @@ export async function GET(
     }
 
     // Call backend API to get documents
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8010";
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
     const response = await fetch(`${backendUrl}/api/v1/${stepName}/list/${projectId}`, {
       method: "GET",
       headers: {

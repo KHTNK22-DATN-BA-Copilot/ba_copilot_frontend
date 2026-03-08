@@ -24,7 +24,7 @@ interface DocumentPreviewModalProps {
     stepName: StepName;
     onRegenerateSuccess?: () => void;
     isRegenerating?: boolean;
-    onRegenerate?: (documentId: string) => Promise<void>;
+    onRegenerate?: (documentId: string, description?: string) => Promise<void>;
 }
 
 export function DocumentPreviewModal({
@@ -56,12 +56,13 @@ export function DocumentPreviewModal({
 
         if (onRegenerate) {
             // Use parent's regenerate handler to sync state
-            await onRegenerate(document.document_id);
+            // Note: Parent handler should be updated to accept description
+            await onRegenerate(document.document_id, chatInput);
             setChatInput(""); // Clear input after success
         } else {
             // Fallback to direct API call if no handler provided
             try {
-                const response = await regenerateDocument(stepName, projectId, document.document_id);
+                const response = await regenerateDocument(stepName, projectId, document.document_id, chatInput);
 
                 if (response.status !== "error") {
                     toast.success("Document regenerated successfully");

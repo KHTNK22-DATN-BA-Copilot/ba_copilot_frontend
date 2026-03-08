@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2, FileText, Layout, BarChart3, RefreshCw } from "lucide-react";
-import PreviewModal from "../PreviewModal";
 import {
     DocumentListItem,
     FetchedDocumentsList,
@@ -35,7 +34,6 @@ export default function ReviewStep({
     const [designDocs, setDesignDocs] = useState<DocumentListItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [previewDoc, setPreviewDoc] = useState<DocumentListItem | null>(null);
 
     const totalDocs = useMemo(
         () => planningDocs.length + analysisDocs.length + designDocs.length,
@@ -134,7 +132,6 @@ export default function ReviewStep({
                     </div>
                     <FetchedDocumentsList
                         documents={planningDocs}
-                        onPreview={setPreviewDoc}
                         stepName="planning"
                         projectId={projectId}
                         onRegenerateSuccess={fetchAllGeneratedDocuments}
@@ -157,7 +154,6 @@ export default function ReviewStep({
                     </div>
                     <FetchedDocumentsList
                         documents={analysisDocs}
-                        onPreview={setPreviewDoc}
                         stepName="analysis"
                         projectId={projectId}
                         onRegenerateSuccess={fetchAllGeneratedDocuments}
@@ -180,7 +176,6 @@ export default function ReviewStep({
                     </div>
                     <FetchedDocumentsList
                         documents={designDocs}
-                        onPreview={setPreviewDoc}
                         stepName="design"
                         projectId={projectId}
                         onRegenerateSuccess={fetchAllGeneratedDocuments}
@@ -192,17 +187,6 @@ export default function ReviewStep({
                     )}
                 </div>
             </div>
-
-            {/* Preview Modal */}
-            {previewDoc && (
-                <PreviewModal
-                    isOpen={!!previewDoc}
-                    onClose={() => setPreviewDoc(null)}
-                    type="document"
-                    title={`${previewDoc.design_type} - ${previewDoc.project_name}`}
-                    content={previewDoc.content || "No content available"}
-                />
-            )}
 
             <div className="flex justify-center items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <Button variant="outline" onClick={onBack} className="gap-2">

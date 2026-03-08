@@ -50,7 +50,7 @@ export function FetchedDocumentsList({
         setIsPreviewOpen(true);
     };
 
-    const handleRegenerateFromModal = async (documentId: string) => {
+    const handleRegenerateFromModal = async (documentId: string, description?: string) => {
         setRegeneratingDocId(documentId);
 
         toast.info(`Regenerating document...`, {
@@ -61,7 +61,8 @@ export function FetchedDocumentsList({
             const data = await regenerateDocument(
                 stepName,
                 projectId,
-                documentId
+                documentId,
+                description
             );
 
             if (data.status !== "error") {

@@ -50,7 +50,7 @@ export async function PATCH(
     }
 
     // Call backend API to regenerate document
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8010";
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
     const response = await fetch(
       `${backendUrl}/api/v1/${stepName}/regenerate/${projectId}/${documentId}`,
       {

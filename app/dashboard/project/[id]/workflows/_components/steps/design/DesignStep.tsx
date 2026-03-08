@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
-import PreviewModal from "../../PreviewModal";
 import { designDocuments, documentFiles } from "./documents";
 import {
     DocumentSelector,
@@ -199,17 +198,6 @@ export default function DesignStep({
                     stepName="design"
                     projectId={projectId}
                     onRegenerateSuccess={fetchDocumentsList}
-                />
-            )}
-
-            {/* Preview Modal */}
-            {documentPreview.previewDocument && (
-                <PreviewModal
-                    isOpen={!!documentPreview.previewDocument}
-                    onClose={documentPreview.handleClosePreview}
-                    type="wireframe"
-                    title={documentPreview.getPreviewTitle(documentPreview.previewDocument)}
-                    content={documentPreview.previewContent}
                 />
             )}
 

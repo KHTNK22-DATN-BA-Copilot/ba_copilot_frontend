@@ -1,97 +1,36 @@
-import { GenerateWorkflowPayload, LegacyGenerateWorkflowPayload, WorkflowApiResponse, JobStatusResponse, WorkflowWSMessage, DocumentListResponse, RegenerateDocumentResponse, StepName } from "./types";
+import { 
+  GenerateWorkflowPayload, 
+  WorkflowWSMessage, 
+  DocumentListResponse, 
+  RegenerateDocumentResponse, 
+  StepName 
+} from "./types";
 
 /**
- * Base configuration for workflow API endpoints
+ * ============================================================================
+ * CONFIGURATION
+ * ============================================================================
  */
+
+const WS_DOMAIN = process.env.NEXT_PUBLIC_WS_DOMAIN;
+const BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
+
 const API_CONFIG = {
   baseUrl: "/api/workflow",
-  endpoints: {
-    generate: "/generate",
-    status: "/status",
-  },
   headers: {
     "Content-Type": "application/json",
   },
 } as const;
 
-/**
- * WebSocket configuration for workflow API
- */
 const WS_CONFIG = {
-  baseUrl: "ws://localhost:8010/api/v1/ws",
-  reconnectAttempts: 3,
-  reconnectDelay: 2000,
+  baseUrl: `${WS_DOMAIN}/api/v1/ws`,
 } as const;
 
-const BaseAPIURL = process.env.NEXT_PUBLIC_BASE_API_URL || "";
-
 /**
- * Generate workflow documents based on the provided payload (Legacy)
- * @param payload - The generation payload including prompt, files, and selected documents
- * @returns Promise with job ID and status
- * @deprecated Use generateWorkflowDocumentsWS for WebSocket connection
+ * ============================================================================
+ * AUTHENTICATION
+ * ============================================================================
  */
-export async function generateWorkflowDocuments(
-  payload: LegacyGenerateWorkflowPayload
-): Promise<WorkflowApiResponse> {
-  try {
-    const endpoint = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.generate}`;
-    
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: API_CONFIG.headers,
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.message || `Failed to generate documents: ${response.status}`
-      );
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("generateWorkflowDocuments error:", error);
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Unknown error occurred",
-    };
-  }
-}
-
-/**
- * Check the status of a workflow generation job
- * @param jobId - The job ID to check
- * @returns Promise with job status information
- */
-export async function checkWorkflowJobStatus(
-  jobId: string
-): Promise<JobStatusResponse> {
-  try {
-    const endpoint = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.status}/${jobId}`;
-    
-    const response = await fetch(endpoint, {
-      method: "GET",
-      headers: API_CONFIG.headers,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to check job status: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("checkWorkflowJobStatus error:", error);
-    return {
-      jobId,
-      status: "error",
-      message: error instanceof Error ? error.message : "Unknown error occurred",
-    };
-  }
-}
-
-
 
 /**
  * Get JWT token from httpOnly cookie via API route
@@ -101,7 +40,7 @@ export async function getAuthToken(): Promise<string | null> {
   try {
     const response = await fetch('/api/auth/token', {
       method: 'GET',
-      credentials: 'include', // Important: include cookies
+      credentials: 'include',
     });
 
     if (!response.ok) {
@@ -118,13 +57,21 @@ export async function getAuthToken(): Promise<string | null> {
 }
 
 /**
+ * ============================================================================
+ * WEBSOCKET - WORKFLOW GENERATION
+ * ============================================================================
+ */
+
+/**
  * Generate workflow documents using WebSocket connection
- * @param payload - The generation payload
+ * Establishes a WebSocket connection to stream workflow generation progress
+ * 
+ * @param payload - The generation payload with prompt and file references
  * @param projectId - The project ID
- * @param stepName - The workflow step name (planning, analysis, design)
- * @param token - JWT authentication token (passed as query parameter)
+ * @param stepName - The workflow step (planning, analysis, or design)
+ * @param token - JWT authentication token
  * @param onMessage - Callback for WebSocket messages
- * @returns WebSocket connection
+ * @returns WebSocket connection instance
  */
 export function generateWorkflowDocumentsWS(
   payload: GenerateWorkflowPayload,
@@ -133,20 +80,16 @@ export function generateWorkflowDocumentsWS(
   token: string,
   onMessage: (message: WorkflowWSMessage) => void
 ): WebSocket {
-  // Token must be passed as query parameter as required by backend
   const wsUrl = `${WS_CONFIG.baseUrl}/projects/${projectId}/${stepName}?token=${encodeURIComponent(token)}`;
   
-  console.log(`[WebSocket] Connecting to: ${stepName} step`, { projectId, stepName });
-  console.log(`[WebSocket] URL: ${wsUrl.replace(/token=.+/, 'token=***')}`); // Hide token in logs
+  console.log(`[WebSocket] Connecting to ${stepName} step`, { projectId, stepName });
   
   const ws = new WebSocket(wsUrl);
 
   ws.onopen = () => {
     console.log(`[WebSocket] Connected for ${stepName} step`);
-    // Send the payload once connected
-    const payloadStr = JSON.stringify(payload);
-    console.log(`[WebSocket] Sending payload:`, payload);
-    ws.send(payloadStr);
+    ws.send(JSON.stringify(payload));
+    console.log(`[WebSocket] Payload sent:`, payload);
   };
 
   ws.onmessage = (event) => {
@@ -155,9 +98,8 @@ export function generateWorkflowDocumentsWS(
       console.log(`[WebSocket] Message received:`, message);
       onMessage(message);
       
-      // Auto-close on completion or error
       if (message.status === "completed" || message.status === "error") {
-        console.log(`[WebSocket] Closing connection - status: ${message.status}`);
+        console.log(`[WebSocket] Closing - status: ${message.status}`);
         ws.close();
       }
     } catch (error) {
@@ -174,13 +116,18 @@ export function generateWorkflowDocumentsWS(
   };
 
   ws.onclose = (event) => {
-    console.log(`[WebSocket] Closed for ${stepName} step`, { code: event.code, reason: event.reason });
-    // Do not treat a socket close as a successful completion.
-    // The backend should explicitly send completion events (e.g., step_finished).
+    console.log(`[WebSocket] Closed for ${stepName} step`, { 
+      code: event.code, 
+      reason: event.reason 
+    });
     onMessage({
       type: "socket_closed",
       message: "WebSocket connection closed",
-      data: { code: event.code, reason: event.reason, wasClean: event.wasClean },
+      data: { 
+        code: event.code, 
+        reason: event.reason, 
+        wasClean: event.wasClean 
+      },
     });
   };
 
@@ -188,8 +135,15 @@ export function generateWorkflowDocumentsWS(
 }
 
 /**
- * Get list of documents for a specific step and project
- * @param stepName - The workflow step name (planning, analysis, design)
+ * ============================================================================
+ * DOCUMENT MANAGEMENT
+ * ============================================================================
+ */
+
+/**
+ * Get list of documents for a specific workflow step
+ * 
+ * @param stepName - The workflow step (planning, analysis, or design)
  * @param projectId - The project ID
  * @returns Promise with list of documents
  */
@@ -203,7 +157,7 @@ export async function getDocumentsList(
     const response = await fetch(endpoint, {
       method: "GET",
       headers: API_CONFIG.headers,
-      credentials: "include", // Include cookies for authentication
+      credentials: "include",
     });
 
     if (!response.ok) {
@@ -215,7 +169,7 @@ export async function getDocumentsList(
 
     return await response.json();
   } catch (error) {
-    console.error(`getDocumentsList error (${stepName}):`, error);
+    console.error(`[API] getDocumentsList error (${stepName}):`, error);
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Unknown error occurred",
@@ -224,23 +178,29 @@ export async function getDocumentsList(
 }
 
 /**
- * Regenerate a specific document for a step and project
- * @param stepName - The workflow step name (planning, analysis, design)
+ * Regenerate a specific document
+ * 
+ * @param stepName - The workflow step (planning, analysis, or design)
  * @param projectId - The project ID
- * @param documentId - The document ID
+ * @param documentId - The document ID to regenerate
+ * @param description - Optional prompt/instructions for regeneration
+ * @returns Promise with regenerated document data
  */
 export async function regenerateDocument(
   stepName: StepName,
   projectId: string,
-  documentId: string
+  documentId: string,
+  description?: string
 ): Promise<RegenerateDocumentResponse> {
   try {
     const endpoint = `${API_CONFIG.baseUrl}/${stepName}/regenerate/${projectId}/${documentId}`;
+    const body = description ? JSON.stringify({ description }) : undefined;
 
     const response = await fetch(endpoint, {
       method: "PATCH",
       headers: API_CONFIG.headers,
-      credentials: "include", // Include cookies for authentication
+      credentials: "include",
+      ...(body && { body }),
     });
 
     if (!response.ok) {
@@ -252,7 +212,7 @@ export async function regenerateDocument(
 
     return await response.json();
   } catch (error) {
-    console.error(`regenerateDocument error (${stepName}):`, error);
+    console.error(`[API] regenerateDocument error (${stepName}):`, error);
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Unknown error occurred",
@@ -261,9 +221,7 @@ export async function regenerateDocument(
 }
 
 /**
- * Get list of planning documents for a project
- * @param projectId - The project ID
- * @returns Promise with list of planning documents
+ * Get planning documents for a project
  */
 export async function getPlanningDocuments(
   projectId: string
@@ -272,9 +230,7 @@ export async function getPlanningDocuments(
 }
 
 /**
- * Get list of analysis documents for a project
- * @param projectId - The project ID
- * @returns Promise with list of analysis documents
+ * Get analysis documents for a project
  */
 export async function getAnalysisDocuments(
   projectId: string
@@ -283,9 +239,7 @@ export async function getAnalysisDocuments(
 }
 
 /**
- * Get list of design documents for a project
- * @param projectId - The project ID
- * @returns Promise with list of design documents
+ * Get design documents for a project
  */
 export async function getDesignDocuments(
   projectId: string
@@ -294,9 +248,11 @@ export async function getDesignDocuments(
 }
 
 /**
- * Export a document as markdown file
- * @param stepName - The workflow step name (planning, analysis, design)
- * @param projectId - The project ID
+ * Export a document as a markdown file
+ * Downloads the document directly from backend API
+ * 
+ * @param stepName - The workflow step (not currently used but kept for consistency)
+ * @param projectId - The project ID (not currently used but kept for consistency)
  * @param documentId - The document ID to export
  * @returns Promise that resolves when download starts
  */
@@ -306,21 +262,19 @@ export async function exportDocument(
   documentId: string
 ): Promise<void> {
   try {
-    // Get auth token for authorization
     const token = await getAuthToken();
     if (!token) {
       throw new Error("Authentication token not found. Please login again.");
     }
 
-    // Call backend API endpoint directly
-    const endpoint = `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/files/export/${documentId}`;
+    const endpoint = `${BACKEND_DOMAIN}/api/v1/files/export/${documentId}`;
     
     const response = await fetch(endpoint, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
       },
-      credentials: "include", // Include cookies for authentication
+      credentials: "include",
     });
 
     if (!response.ok) {
@@ -330,15 +284,12 @@ export async function exportDocument(
       );
     }
 
-    // Get the blob from response
     const blob = await response.blob();
-    
-    // Create download link
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
     
-    // Extract filename from Content-Disposition header or use default
+    // Extract filename from Content-Disposition or use default
     const contentDisposition = response.headers.get("Content-Disposition");
     const filenameMatch = contentDisposition?.match(/filename="?(.+)"?/i);
     const filename = filenameMatch?.[1] || `${documentId}.md`;
@@ -346,13 +297,17 @@ export async function exportDocument(
     link.download = filename;
     document.body.appendChild(link);
     link.click();
-    
-    // Cleanup
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
   } catch (error) {
-    console.error(`exportDocument error (${stepName}):`, error);
+    console.error(`[API] exportDocument error:`, error);
     throw error;
   }
 }
+
+/**
+ * ============================================================================
+ * CONVENIENCE METHODS - Step-specific document retrieval
+ * ============================================================================
+ */
 
