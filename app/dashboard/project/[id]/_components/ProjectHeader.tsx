@@ -20,7 +20,7 @@ export default function ProjectHeader({ project, onProjectUpdate }: ProjectHeade
         description: project.description,
         status: project.status,
         progress: project.progress,
-        createdDate: "01-10-2025",
+        created_at: "01-10-2025",
         dueDate: "15-12-2025",
         teamMembers: 5,
         completedTasks: 24,

@@ -9,6 +9,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { SignIn } from "@/actions/auth.action";
 
 //import Icon
 import { ChartGantt } from "lucide-react";
@@ -34,23 +35,14 @@ const submitAction = async (preState: any, formData: FormData) => {
     }
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    const res = await fetch ("/api/login", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            email,
-            password,
-        }),
-    });
-    const data = await res.json();
+    const res = await SignIn(email, password);
+    console.log("SignIn response:", res);
 
-    if (!res.ok) {
-        alert(data.error || "Login failed");
+    if (res.statusCode !== 200) {
+        alert(res.message || "Login failed");
         return {
             success: false,
-            errors: data,
+            errors: res.message,
         };
     }
 
@@ -112,7 +104,7 @@ export default function SignInForm() {
                             className="mt-1 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
                         />
                         {state.errors && (
-                            <p className="text-red-500 dark:text-red-400 text-sm">{state.errors.email}</p>
+                            <p className="text-red-500 dark:text-red-400 text-sm">{state.errors.toString()}</p>
                         )}
                         <Label htmlFor="password" className="mt-2.5 text-gray-900 dark:text-gray-100">Password</Label>
                         <Input
@@ -123,7 +115,7 @@ export default function SignInForm() {
                             className="mt-1 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
                         />
                         {state.errors && (
-                            <p className="text-red-500 dark:text-red-400 text-sm">{state.errors.password}</p>
+                            <p className="text-red-500 dark:text-red-400 text-sm">{state.errors.toString()}</p>
                         )}
                     </div>
 

@@ -1,4 +1,5 @@
 import { UserProfileProps } from "./types";
+import { updateUserInfo, deleteAccount } from "@/actions/user.action";
 
 // Validation utilities
 export const isValidEmail = (email: string): boolean => {
@@ -18,19 +19,15 @@ export const updateUserProfile = async (
     profile: UserProfileProps
 ): Promise<{ success: boolean; message?: string }> => {
     try {
-        const res = await fetch("/api/me", {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(profile),
+        const res = await updateUserInfo({
+            name: profile.fullName,
+            email: profile.email,
         });
-        const result = await res.json();
 
-        if (res.ok) {
+        if (res.status == 200) {
             return { success: true };
         } else {
-            throw new Error(result.message || "Failed to update profile");
+            throw new Error(res.result || "Failed to update profile");
         }
     } catch (error) {
         console.error("Failed to update profile:", error);
@@ -49,13 +46,7 @@ export const deleteUserAccount = async (): Promise<{
     message?: string;
 }> => {
     try {
-        const res = await fetch("/api/me", {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
-
+        const res = await deleteAccount();
         if (res.ok) {
             return { success: true };
         } else {
