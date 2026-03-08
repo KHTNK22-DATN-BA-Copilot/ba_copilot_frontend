@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useState, useMemo, useCallback } from "react";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
 import PreviewModal from "../../PreviewModal";
 import { designDocuments, documentFiles } from "./documents";
@@ -13,19 +12,17 @@ import {
     useDocumentPreview,
     useWorkflowGeneration,
     GenerateWorkflowPayload,
-    DocumentListItem,
-    getDesignDocuments,
-    getPlanningDocuments,
-    getAnalysisDocuments
 } from "../shared";
 import { useDocumentConstraints } from "../shared/hooks/useDocumentConstraints";
+import useSWR from "swr";
+import { getDesignDocuments, fetchAllDocument } from "@/lib/helper";
 
 interface DesignStepProps {
     generatedWireframes: string[];
     onGenerate: () => void;
     onNext: () => void;
     onBack: () => void;
-    projectName?: string;
+    projectName?: string
 }
 
 export default function DesignStep({
@@ -35,16 +32,21 @@ export default function DesignStep({
     onBack,
     projectName
 }: DesignStepProps) {
-    const params = useParams();
-    const projectId = params?.id as string;
+    const projectId = localStorage.getItem("projectId") as string
 
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
-    const [fetchedDocuments, setFetchedDocuments] = useState<DocumentListItem[]>([]);
-    const [isFetchingDocs, setIsFetchingDocs] = useState(false);
 
-    // Track documents already generated in previous steps (for cross-step constraints)
-    const [existingDocIds, setExistingDocIds] = useState<string[]>([]);
+    const {
+        data: existingDocIds = [],
+    } = useSWR (
+        projectId,
+        fetchAllDocument,
+        {
+            revalidateOnFocus: false,
+        }
+    )
+
 
     // Constraint-aware document selection
     const constraints = useDocumentConstraints({
@@ -53,58 +55,36 @@ export default function DesignStep({
     });
     const documentPreview = useDocumentPreview(designDocuments, documentFiles);
 
-    // Fetch existing documents from all steps (for DB-aware constraints)
-    const fetchExistingDocs = useCallback(async () => {
-        if (!projectId) return;
-        try {
-            const [planningResp, analysisResp, designResp] = await Promise.all([
-                getPlanningDocuments(projectId),
-                getAnalysisDocuments(projectId),
-                getDesignDocuments(projectId),
-            ]);
-            const ids: string[] = [];
-            if (planningResp.status === "success" && planningResp.documents) {
-                ids.push(...planningResp.documents.map((d) => d.doc_type || d.design_type));
-            }
-            if (analysisResp.status === "success" && analysisResp.documents) {
-                ids.push(...analysisResp.documents.map((d) => d.doc_type || d.design_type));
-            }
-            if (designResp.status === "success" && designResp.documents) {
-                ids.push(...designResp.documents.map((d) => d.doc_type || d.design_type));
-            }
-            setExistingDocIds(ids);
-        } catch (error) {
-            console.error("[DesignStep] Error fetching existing docs:", error);
+    const fetchDesignDocument = async ([projectId, step]: [string, string]) => {
+        const response = await getDesignDocuments(projectId);
+        if(response.documents) {
+            return response.documents;
         }
-    }, [projectId]);
-
-    const fetchDocumentsList = useCallback(async () => {
-        if (!projectId) return;
-
-        setIsFetchingDocs(true);
-        try {
-            const response = await getDesignDocuments(projectId);
-            if (response.status === "success" && response.documents) {
-                setFetchedDocuments(response.documents);
-            } else {
-                console.error("[DesignStep] Error fetching documents:", response.message);
-            }
-        } catch (error) {
-            console.error("[DesignStep] Error fetching documents:", error);
-        } finally {
-            setIsFetchingDocs(false);
+        else {
+            return []
         }
-    }, [projectId]);
+    }
 
-    useEffect(() => {
-        fetchExistingDocs();
-        fetchDocumentsList();
-    }, [fetchExistingDocs, fetchDocumentsList]);
+    const {
+        data: fetchedDocuments = [],
+        isLoading: isFetchingDocs,
+        mutate: refreshDoc
+    } = useSWR(
+        [projectId, 'design'],
+        fetchDesignDocument,
+        {
+            revalidateOnFocus: false,
+            dedupingInterval: 5000
+        }
+    )
+
 
     // Workflow generation with callback to fetch documents after completion
     const designGeneration = useWorkflowGeneration(
         onGenerate,
-        fetchDocumentsList
+        () => {
+            refreshDoc()
+        }
     );
 
     // Get selected document names for the loading dialog
@@ -144,6 +124,10 @@ export default function DesignStep({
 
         await designGeneration.generateDocuments(payload, projectId, 'design');
     };
+
+    const handleRefreshDoc = useCallback(() => {
+        refreshDoc()
+    }, [refreshDoc])
 
     return (
         <div className="space-y-6">
@@ -198,7 +182,7 @@ export default function DesignStep({
                     documents={fetchedDocuments}
                     stepName="design"
                     projectId={projectId}
-                    onRegenerateSuccess={fetchDocumentsList}
+                    onRegenerateSuccess={handleRefreshDoc}
                 />
             )}
 

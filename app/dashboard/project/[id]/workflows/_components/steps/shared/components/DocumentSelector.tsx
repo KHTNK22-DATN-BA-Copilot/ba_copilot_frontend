@@ -82,69 +82,101 @@ export function DocumentSelector({
                     {documents.map((doc) => (
                         <div key={doc.id} className="space-y-2">
                             {/* Main Document Row */}
-                            <div
-                                className={`flex items-center gap-4 p-4 bg-white dark:bg-gray-800 border rounded-lg transition-colors ${
-                                    doc.isDisabled
-                                        ? "border-gray-200 dark:border-gray-700 opacity-60"
-                                        : "border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
-                                }`}
-                            >
-                                <div className="flex items-center gap-2">
-                                    {doc.subItems && (
-                                        <button
-                                            onClick={() =>
-                                                onToggleExpand(doc.id)
-                                            }
-                                            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                                            aria-label={
-                                                expandedItems.includes(doc.id)
-                                                    ? "Collapse"
-                                                    : "Expand"
-                                            }
+                            {doc.isDisabled && doc.disabledReason ? (
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div
+                                            className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-60 rounded-lg transition-colors"
                                         >
-                                            {expandedItems.includes(doc.id) ? (
-                                                <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                                            ) : (
-                                                <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                                            )}
-                                        </button>
-                                    )}
-
-                                    {doc.isDisabled && doc.disabledReason ? (
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <span className="inline-flex">
-                                                    <Checkbox
-                                                        id={doc.id}
-                                                        checked={doc.isChecked}
-                                                        onCheckedChange={() =>
-                                                            doc.subItems
-                                                                ? onToggleParent(
-                                                                      doc.id,
-                                                                  )
-                                                                : onToggle(
-                                                                      doc.id,
-                                                                  )
+                                            <div className="flex items-center gap-2">
+                                                {doc.subItems && (
+                                                    <button
+                                                        onClick={() =>
+                                                            onToggleExpand(doc.id)
                                                         }
-                                                        className="flex-shrink-0"
-                                                        data-indeterminate={isIndeterminate(
-                                                            doc,
+                                                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                                                        aria-label={
+                                                            expandedItems.includes(doc.id)
+                                                                ? "Collapse"
+                                                                : "Expand"
+                                                        }
+                                                    >
+                                                        {expandedItems.includes(doc.id) ? (
+                                                            <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                                                        ) : (
+                                                            <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                                                         )}
-                                                        disabled
-                                                    />
-                                                </span>
-                                            </TooltipTrigger>
-                                            <TooltipContent
-                                                side="top"
-                                                className="flex items-center gap-1.5 max-w-xs"
+                                                    </button>
+                                                )}
+                                                <Checkbox
+                                                    id={doc.id}
+                                                    checked={doc.isChecked}
+                                                    onCheckedChange={() =>
+                                                        doc.subItems
+                                                            ? onToggleParent(doc.id)
+                                                            : onToggle(doc.id)
+                                                    }
+                                                    className="flex-shrink-0"
+                                                    data-indeterminate={isIndeterminate(doc)}
+                                                    disabled
+                                                />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <label
+                                                    htmlFor={doc.id}
+                                                    className="block font-medium cursor-pointer text-gray-400 dark:text-gray-500"
+                                                >
+                                                    {doc.name}
+                                                </label>
+                                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                    {doc.description}
+                                                </p>
+                                            </div>
+                                            {!doc.subItems && (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="gap-2 flex-shrink-0"
+                                                    onClick={() => onPreview(doc.id)}
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                    Preview
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                        side="top"
+                                        className="flex items-center gap-1.5 max-w-xs"
+                                    >
+                                        <Lock className="w-3 h-3 flex-shrink-0" />
+                                        <span>{doc.disabledReason}</span>
+                                    </TooltipContent>
+                                </Tooltip>
+                            ) : (
+                                <div
+                                    className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 rounded-lg transition-colors"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        {doc.subItems && (
+                                            <button
+                                                onClick={() =>
+                                                    onToggleExpand(doc.id)
+                                                }
+                                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                                                aria-label={
+                                                    expandedItems.includes(doc.id)
+                                                        ? "Collapse"
+                                                        : "Expand"
+                                                }
                                             >
-                                                <Lock className="w-3 h-3 flex-shrink-0" />
-                                                <span>
-                                                    {doc.disabledReason}
-                                                </span>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    ) : (
+                                                {expandedItems.includes(doc.id) ? (
+                                                    <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                                                ) : (
+                                                    <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                                                )}
+                                            </button>
+                                        )}
                                         <Checkbox
                                             id={doc.id}
                                             checked={doc.isChecked}
@@ -154,129 +186,111 @@ export function DocumentSelector({
                                                     : onToggle(doc.id)
                                             }
                                             className="flex-shrink-0"
-                                            data-indeterminate={isIndeterminate(
-                                                doc,
-                                            )}
+                                            data-indeterminate={isIndeterminate(doc)}
                                             disabled={doc.isDisabled}
                                         />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <label
+                                            htmlFor={doc.id}
+                                            className="block font-medium cursor-pointer text-gray-900 dark:text-gray-100"
+                                        >
+                                            {doc.name}
+                                        </label>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                            {doc.description}
+                                        </p>
+                                    </div>
+                                    {!doc.subItems && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-2 flex-shrink-0"
+                                            onClick={() => onPreview(doc.id)}
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                            Preview
+                                        </Button>
                                     )}
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <label
-                                        htmlFor={doc.id}
-                                        className={`block font-medium cursor-pointer ${
-                                            doc.isDisabled
-                                                ? "text-gray-400 dark:text-gray-500"
-                                                : "text-gray-900 dark:text-gray-100"
-                                        }`}
-                                    >
-                                        {doc.name}
-                                    </label>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                        {doc.description}
-                                    </p>
-                                </div>
-                                {!doc.subItems && (
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="gap-2 flex-shrink-0"
-                                        onClick={() => onPreview(doc.id)}
-                                    >
-                                        <Eye className="w-4 h-4" />
-                                        Preview
-                                    </Button>
-                                )}
-                            </div>
+                            )}
 
                             {/* Sub-items */}
                             {doc.subItems &&
                                 expandedItems.includes(doc.id) && (
                                     <div className="ml-12 space-y-2">
                                         {doc.subItems.map((subItem) => (
-                                            <div
-                                                key={subItem.id}
-                                                className={`flex items-center gap-4 p-3 border rounded-lg transition-colors ${
-                                                    subItem.isDisabled
-                                                        ? "bg-gray-100 dark:bg-gray-900 border-gray-200 dark:border-gray-700 opacity-60"
-                                                        : "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
-                                                }`}
-                                            >
-                                                {subItem.isDisabled &&
-                                                subItem.disabledReason ? (
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <span className="inline-flex">
-                                                                <Checkbox
-                                                                    id={
-                                                                        subItem.id
-                                                                    }
-                                                                    checked={
-                                                                        subItem.isChecked
-                                                                    }
-                                                                    onCheckedChange={() =>
-                                                                        onToggle(
-                                                                            subItem.id,
-                                                                        )
-                                                                    }
-                                                                    className="flex-shrink-0"
-                                                                    disabled
-                                                                />
-                                                            </span>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent
-                                                            side="top"
-                                                            className="flex items-center gap-1.5 max-w-xs"
+                                            subItem.isDisabled && subItem.disabledReason ? (
+                                                <Tooltip key={subItem.id}>
+                                                    <TooltipTrigger asChild>
+                                                        <div
+                                                            className="flex items-center gap-4 p-3 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 opacity-60 rounded-lg transition-colors"
                                                         >
-                                                            <Lock className="w-3 h-3 flex-shrink-0" />
-                                                            <span>
-                                                                {
-                                                                    subItem.disabledReason
-                                                                }
-                                                            </span>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                ) : (
+                                                            <Checkbox
+                                                                id={subItem.id}
+                                                                checked={subItem.isChecked}
+                                                                onCheckedChange={() => onToggle(subItem.id)}
+                                                                className="flex-shrink-0"
+                                                                disabled
+                                                            />
+                                                            <div className="flex-1 min-w-0">
+                                                                <label
+                                                                    htmlFor={subItem.id}
+                                                                    className="block text-sm font-medium cursor-pointer text-gray-400 dark:text-gray-500"
+                                                                >
+                                                                    {subItem.name}
+                                                                </label>
+                                                            </div>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="gap-2 flex-shrink-0 text-xs"
+                                                                onClick={() => onPreview(subItem.id)}
+                                                            >
+                                                                <Eye className="w-3 h-3" />
+                                                                Preview
+                                                            </Button>
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent
+                                                        side="top"
+                                                        className="flex items-center gap-1.5 max-w-xs"
+                                                    >
+                                                        <Lock className="w-3 h-3 flex-shrink-0" />
+                                                        <span>{subItem.disabledReason}</span>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            ) : (
+                                                <div
+                                                    key={subItem.id}
+                                                    className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 rounded-lg transition-colors"
+                                                >
                                                     <Checkbox
                                                         id={subItem.id}
-                                                        checked={
-                                                            subItem.isChecked
-                                                        }
-                                                        onCheckedChange={() =>
-                                                            onToggle(
-                                                                subItem.id,
-                                                            )
-                                                        }
+                                                        checked={subItem.isChecked}
+                                                        onCheckedChange={() => onToggle(subItem.id)}
                                                         className="flex-shrink-0"
-                                                        disabled={
-                                                            subItem.isDisabled
-                                                        }
+                                                        disabled={subItem.isDisabled}
                                                     />
-                                                )}
-                                                <div className="flex-1 min-w-0">
-                                                    <label
-                                                        htmlFor={subItem.id}
-                                                        className={`block text-sm font-medium cursor-pointer ${
-                                                            subItem.isDisabled
-                                                                ? "text-gray-400 dark:text-gray-500"
-                                                                : "text-gray-900 dark:text-gray-100"
-                                                        }`}
+                                                    <div className="flex-1 min-w-0">
+                                                        <label
+                                                            htmlFor={subItem.id}
+                                                            className="block text-sm font-medium cursor-pointer text-gray-900 dark:text-gray-100"
+                                                        >
+                                                            {subItem.name}
+                                                        </label>
+                                                    </div>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="gap-2 flex-shrink-0 text-xs"
+                                                        onClick={() => onPreview(subItem.id)}
                                                     >
-                                                        {subItem.name}
-                                                    </label>
+                                                        <Eye className="w-3 h-3" />
+                                                        Preview
+                                                    </Button>
                                                 </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="gap-2 flex-shrink-0 text-xs"
-                                                    onClick={() =>
-                                                        onPreview(subItem.id)
-                                                    }
-                                                >
-                                                    <Eye className="w-3 h-3" />
-                                                    Preview
-                                                </Button>
-                                            </div>
+                                            )
                                         ))}
                                     </div>
                                 )}

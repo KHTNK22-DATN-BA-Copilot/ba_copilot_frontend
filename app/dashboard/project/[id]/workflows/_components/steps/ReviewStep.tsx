@@ -8,10 +8,8 @@ import PreviewModal from "../PreviewModal";
 import {
     DocumentListItem,
     FetchedDocumentsList,
-    getAnalysisDocuments,
-    getDesignDocuments,
-    getPlanningDocuments,
 } from "./shared";
+import { getPlanningDocuments, getAnalysisDocuments, getDesignDocuments } from "@/lib/helper";
 
 interface ReviewStepProps {
     requirements: string;
