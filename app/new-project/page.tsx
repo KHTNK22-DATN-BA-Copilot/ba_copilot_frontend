@@ -8,6 +8,7 @@ import ProjectDetailsForm from './_components/ProjectDetailsForm';
 import ProjectFeatures from './_components/ProjectFeatures';
 import ProjectActions from './_components/ProjectActions';
 import { useDarkMode } from './_components/useDarkMode';
+import { createProject } from "@/actions/project.action";
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -27,26 +28,14 @@ export default function NewProjectPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/projects', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: projectName,
-          description: description || null,
-          status: 'active',
-        }),
-      });
+      const response = await createProject(projectName, description, "active")
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.status === 201 && response.data) {
         // After successful creation, navigate to the new project or dashboard
-        router.push(`/dashboard/project/${data.id}`);
+        router.push(`/dashboard/project/${response.data.id as string}`);
       } else {
-        setError(data.error || 'Failed to create project');
-        console.error('Error creating project:', data.error);
+        setError(response.message || 'Failed to create project');
+        console.error('Error creating project:', response.message);
       }
     } catch (error) {
       setError('An unexpected error occurred');

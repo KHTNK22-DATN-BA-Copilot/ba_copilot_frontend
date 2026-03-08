@@ -1,6 +1,7 @@
 import { Calendar, Clock, Users, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Project } from './types';
+import { getDay } from '@/lib/utils';
 
 interface ProjectInfoCardsProps {
     project: Project;
@@ -10,17 +11,17 @@ export default function ProjectInfoCards({ project }: ProjectInfoCardsProps) {
     const infoCards = [
         {
             label: 'Start Date',
-            value: project.createdDate,
+            value: getDay(project.created_at),
             icon: Calendar,
         },
         {
             label: 'Updated At',
-            value: project.dueDate,
+            value: getDay(project.updated_at || ""),
             icon: Clock,
         },
         {
             label: 'Team Members',
-            value: `${project.teamMembers} Members`,
+            value: `${project.team_size} Members`,
             icon: Users,
         },
         {

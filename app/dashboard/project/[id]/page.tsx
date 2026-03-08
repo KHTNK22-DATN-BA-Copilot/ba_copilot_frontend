@@ -7,7 +7,7 @@ import RecentActivitySection from './_components/RecentActivitySection';
 import TasksOverviewSection from './_components/TasksOverviewSection';
 import DeleteProjectSection from './_components/DeleteProjectSection';
 import { Activity, QuickStat, TaskOverview } from './_components/types';
-import { getProjectData } from '@/lib/projects';
+import { getProjectById } from '@/actions/project.action';
 
 const Error = ({error}: {error: string}) => {
     return (
@@ -28,7 +28,7 @@ export default async function ProjectOverviewPage({
 }) {
     const { id } = await params;
 
-    const project = await getProjectData(id);
+    const project = await getProjectById(id);
 
     // Mock data for sections (these should eventually come from API)
     const recentActivities: Activity[] = [

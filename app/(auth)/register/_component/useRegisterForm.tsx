@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { SignUp } from "@/actions/auth.action";
 
 export function useRegisterForm() {
     const router = useRouter();
@@ -132,16 +133,21 @@ export function useRegisterForm() {
                 passwordhash: formData.password
             }
 
-            const respond = await axios.post(
-                `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/auth/register`,
-                payload
-            )
+            const userRegistered = await SignUp(payload.name, payload.email, payload.passwordhash);
 
-            console.log('Registration successful:', respond.data);
+            console.log('Registration successful:', userRegistered);
 
-            router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+            if(userRegistered.success) {
+                //router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+                router.push(`/login`)
+            }
+            else {
+                alert(userRegistered.message)
+            }
+
+
         } catch (error) {
-            console.error('Registration error:', error);
+            console.error('Registration error:', );
 
             if (axios.isAxiosError(error) && error.response) {
                 alert("Registration failed: " + error.response.data.detail); 
