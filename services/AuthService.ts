@@ -26,7 +26,6 @@ export class AuthService {
         const data = await response.json();
         return {
             success: false,
-            data: null,
             statusCode: response.status,
             message: data.message
         }
@@ -75,8 +74,8 @@ export class AuthService {
             if(response.status === 401) {
                 return {
                     success: false,
-                    data: null,
                     statusCode: 401,
+                    message: "Invalid email or password. Please try again.",
                 }
             }
 
