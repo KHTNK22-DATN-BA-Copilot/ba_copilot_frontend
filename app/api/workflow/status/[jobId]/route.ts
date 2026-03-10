@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 
 /**
  * GET /api/workflow/analysis/status/:jobId
@@ -33,6 +34,7 @@ export async function GET(
       message: "Analysis documents generated successfully",
     });
   } catch (error) {
+    Sentry.captureException(error);
     console.error("Error checking job status:", error);
     return NextResponse.json(
       {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import * as Sentry from "@sentry/nextjs";
 
 /**
  * GET /api/workflow/:stepName/list/:projectId
@@ -70,6 +71,7 @@ export async function GET(
       documents: data.documents || [],
     });
   } catch (error) {
+    Sentry.captureException(error);
     console.error(`Error fetching documents:`, error);
     return NextResponse.json(
       {

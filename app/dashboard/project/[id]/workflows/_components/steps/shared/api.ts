@@ -18,7 +18,7 @@ const API_CONFIG = {
  * WebSocket configuration for workflow API
  */
 const WS_CONFIG = {
-  baseUrl: "ws://localhost:8010/api/v1/ws",
+  baseUrl: `${process.env.NEXT_PUBLIC_WS_DOMAIN}/api/v1/ws`,
   reconnectAttempts: 3,
   reconnectDelay: 2000,
 } as const;
