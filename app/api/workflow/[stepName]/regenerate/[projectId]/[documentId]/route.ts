@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { regenerateWorkflowDocument } from "@/actions/workflow.action";
 
 /**
  * PATCH /api/workflow/:stepName/regenerate/:projectId/:documentId
@@ -12,72 +12,25 @@ export async function PATCH(
   try {
     const { stepName, projectId, documentId } = await params;
 
-    // Validate step name
-    const validSteps = ["planning", "analysis", "design"];
-    if (!validSteps.includes(stepName)) {
-      return NextResponse.json(
-        { status: "error", message: `Invalid step name. Must be one of: ${validSteps.join(", ")}` },
-        { status: 400 }
-      );
-    }
+    const result = await regenerateWorkflowDocument(stepName, projectId, documentId);
 
-    // Validate project ID
-    if (!projectId) {
-      return NextResponse.json(
-        { status: "error", message: "Project ID is required" },
-        { status: 400 }
-      );
-    }
-
-    // Validate document ID
-    if (!documentId) {
-      return NextResponse.json(
-        { status: "error", message: "Document ID is required" },
-        { status: 400 }
-      );
-    }
-
-    // Get authentication token from cookies
-    const cookieStore = await cookies();
-    const token =
-      cookieStore.get("access_token")?.value ?? cookieStore.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    // Call backend API to regenerate document
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
-    const response = await fetch(
-      `${backendUrl}/api/v1/${stepName}/regenerate/${projectId}/${documentId}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "Authorization": `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+    if (result.success) {
       return NextResponse.json(
         {
-          status: "error",
-          message: errorData.message || `Failed to regenerate document: ${response.status}`,
+          status: "success",
+          result: result.data,
         },
-        { status: response.status }
+        { status: 200 }
       );
     }
 
-    const data = await response.json();
-    return NextResponse.json({
-      status: "success",
-      result: data,
-    });
+    return NextResponse.json(
+      {
+        status: "error",
+        message: result.message,
+      },
+      { status: result.statusCode || 500 }
+    );
   } catch (error) {
     console.error(`Error regenerating document:`, error);
     return NextResponse.json(

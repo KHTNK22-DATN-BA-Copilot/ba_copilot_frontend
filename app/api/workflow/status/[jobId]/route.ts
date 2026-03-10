@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as Sentry from "@sentry/nextjs";
+import { getWorkflowJobStatus } from "@/actions/workflow.action";
 
 /**
- * GET /api/workflow/analysis/status/:jobId
- * Check the status of an analysis generation job
+ * GET /api/workflow/status/:jobId
+ * Check the status of a workflow generation job
  */
 export async function GET(
   request: NextRequest,
@@ -12,29 +12,26 @@ export async function GET(
   try {
     const { jobId } = params;
 
-    if (!jobId) {
+    const result = await getWorkflowJobStatus(jobId);
+
+    if (result.success) {
       return NextResponse.json(
-        { status: "error", message: "Job ID is required" },
-        { status: 400 }
+        {
+          status: "success",
+          ...result.data,
+        },
+        { status: 200 }
       );
     }
 
-    // TODO: Implement actual job status checking
-    // This is a placeholder for future backend integration
-    
-    // TODO: Query backend service for job status
-    // const response = await fetch(`YOUR_BACKEND_ENDPOINT/status/${jobId}`);
-    // const data = await response.json();
-
-    // For now, return a mock response
-    return NextResponse.json({
-      jobId,
-      status: "completed",
-      progress: 100,
-      message: "Analysis documents generated successfully",
-    });
+    return NextResponse.json(
+      {
+        status: "error",
+        message: result.message,
+      },
+      { status: result.statusCode || 500 }
+    );
   } catch (error) {
-    Sentry.captureException(error);
     console.error("Error checking job status:", error);
     return NextResponse.json(
       {
