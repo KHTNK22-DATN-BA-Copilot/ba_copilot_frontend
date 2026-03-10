@@ -4,12 +4,14 @@ export interface Project {
     description: string;
     status: string;
     progress: number;
-    createdDate: string;
+    created_at: string;
     dueDate: string;
     teamMembers: number;
     completedTasks: number;
     totalTasks: number;
     priority?: 'low' | 'medium' | 'high';
+    updated_at?: string;
+    team_size?: number;
 }
 
 export interface Activity {

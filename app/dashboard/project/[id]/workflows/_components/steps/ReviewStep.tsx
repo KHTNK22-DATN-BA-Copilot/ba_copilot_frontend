@@ -7,10 +7,8 @@ import { ArrowLeft, CheckCircle2, FileText, Layout, BarChart3, RefreshCw } from 
 import {
     DocumentListItem,
     FetchedDocumentsList,
-    getAnalysisDocuments,
-    getDesignDocuments,
-    getPlanningDocuments,
 } from "./shared";
+import { getPlanningDocuments, getAnalysisDocuments, getDesignDocuments } from "@/lib/helper";
 
 interface ReviewStepProps {
     requirements: string;

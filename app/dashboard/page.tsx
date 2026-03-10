@@ -1,6 +1,6 @@
 import MainContent from './_components/MainContent';
 import { Metadata } from 'next';
-import { getAllProjects } from '@/lib/projects';
+import { getAllProjects } from '@/actions/project.action';
 
 export const metadata: Metadata = {
     title: 'Dashboard - BA Copilot',

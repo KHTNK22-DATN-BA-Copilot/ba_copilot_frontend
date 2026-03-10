@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import {useCallback, useState} from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2 } from "lucide-react";
 import { SRSIcon, DiagramIcon, WireframeIcon, HomeIcon } from "@/components/icons/project-icons";
@@ -65,27 +65,27 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
         },
     ];
 
-    const handleNext = () => {
+    const handleNext = useCallback(() => {
         if (currentStep < steps.length - 1) {
             setCurrentStep(currentStep + 1);
         }
-    };
+    }, [currentStep, steps.length]);
 
-    const handleBack = () => {
+    const handleBack = useCallback(() => {
         if (currentStep > 0) {
             setCurrentStep(currentStep - 1);
         }
-    };
+    }, [currentStep]);
 
-    const handleGenerateDiagrams = () => {
+    const handleGenerateDiagrams = useCallback(() => {
         // Simulate diagram generation
         setGeneratedDiagrams(["Usecase Diagram", "Class Diagram", "Activity Diagram"]);
-    };
+    }, []);
 
-    const handleGenerateSRS = () => {
+    const handleGenerateSRS = useCallback(() => {
         // Simulate SRS generation
         setGeneratedSRS("Software Requirements Specification document has been generated based on your input.");
-    };
+    }, []);
 
     const handleGenerateWireframes = () => {
         // Simulate wireframe generation

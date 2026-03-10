@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useState, useMemo, useCallback, memo } from "react";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
 import { planningDocuments, documentFiles } from "./documents";
 import {
@@ -13,9 +12,11 @@ import {
     useWorkflowGeneration,
     GenerateWorkflowPayload,
     DocumentListItem,
-    getPlanningDocuments,
 } from "../shared";
 import { useDocumentConstraints } from "../shared/hooks/useDocumentConstraints";
+import useSWR from "swr";
+import { fetchAllDocument, getPlanningDocuments } from "@/lib/helper";
+import PreviewModal from "../../PreviewModal";
 
 interface PlanningStepProps {
     generatedDiagrams: string[];
@@ -25,23 +26,52 @@ interface PlanningStepProps {
     projectName?: string;
 }
 
-export default function PlanningStep({
-    generatedDiagrams,
+function PlanningStep({
     onGenerate,
     onNext,
     onBack,
     projectName,
 }: PlanningStepProps) {
-    const params = useParams();
-    const projectId = params?.id as string;
+    const projectId = localStorage.getItem("projectId") as string;
 
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
-    const [fetchedDocuments, setFetchedDocuments] = useState<
-        DocumentListItem[]
-    >([]);
-    const [isFetchingDocs, setIsFetchingDocs] = useState(false);
-    const [existingDocIds, setExistingDocIds] = useState<string[]>([]);
+    const [previewFetchedDoc, setPreviewFetchedDoc] =
+        useState<DocumentListItem | null>(null);
+    
+    const {
+        data: existingDocIds = [],
+    } = useSWR(
+        projectId,
+        fetchAllDocument,
+        {
+            revalidateOnFocus: false,
+        }
+    )
+
+    const fetchDocuments = async ([pId, step]: [string, string, string]) => {
+        console.log(`[SWR] Fetching for Project: ${pId}, Step: ${step}`);
+        const response = await getPlanningDocuments(pId);
+        console.log(`[SWR] Response for Project: ${pId}, Step: ${step}`, response);
+
+        if (response.status === "success" && response.documents) {
+            return response.documents;
+        }
+        throw new Error(response.message || "Failed to fetch documents");
+    }
+
+    const {
+        data: fetchedDocuments = [], // Default là mảng rỗng nếu chưa có data
+        isLoading: isFetchingDocs, // Tương đương loading state
+        mutate: refreshDocs // Hàm để ép gọi lại API bằng tay
+    } = useSWR(
+        projectId ? [projectId, 'planning'] : null,
+        fetchDocuments,
+        {
+            revalidateOnFocus: false,
+        }
+    );
+
 
     // Constraint-aware document selection (Planning is first step — no external deps)
     const constraints = useDocumentConstraints({
@@ -53,71 +83,13 @@ export default function PlanningStep({
         documentFiles,
     );
 
-    // Fetch documents list function
-    const fetchDocumentsList = useCallback(async () => {
-        if (!projectId) return;
-
-        console.log(
-            "[PlanningStep] Fetching documents list for project:",
-            projectId,
-        );
-        setIsFetchingDocs(true);
-
-        try {
-            const response = await getPlanningDocuments(projectId);
-
-            if (response.status === "success" && response.documents) {
-                console.log(
-                    "[PlanningStep] Documents fetched successfully:",
-                    response.documents,
-                );
-                setFetchedDocuments(response.documents);
-            } else {
-                console.error(
-                    "[PlanningStep] Error fetching documents:",
-                    response.message,
-                );
-            }
-        } catch (error) {
-            console.error("[PlanningStep] Error fetching documents:", error);
-        } finally {
-            setIsFetchingDocs(false);
-        }
-    }, [projectId]);
-
-    //fetch data in api
-
-
-    const fetchExistingDocs = useCallback(async () => {
-        if (!projectId) return;
-        try {
-            const [planningResp] = await Promise.all([
-                getPlanningDocuments(projectId),
-            ]);
-            const ids: string[] = [];
-            if (planningResp.status === "success" && planningResp.documents) {
-                ids.push(
-                    ...planningResp.documents.map(
-                        (d) => d.doc_type || d.design_type,
-                    ),
-                );
-            }
-            setExistingDocIds(ids);
-        } catch (error) {
-            console.error("[PlanningStep] Error fetching existing docs:", error);
-        }
-    }, [projectId]);
-
-    // Fetch documents on component mount
-    useEffect(() => {
-        fetchDocumentsList();
-        fetchExistingDocs();
-    }, [fetchDocumentsList, fetchExistingDocs]);
 
     // Workflow generation with callback to fetch documents after completion
-    const planningGeneration = useWorkflowGeneration(
+    const { generateDocuments, error, isGenerating, cancelGeneration, documentStatuses } = useWorkflowGeneration(
         onGenerate,
-        fetchDocumentsList,
+        () => {
+            refreshDocs()
+        }
     );
 
     // Get selected document names for the loading dialog
@@ -136,13 +108,22 @@ export default function PlanningStep({
         return items;
     }, [constraints.constrainedDocuments]);
 
-    const handleGenerateDocuments = async () => {
+
+    const handleRefreshDocs = useCallback(() => {
+        refreshDocs();
+    }, [refreshDocs]);
+
+    const checkedIdsString = constraints.checkedDocIds.join(',');
+
+    const handleGenerateDocuments = useCallback( async () => {
+        const currentCheckedIds = checkedIdsString ? checkedIdsString.split(',') : [];
+
         console.log("=== PLANNING STEP - GENERATE DOCUMENTS ===");
         console.log("Project ID:", projectId);
-        console.log("Selected Document IDs:", constraints.checkedDocIds);
+        console.log("Selected Document IDs:", currentCheckedIds);
         console.log("Prompt:", prompt);
 
-        const documents = constraints.checkedDocIds.map((docId) => ({
+        const documents = currentCheckedIds.map((docId) => ({
             type: docId,
         }));
 
@@ -157,12 +138,12 @@ export default function PlanningStep({
         console.log("Step Name: planning");
         console.log("==========================================");
 
-        await planningGeneration.generateDocuments(
+        await generateDocuments(
             payload,
             projectId,
             "planning",
         );
-    };
+    }, [projectId, checkedIdsString, prompt, projectName, generateDocuments])
 
     return (
         <div className="space-y-6">
@@ -197,10 +178,10 @@ export default function PlanningStep({
             />
 
             {/* Error Message */}
-            {planningGeneration.error && (
+            {error && (
                 <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                     <p className="text-sm text-red-600 dark:text-red-400">
-                        {planningGeneration.error}
+                        {error}
                     </p>
                 </div>
             )}
@@ -217,22 +198,35 @@ export default function PlanningStep({
                     documents={fetchedDocuments}
                     stepName="planning"
                     projectId={projectId}
-                    onRegenerateSuccess={fetchDocumentsList}
+                    onRegenerateSuccess={handleRefreshDocs}
+                />
+            )}
+
+            {/* Preview Modal for Template Documents */}
+            {documentPreview.previewDocument && (
+                <PreviewModal
+                    isOpen={!!documentPreview.previewDocument}
+                    onClose={documentPreview.handleClosePreview}
+                    type="document"
+                    title={documentPreview.getPreviewTitle(
+                        documentPreview.previewDocument,
+                    )}
+                    content={documentPreview.previewContent}
                 />
             )}
 
             {/* Generation Loading Dialog */}
             <GenerationLoadingDialog
-                isOpen={planningGeneration.isGenerating}
+                isOpen={isGenerating}
                 documents={selectedDocumentsForDialog}
-                statuses={planningGeneration.documentStatuses}
-                onCancel={planningGeneration.cancelGeneration}
+                statuses={documentStatuses}
+                onCancel={cancelGeneration}
             />
 
             {/* Action Buttons */}
             <WorkflowActions
                 hasGeneratedDocuments={fetchedDocuments.length > 0}
-                isGenerating={planningGeneration.isGenerating}
+                isGenerating={isGenerating}
                 onGenerate={handleGenerateDocuments}
                 onNext={onNext}
                 onBack={onBack}
@@ -242,3 +236,5 @@ export default function PlanningStep({
         </div>
     );
 }
+
+export default memo(PlanningStep)

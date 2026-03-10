@@ -41,29 +41,29 @@ export default function Sidebar({ isDarkMode, isOpen = false, onClose, isMobile 
             icon: <FileIcon />,
             description: 'Manage Project Files'
         },
+        // {
+        //     name: 'AI Conversations',
+        //     href: `/dashboard/project/${id}/aiconversations`,
+        //     icon: <ConversationIcon />,
+        //     description: 'Chat with AI Assistants'
+        // },
         {
-            name: 'AI Conversations',
-            href: `/dashboard/project/${id}/aiconversations`,
-            icon: <ConversationIcon />,
-            description: 'Chat with AI Assistants'
-        },
-        {
-            name: 'Diagrams',
+            name: 'Planning Phase',
             href: `/dashboard/project/${id}/diagrams`,
             icon: <DiagramIcon />,
-            description: 'Create Visual Diagrams'
+            description: 'Create planning documents'
         },
         {
-            name: 'SRS Generator',
+            name: 'Analysis Phase',
             href: `/dashboard/project/${id}/srsgenerator`,
             icon: <SRSIcon />,
-            description: 'Generate Requirements'
+            description: 'Create analysis documents'
         },
         {
-            name: 'Wireframe Generator',
+            name: 'Design Phase',
             href: `/dashboard/project/${id}/wireframegenerator`,
             icon: <WireframeIcon />,
-            description: 'Design Wireframes'
+            description: 'Create design documents'
         }
     ];
 

@@ -23,7 +23,9 @@ const API_CONFIG = {
 } as const;
 
 const WS_CONFIG = {
-  baseUrl: `${WS_DOMAIN}/api/v1/ws`,
+  baseUrl: `${process.env.NEXT_PUBLIC_WS_DOMAIN}/api/v1/ws`,
+  reconnectAttempts: 3,
+  reconnectDelay: 2000,
 } as const;
 
 /**
@@ -181,6 +183,8 @@ export async function getDocumentsList(
  * Regenerate a specific document
  * 
  * @param stepName - The workflow step (planning, analysis, or design)
+ * Regenerate a specific document for a step and project
+ * @param stepName - The workflow step name (planning, analysis, design)
  * @param projectId - The project ID
  * @param documentId - The document ID to regenerate
  * @param description - Optional prompt/instructions for regeneration
@@ -253,6 +257,9 @@ export async function getDesignDocuments(
  * 
  * @param stepName - The workflow step (not currently used but kept for consistency)
  * @param projectId - The project ID (not currently used but kept for consistency)
+ * Export a document as markdown file
+ * @param stepName - The workflow step name (planning, analysis, design)
+ * @param projectId - The project ID
  * @param documentId - The document ID to export
  * @returns Promise that resolves when download starts
  */

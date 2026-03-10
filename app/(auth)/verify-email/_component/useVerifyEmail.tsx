@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { verifyEmail } from "@/actions/auth.action";
 
 export default function useVerifyEmail() {
     const [email, setEmail] = useState("");
@@ -98,12 +99,7 @@ export default function useVerifyEmail() {
                 code: pinCode,
             };
 
-            const respond = await axios.post(
-                `${
-                    process.env.NEXT_PUBLIC_BACKEND_DOMAIN
-                }/api/v1/auth/verify-email?email=${encodeURIComponent(email)}`,
-                payload
-            );
+            const respond = await verifyEmail(email, pinCode);
 
             console.log("Response:", respond.data);
 

@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { cookies } from "next/headers";
 import {
     UserProfile,
     DeleteAccountDialog,
@@ -7,6 +6,7 @@ import {
     PageHeader,
     SettingSection,
 } from "./_component";
+import { getUserInfo } from "@/actions/user.action";
 
 export const metadata: Metadata = {
     title: "Account Settings - BA Copilot",
@@ -14,15 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AccountSettingPage() {
-    const access_token = (await cookies()).get("access_token")?.value || "";
-    const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/user/me`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${access_token}`,
-        },
-    });
-    const userProfile = await res.json();
+    const userProfile = await getUserInfo();
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">

@@ -2,6 +2,7 @@
 import { cookies } from "next/headers";
 import { Diagram } from "@/app/dashboard/project/[id]/diagrams/_lib/constants";
 import { date } from "zod";
+import { Project } from "@/app/dashboard/project/[id]/_components/types"
 
 export async function getAllProjects() {
     const access_token = (await cookies()).get("access_token")?.value;
@@ -51,4 +52,16 @@ export async function getAllDiagrams(projectId: any): Promise<Diagram[]> {
 export async function getAccessToken() {
     const access_token = (await cookies()).get("access_token")?.value;
     return access_token;
+}
+
+export async function getProjectData(projectId: string) {
+    const acces_token = await getAccessToken();
+    const data = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/projects/${projectId}`, {
+        headers: {
+            Authorization: `Bearer ${acces_token}`,
+        }
+    })
+
+    const project: Project = await data.json();
+    return project;
 }

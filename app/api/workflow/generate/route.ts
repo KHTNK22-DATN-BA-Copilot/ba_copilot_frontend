@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 
 /**
  * POST /api/workflow/analysis/generate
@@ -37,6 +38,7 @@ export async function POST(request: NextRequest) {
       message: "Analysis document generation started",
     });
   } catch (error) {
+    Sentry.captureException(error);
     console.error("Error in analysis generation:", error);
     return NextResponse.json(
       {

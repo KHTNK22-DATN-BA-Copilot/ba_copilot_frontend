@@ -24,6 +24,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@sentry/nextjs": "^10.43.0",
     "@types/diff": "^7.0.2",
     "axios": "^1.12.2",
     "class-variance-authority": "^0.7.1",

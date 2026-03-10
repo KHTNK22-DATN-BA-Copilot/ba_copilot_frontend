@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
@@ -14,10 +14,37 @@ interface ProjectHeaderProps {
 
 export default function ProjectHeader({ project, onProjectUpdate }: ProjectHeaderProps) {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [prj, setProject] = useState<Project>({
+        id: project.id,
+        name: project.name,
+        description: project.description,
+        status: project.status,
+        progress: project.progress,
+        created_at: "01-10-2025",
+        dueDate: "15-12-2025",
+        teamMembers: 5,
+        completedTasks: 24,
+        totalTasks: 37,
+    });
+
+    useEffect(() => {
+        localStorage.setItem('projectId', prj.id as string);
+    }, [])
+
+    const updateProject = (updatedFields: Partial<Project>) => {
+        setProject(prev => ({
+            ...prev,
+            ...updatedFields,
+        }));
+    }; 
+    
 
     const handleProjectUpdated = (updatedProject: Partial<Project>) => {
         if (onProjectUpdate) {
             onProjectUpdate(updatedProject);
+        }
+        else {
+            updateProject(updatedProject);
         }
     };
 
@@ -28,17 +55,17 @@ export default function ProjectHeader({ project, onProjectUpdate }: ProjectHeade
                     <div className="flex-1 min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
                             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 break-words">
-                                {project.name}
+                                {prj.name}
                             </h1>
                             <Badge
-                                variant={project.status === "In Progress" ? "default" : "secondary"}
+                                variant={prj.status === "In Progress" ? "default" : "secondary"}
                                 className="w-fit"
                             >
-                                {project.status}
+                                {prj.status}
                             </Badge>
                         </div>
                         <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 break-words">
-                            {project.description}
+                            {prj.description}
                         </p>
                     </div>
                     <Button
@@ -53,7 +80,7 @@ export default function ProjectHeader({ project, onProjectUpdate }: ProjectHeade
             </div>
 
             <EditProjectDialog
-                project={project}
+                project={prj}
                 open={isEditDialogOpen}
                 onOpenChange={setIsEditDialogOpen}
                 onProjectUpdated={handleProjectUpdated}

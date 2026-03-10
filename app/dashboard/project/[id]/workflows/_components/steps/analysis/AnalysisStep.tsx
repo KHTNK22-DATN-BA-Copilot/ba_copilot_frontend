@@ -12,18 +12,18 @@ import {
     useWorkflowGeneration,
     GenerateWorkflowPayload,
     DocumentListItem,
-    getAnalysisDocuments,
-    getPlanningDocuments
 } from "../shared";
 import { useDocumentConstraints } from "../shared/hooks/useDocumentConstraints";
-import { useParams } from "next/navigation";
+import useSWR from "swr";
+import { getAnalysisDocuments, fetchAllDocument } from "@/lib/helper";
+import PreviewModal from "../../PreviewModal";
 
 interface AnalysisStepProps {
     generatedSRS: string;
     onGenerate: () => void;
     onNext: () => void;
     onBack: () => void;
-    projectName?: string;
+    projectName?: string
 }
 
 export default function AnalysisStep({
@@ -33,73 +33,62 @@ export default function AnalysisStep({
     onBack,
     projectName
 }: AnalysisStepProps) {
-    const params = useParams();
-    const projectId = params?.id as string;
+    const projectId = localStorage.getItem("projectId") as string;
 
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
-    const [fetchedDocuments, setFetchedDocuments] = useState<DocumentListItem[]>([]);
-    const [isFetchingDocs, setIsFetchingDocs] = useState(false);
+    const [previewFetchedDoc, setPreviewFetchedDoc] = useState<DocumentListItem | null>(null);
 
-    // Track documents already generated in previous steps (for cross-step constraints)
-    const [existingDocIds, setExistingDocIds] = useState<string[]>([]);
+    const documentPreview = useDocumentPreview(analysisDocuments, documentFiles);
+
+    const fetchAnalysisDocuments = useCallback(async ([pId, step]: [string, string]) => {
+        console.log(`[SWR] Fetching for Project: ${pId}`);
+        const response = await getAnalysisDocuments(pId);
+
+        if (response.status === "success" && response.documents) {
+            return response.documents;
+        }
+        throw new Error(response.message || "Failed to fetch documents");
+    }, []);
+
+    const {
+        data: existingDocIds = [],
+    } = useSWR(
+        projectId,
+        fetchAllDocument,
+        {
+            revalidateOnFocus: false,
+        }
+    )
+
+
+    const {
+        data: fetchedDocuments = [], // Default là mảng rỗng nếu chưa có data
+        isValidating: isFetchingDocs, // Tương đương loading state
+        mutate: refreshDocs // Hàm để ép gọi lại API bằng tay
+    } = useSWR(
+        projectId ? [projectId, 'analysis'] : null,
+        fetchAnalysisDocuments,
+        {
+            revalidateOnFocus: false, // Tắt cái này đi để không bị gọi lại API mỗi khi chuyển tab trình duyệt
+            dedupingInterval: 5000,   // Tránh spam API trong vòng 5 giây
+        }
+    );
 
     // Constraint-aware document selection
     const constraints = useDocumentConstraints({
         documents: analysisDocuments,
         existingDocIds,
     });
-    const documentPreview = useDocumentPreview(analysisDocuments, documentFiles);
 
-    // Fetch existing documents from Planning + Analysis steps (for DB-aware constraints)
-    const fetchExistingDocs = useCallback(async () => {
-        if (!projectId) return;
-        try {
-            const [planningResp, analysisResp] = await Promise.all([
-                getPlanningDocuments(projectId),
-                getAnalysisDocuments(projectId),
-            ]);
-            const ids: string[] = [];
-            if (planningResp.status === "success" && planningResp.documents) {
-                ids.push(...planningResp.documents.map((d) => d.doc_type || d.design_type));
-            }
-            if (analysisResp.status === "success" && analysisResp.documents) {
-                ids.push(...analysisResp.documents.map((d) => d.doc_type || d.design_type));
-            }
-            setExistingDocIds(ids);
-        } catch (error) {
-            console.error("[AnalysisStep] Error fetching existing docs:", error);
-        }
-    }, [projectId]);
-
-    const fetchDocumentsList = useCallback(async () => {
-        if (!projectId) return;
-
-        setIsFetchingDocs(true);
-        try {
-            const response = await getAnalysisDocuments(projectId);
-
-            if (response.status === "success" && response.documents) {
-                setFetchedDocuments(response.documents);
-            } else {
-                console.error("[AnalysisStep] Error fetching documents:", response.message);
-            }
-        } catch (error) {
-            console.error("[AnalysisStep] Error fetching documents:", error);
-        } finally {
-            setIsFetchingDocs(false);
-        }
-    }, [projectId]);
-
-    useEffect(() => {
-        fetchExistingDocs();
-        fetchDocumentsList();
-    }, [fetchExistingDocs, fetchDocumentsList]);
 
     // Workflow generation with callback to fetch documents after completion
     const analysisGeneration = useWorkflowGeneration(
         onGenerate,
-        fetchDocumentsList
+        () => {
+            console.info("Fetch thanh cong")
+            refreshDocs()
+        }
     );
 
     // Get selected document names for the loading dialog
@@ -130,6 +119,14 @@ export default function AnalysisStep({
 
         await analysisGeneration.generateDocuments(payload, projectId, 'analysis');
     };
+
+    const handlePreviewFetchedDocument = useCallback((doc: DocumentListItem) => {
+        setPreviewFetchedDoc(doc);
+    }, []);
+
+    const handleRefreshDocs = useCallback(() => {
+        refreshDocs();
+    }, [refreshDocs]);
 
     return (
         <div className="space-y-6">
@@ -184,7 +181,20 @@ export default function AnalysisStep({
                     documents={fetchedDocuments}
                     stepName="analysis"
                     projectId={projectId}
-                    onRegenerateSuccess={fetchDocumentsList}
+                    onRegenerateSuccess={handleRefreshDocs}
+                />
+            )}
+
+            {/* Preview Modal for Template Documents */}
+            {documentPreview.previewDocument && (
+                <PreviewModal
+                    isOpen={!!documentPreview.previewDocument}
+                    onClose={documentPreview.handleClosePreview}
+                    type="document"
+                    title={documentPreview.getPreviewTitle(
+                        documentPreview.previewDocument,
+                    )}
+                    content={documentPreview.previewContent}
                 />
             )}
 
