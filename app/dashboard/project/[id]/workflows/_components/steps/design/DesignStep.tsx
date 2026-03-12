@@ -11,10 +11,11 @@ import {
     useDocumentPreview,
     useWorkflowGeneration,
     GenerateWorkflowPayload,
+    getDesignDocuments,
+    fetchAllDocument,
 } from "../shared";
 import { useDocumentConstraints } from "../shared/hooks/useDocumentConstraints";
 import useSWR from "swr";
-import { getDesignDocuments, fetchAllDocument } from "@/lib/helper";
 import PreviewModal from "../../PreviewModal";
 
 interface DesignStepProps {

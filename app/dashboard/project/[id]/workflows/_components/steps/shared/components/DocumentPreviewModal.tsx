@@ -305,14 +305,19 @@ export function DocumentPreviewModal({
                                                 )}
                                             </Button>
                                         </div>
-                                        <div className="flex-1 overflow-y-auto overflow-x-hidden border border-gray-300 dark:border-gray-600 rounded-lg bg-white min-h-0">
+                                        <div className={cn(
+                                            "flex-1 overflow-y-auto overflow-x-hidden border rounded-lg min-h-0",
+                                            diffMode
+                                                ? "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
+                                                : "border-gray-300 bg-white"
+                                        )}>
                                             {diffMode ? (
                                                 <DiffView
                                                     original={document.content || ""}
                                                     modified={content}
                                                 />
                                             ) : (
-                                                <div className="markdown-body bg-transparent p-2 sm:p-4">
+                                                <div className="markdown-body bg-white p-2 sm:p-4" style={{ colorScheme: "light" }}>
                                                     <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
                                                         {content}
                                                     </ReactMarkdown>
@@ -322,8 +327,8 @@ export function DocumentPreviewModal({
                                     </div>
                                 </div>
                             ) : (
-                                <div className="h-full min-h-0 min-w-0 overflow-y-auto overflow-x-hidden border border-gray-300 dark:border-gray-700 rounded-lg bg-white p-2 sm:p-4">
-                                    <div className="markdown-body bg-transparent">
+                                <div className="h-full min-h-0 min-w-0 overflow-y-auto overflow-x-hidden border border-gray-300 rounded-lg bg-white p-2 sm:p-4">
+                                    <div className="markdown-body bg-white" style={{ colorScheme: "light" }}>
                                         <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
                                             {document.content || "No content available"}
                                         </ReactMarkdown>

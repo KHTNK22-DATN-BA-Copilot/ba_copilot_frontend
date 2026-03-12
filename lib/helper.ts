@@ -8,11 +8,6 @@ import {
 import { getAccessToken } from "./projects";
 
 const API_CONFIG = {
-    baseUrl: "/api/workflow",
-    endpoints: {
-        generate: "/generate",
-        status: "/status",
-    },
     headers: {
         "Content-Type": "application/json",
     },

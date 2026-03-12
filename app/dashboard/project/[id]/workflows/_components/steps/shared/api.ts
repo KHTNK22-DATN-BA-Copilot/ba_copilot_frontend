@@ -5,22 +5,18 @@ import {
   RegenerateDocumentResponse, 
   StepName 
 } from "./types";
+import {
+  getWorkflowDocumentsByStep,
+  regenerateWorkflowDocument,
+  getWorkflowAccessToken,
+  exportWorkflowDocument,
+} from "@/actions/workflow.action";
 
 /**
  * ============================================================================
  * CONFIGURATION
  * ============================================================================
  */
-
-const WS_DOMAIN = process.env.NEXT_PUBLIC_WS_DOMAIN;
-const BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
-
-const API_CONFIG = {
-  baseUrl: "/api/workflow",
-  headers: {
-    "Content-Type": "application/json",
-  },
-} as const;
 
 const WS_CONFIG = {
   baseUrl: `${process.env.NEXT_PUBLIC_WS_DOMAIN}/api/v1/ws`,
@@ -35,23 +31,18 @@ const WS_CONFIG = {
  */
 
 /**
- * Get JWT token from httpOnly cookie via API route
+ * Get JWT token from server action
  * @returns Promise with JWT token string or null if not found
  */
 export async function getAuthToken(): Promise<string | null> {
   try {
-    const response = await fetch('/api/auth/token', {
-      method: 'GET',
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      console.error('[Auth] Failed to get token:', response.status);
+    const response = await getWorkflowAccessToken();
+    if (!response.success || !response.data?.access_token) {
+      console.error("[Auth] Failed to get token:", response.statusCode);
       return null;
     }
 
-    const data = await response.json();
-    return data.access_token || null;
+    return response.data.access_token;
   } catch (error) {
     console.error('[Auth] Error getting auth token:', error);
     return null;
@@ -154,22 +145,19 @@ export async function getDocumentsList(
   projectId: string
 ): Promise<DocumentListResponse> {
   try {
-    const endpoint = `${API_CONFIG.baseUrl}/${stepName}/list/${projectId}`;
-    
-    const response = await fetch(endpoint, {
-      method: "GET",
-      headers: API_CONFIG.headers,
-      credentials: "include",
-    });
+    const response = await getWorkflowDocumentsByStep(stepName, projectId);
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.message || `Failed to fetch ${stepName} documents: ${response.status}`
-      );
+    if (!response.success) {
+      return {
+        status: "error",
+        message: response.message || `Failed to fetch ${stepName} documents`,
+      };
     }
 
-    return await response.json();
+    return {
+      status: "success",
+      documents: response.data?.documents || [],
+    };
   } catch (error) {
     console.error(`[API] getDocumentsList error (${stepName}):`, error);
     return {
@@ -197,24 +185,24 @@ export async function regenerateDocument(
   description?: string
 ): Promise<RegenerateDocumentResponse> {
   try {
-    const endpoint = `${API_CONFIG.baseUrl}/${stepName}/regenerate/${projectId}/${documentId}`;
-    const body = description ? JSON.stringify({ description }) : undefined;
+    const response = await regenerateWorkflowDocument(
+      stepName,
+      projectId,
+      documentId,
+      description,
+    );
 
-    const response = await fetch(endpoint, {
-      method: "PATCH",
-      headers: API_CONFIG.headers,
-      credentials: "include",
-      ...(body && { body }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.message || `Failed to regenerate document: ${response.status}`
-      );
+    if (!response.success) {
+      return {
+        status: "error",
+        message: response.message || "Failed to regenerate document",
+      };
     }
 
-    return await response.json();
+    return {
+      status: "success",
+      result: response.data,
+    };
   } catch (error) {
     console.error(`[API] regenerateDocument error (${stepName}):`, error);
     return {
@@ -269,39 +257,26 @@ export async function exportDocument(
   documentId: string
 ): Promise<void> {
   try {
-    const token = await getAuthToken();
-    if (!token) {
-      throw new Error("Authentication token not found. Please login again.");
+    const response = await exportWorkflowDocument(documentId);
+    if (!response.success || !response.data) {
+      throw new Error(response.message || "Failed to export document");
     }
 
-    const endpoint = `${BACKEND_DOMAIN}/api/v1/files/export/${documentId}`;
-    
-    const response = await fetch(endpoint, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-      },
-      credentials: "include",
+    const byteCharacters = atob(response.data.base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i += 1) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], {
+      type: response.data.contentType || "text/markdown",
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.message || `Failed to export document: ${response.status}`
-      );
-    }
-
-    const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    
-    // Extract filename from Content-Disposition or use default
-    const contentDisposition = response.headers.get("Content-Disposition");
-    const filenameMatch = contentDisposition?.match(/filename="?(.+)"?/i);
-    const filename = filenameMatch?.[1] || `${documentId}.md`;
-    
-    link.download = filename;
+
+    link.download = response.data.filename || `${documentId}.md`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -310,6 +285,34 @@ export async function exportDocument(
     console.error(`[API] exportDocument error:`, error);
     throw error;
   }
+}
+
+export async function fetchAllDocument(projectId: string): Promise<string[]> {
+  const [planningDocuments, analysisDocuments, designDocuments] = await Promise.all([
+    getPlanningDocuments(projectId),
+    getAnalysisDocuments(projectId),
+    getDesignDocuments(projectId),
+  ]);
+
+  if (
+    planningDocuments.documents &&
+    analysisDocuments.documents &&
+    designDocuments.documents
+  ) {
+    return [
+      ...planningDocuments.documents.map((doc) =>
+        doc.doc_type ? doc.doc_type : doc.design_type
+      ),
+      ...analysisDocuments.documents.map((doc) =>
+        doc.doc_type ? doc.doc_type : doc.design_type
+      ),
+      ...designDocuments.documents.map((doc) =>
+        doc.doc_type ? doc.doc_type : doc.design_type
+      ),
+    ];
+  }
+
+  return [];
 }
 
 /**

@@ -12,10 +12,11 @@ import {
     useWorkflowGeneration,
     GenerateWorkflowPayload,
     DocumentListItem,
+    getAnalysisDocuments,
+    fetchAllDocument,
 } from "../shared";
 import { useDocumentConstraints } from "../shared/hooks/useDocumentConstraints";
 import useSWR from "swr";
-import { getAnalysisDocuments, fetchAllDocument } from "@/lib/helper";
 import PreviewModal from "../../PreviewModal";
 
 interface AnalysisStepProps {

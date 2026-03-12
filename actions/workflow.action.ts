@@ -160,6 +160,7 @@ export async function regenerateWorkflowDocument(
     stepName: string,
     projectId: string,
     documentId: string,
+    description?: string,
 ): Promise<ActionResponse> {
     try {
         const accessToken = (await cookies()).get("access_token")?.value as string;
@@ -177,6 +178,7 @@ export async function regenerateWorkflowDocument(
             stepName,
             projectId,
             documentId,
+            description,
         );
 
         if (response.success) {
@@ -195,6 +197,82 @@ export async function regenerateWorkflowDocument(
         };
     } catch (error) {
         console.error("Error regenerating document:", error);
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "An unexpected error occurred",
+            statusCode: 500,
+        };
+    }
+}
+
+/**
+ * Get access token from httpOnly cookie for authenticated workflow clients
+ */
+export async function getWorkflowAccessToken(): Promise<ActionResponse<{ access_token: string }>> {
+    try {
+        const accessToken = (await cookies()).get("access_token")?.value;
+
+        if (!accessToken) {
+            return {
+                success: false,
+                message: "Unauthorized",
+                statusCode: 401,
+            };
+        }
+
+        return {
+            success: true,
+            message: "Token retrieved successfully",
+            statusCode: 200,
+            data: {
+                access_token: accessToken,
+            },
+        };
+    } catch (error) {
+        console.error("Error getting workflow access token:", error);
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "An unexpected error occurred",
+            statusCode: 500,
+        };
+    }
+}
+
+/**
+ * Export a workflow document and return downloadable data
+ */
+export async function exportWorkflowDocument(
+    documentId: string,
+): Promise<ActionResponse<{ filename: string; contentType: string; base64: string }>> {
+    try {
+        const accessToken = (await cookies()).get("access_token")?.value as string;
+
+        if (!accessToken) {
+            return {
+                success: false,
+                message: "Unauthorized",
+                statusCode: 401,
+            };
+        }
+
+        const response = await WorkflowService.exportDocument(accessToken, documentId);
+
+        if (response.success) {
+            return {
+                success: true,
+                message: "Document exported successfully",
+                data: response.data,
+                statusCode: response.statusCode,
+            };
+        }
+
+        return {
+            success: false,
+            message: response.message || "Failed to export document",
+            statusCode: response.statusCode,
+        };
+    } catch (error) {
+        console.error("Error exporting workflow document:", error);
         return {
             success: false,
             message: error instanceof Error ? error.message : "An unexpected error occurred",
