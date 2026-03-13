@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CheckCircle2,
   Circle,
   Clock,
   Eye,
   FileText,
+  Loader2,
   Sparkles,
 } from "lucide-react";
 
@@ -21,8 +22,13 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { getProjectById } from "@/actions/project.action";
+import { toast } from "sonner";
 
-import PreviewModal from "../../workflows/_components/PreviewModal";
+import { DocumentPreviewModal } from "../../workflows/_components/steps/shared/components/DocumentPreviewModal";
+import type { DocumentListItem, GenerateWorkflowPayload, GenerationDocumentItem, StepName } from "../../workflows/_components/steps/shared/types";
+import { useWorkflowGeneration } from "../../workflows/_components/steps/shared/hooks/useWorkflowGeneration";
+import { GenerationLoadingDialog } from "../../workflows/_components/steps/shared/components/GenerationLoadingDialog";
 import {
   GeneratedPhaseDocument,
   getGeneratedDocumentsByPhase,
@@ -43,7 +49,16 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
     Partial<Record<PhaseId, GeneratedPhaseDocument[]>>
   >({});
   const [previewDocument, setPreviewDocument] = useState<GeneratedPhaseDocument | null>(null);
+  const [previewPhaseId, setPreviewPhaseId] = useState<PhaseId | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [additionalInstructions, setAdditionalInstructions] = useState("");
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [generatingDocumentItem, setGeneratingDocumentItem] = useState<GenerationDocumentItem | null>(null);
+
+  const { generateDocuments, isGenerating, error: wsError, cancelGeneration, documentStatuses } = useWorkflowGeneration(
+    undefined,
+    () => setRefreshTrigger((t) => t + 1),
+  );
 
   const title =
     phaseFilter && filteredPhases[0]
@@ -92,7 +107,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
     return () => {
       isMounted = false;
     };
-  }, [filteredPhases, projectId]);
+  }, [filteredPhases, projectId, refreshTrigger]);
 
   const generatedDocumentIndex = useMemo(() => {
     const index: Partial<Record<PhaseId, Record<string, GeneratedPhaseDocument>>> = {};
@@ -131,8 +146,53 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
     return fallbackStatus;
   };
 
-  const handleOpenPreview = (document: GeneratedPhaseDocument) => {
+  const wsErrorRef = useRef(wsError);
+  useEffect(() => {
+    wsErrorRef.current = wsError;
+  }, [wsError]);
+
+  useEffect(() => {
+    if (wsError) {
+      toast.error(wsError);
+    }
+  }, [wsError]);
+
+  const handleGenerate = async () => {
+    if (!selectedEntry) return;
+
+    const isAlreadyAvailable = Boolean(
+      getMatchedGeneratedDocument(selectedEntry.phase.id, selectedEntry.document.id)
+    );
+    if (isAlreadyAvailable) return;
+
+    try {
+      const project = await getProjectById(projectId);
+
+      setGeneratingDocumentItem({ id: selectedEntry.document.id, name: selectedEntry.document.name });
+
+      const payload: GenerateWorkflowPayload = {
+        project_name: project.name ?? projectId,
+        description: additionalInstructions || `Generate ${selectedEntry.document.name} for the project`,
+        documents: [{ type: selectedEntry.document.id }],
+      };
+
+      const started = await generateDocuments(payload, projectId, selectedEntry.phase.id as StepName);
+      if (started) {
+        toast.success("Document generation started");
+        setAdditionalInstructions("");
+      } else {
+        setGeneratingDocumentItem(null);
+        toast.error("Failed to start generation");
+      }
+    } catch {
+      setGeneratingDocumentItem(null);
+      toast.error("An error occurred while generating");
+    }
+  };
+
+  const handleOpenPreview = (document: GeneratedPhaseDocument, phaseId: PhaseId) => {
     setPreviewDocument(document);
+    setPreviewPhaseId(phaseId);
     setIsPreviewOpen(true);
   };
 
@@ -260,7 +320,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                                     className="gap-2"
                                     onClick={(event) => {
                                       event.stopPropagation();
-                                      handleOpenPreview(matchedGeneratedDoc);
+                                      handleOpenPreview(matchedGeneratedDoc, phase.id);
                                     }}
                                   >
                                     <Eye className="h-4 w-4" />
@@ -313,12 +373,31 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                         id="phase-ai-instructions"
                         className="min-h-28"
                         placeholder="Add specific requirements or guidelines for generating this document..."
+                        value={additionalInstructions}
+                        onChange={(e) => setAdditionalInstructions(e.target.value)}
+                        disabled={isGenerating}
                       />
                     </div>
 
-                    <Button className="w-full gap-2">
-                      <Sparkles className="h-4 w-4" />
-                      Generate
+                    <Button
+                      className="w-full gap-2"
+                      onClick={handleGenerate}
+                      disabled={
+                        isGenerating ||
+                        Boolean(
+                          getMatchedGeneratedDocument(
+                            selectedEntry.phase.id,
+                            selectedEntry.document.id
+                          )
+                        )
+                      }
+                    >
+                      {isGenerating ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-4 w-4" />
+                      )}
+                      {isGenerating ? "Generating..." : "Generate"}
                     </Button>
 
                     {selectedEntry &&
@@ -336,7 +415,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                               selectedEntry.document.id
                             );
                             if (generatedDoc) {
-                              handleOpenPreview(generatedDoc);
+                              handleOpenPreview(generatedDoc, selectedEntry.phase.id);
                             }
                           }}
                         >
@@ -365,19 +444,19 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
         </div>
       </div>
 
-      <PreviewModal
+      <DocumentPreviewModal
         isOpen={isPreviewOpen}
         onClose={() => setIsPreviewOpen(false)}
-        type="document"
-        title={
-          previewDocument?.design_type ||
-          previewDocument?.doc_type ||
-          "Generated Document"
-        }
-        content={
-          previewDocument?.content?.trim() ||
-          "# No generated content\n\nThis document exists but has no previewable content yet."
-        }
+        document={previewDocument as unknown as DocumentListItem}
+        projectId={projectId}
+        stepName={(previewPhaseId ?? "planning") as StepName}
+      />
+
+      <GenerationLoadingDialog
+        isOpen={isGenerating}
+        documents={generatingDocumentItem ? [generatingDocumentItem] : []}
+        statuses={documentStatuses}
+        onCancel={cancelGeneration}
       />
     </div>
   );
