@@ -208,6 +208,15 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
     return <Circle className="h-4 w-4 text-gray-400 dark:text-gray-500" />;
   };
 
+  const formatLastGenerated = (timestamp?: string) => {
+    if (!timestamp) return null;
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) {
+      return timestamp;
+    }
+    return date.toLocaleString();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
@@ -259,14 +268,17 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                       </div>
 
                       <div className="min-w-32 text-right">
-                        <div className="mb-1 text-xs text-gray-500 dark:text-gray-400">
-                          {availableCount}/{totalCount} available
-                        </div>
-                        <div className="h-2 w-28 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                          <div
-                            className="h-full bg-blue-600 transition-all dark:bg-blue-500"
-                            style={{ width: `${completionPercent}%` }}
-                          />
+                        <div className="min-w-32 ml-auto text-right">
+                          <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                            {availableCount}/{totalCount} available
+                          </div>
+
+                          <div className="ml-auto h-2 w-28 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                            <div
+                              className="h-full bg-blue-600 transition-all dark:bg-blue-500"
+                              style={{ width: `${completionPercent}%` }}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -275,61 +287,63 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                   <CardContent className="pt-0">
                     <div className="space-y-2">
                       {phase.documents.map((doc) => {
-                          const matchedGeneratedDoc = getMatchedGeneratedDocument(
-                            phase.id,
-                            doc.id
-                          );
-                          const displayStatus = getPhaseDocumentStatus(
-                            phase.id,
-                            doc.id,
-                            doc.status
-                          );
+                        const matchedGeneratedDoc = getMatchedGeneratedDocument(
+                          phase.id,
+                          doc.id
+                        );
+                        const displayStatus = getPhaseDocumentStatus(
+                          phase.id,
+                          doc.id,
+                          doc.status
+                        );
 
-                          return (
-                            <button
-                              key={doc.id}
-                              type="button"
-                              className={cn(
-                                "flex w-full cursor-pointer items-center justify-between rounded-lg border p-3 text-left transition-all",
-                                selectedDocument === doc.id
-                                  ? "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30"
-                                  : "border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800/60"
-                              )}
-                              onClick={() => setSelectedDocument(doc.id)}
-                            >
-                              <div className="flex flex-1 items-center gap-3">
-                                {getStatusIcon(displayStatus)}
-                                <div className="flex-1">
-                                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                    {doc.name}
+                        return (
+                          <button
+                            key={doc.id}
+                            type="button"
+                            className={cn(
+                              "flex w-full cursor-pointer items-center justify-between rounded-lg border p-3 text-left transition-all",
+                              selectedDocument === doc.id
+                                ? "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30"
+                                : "border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800/60"
+                            )}
+                            onClick={() => setSelectedDocument(doc.id)}
+                          >
+                            <div className="flex flex-1 items-center gap-3">
+                              {getStatusIcon(displayStatus)}
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                  {doc.name}
+                                </p>
+                                {matchedGeneratedDoc?.updated_at && (
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    Last updated: {formatLastGenerated(
+                                      matchedGeneratedDoc?.updated_at
+                                    )}
                                   </p>
-                                  {doc.lastGenerated && (
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                                      Last generated: {doc.lastGenerated}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-2">
-                                {matchedGeneratedDoc && (
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="gap-2"
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      handleOpenPreview(matchedGeneratedDoc, phase.id);
-                                    }}
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                    View
-                                  </Button>
                                 )}
                               </div>
-                            </button>
-                          );
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              {matchedGeneratedDoc && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="gap-2"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleOpenPreview(matchedGeneratedDoc, phase.id);
+                                  }}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                  View
+                                </Button>
+                              )}
+                            </div>
+                          </button>
+                        );
                       })}
                     </div>
                   </CardContent>

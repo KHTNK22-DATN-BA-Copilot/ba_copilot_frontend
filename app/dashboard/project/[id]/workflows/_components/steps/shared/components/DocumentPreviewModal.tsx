@@ -8,15 +8,122 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DocumentListItem } from "../types";
 import ReactMarkdown from "react-markdown";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
-import { Download, X, Send, Loader2, GitCompare, Eye } from "lucide-react";
+import { Download, Send, Loader2, GitCompare, Eye } from "lucide-react";
 import { exportDocument, regenerateDocument } from "../api";
 import { toast } from "sonner";
 import type { StepName } from "../types";
 import { diffLines } from "diff";
 import { cn } from "@/lib/utils";
+import mermaid from "mermaid";
+
+const stripYamlFrontMatter = (s: string) => {
+    if (!s) return s;
+    const withoutComments = s.replace(/^\s*%.*\n/gm, "");
+    const cleaned = withoutComments
+        .replace(/^\s*---\s*\r?\n[\s\S]*?\r?\n\s*---\s*\r?\n?/, "")
+        .trim();
+    return cleaned;
+};
+
+const dedent = (text: string) => {
+    if (!text) return text;
+    const lines = text.split(/\r?\n/);
+    while (lines.length && lines[0].trim() === "") lines.shift();
+    while (lines.length && lines[lines.length - 1].trim() === "") lines.pop();
+    if (!lines.length) return "";
+
+    let minIndent: number | null = null;
+    for (const line of lines) {
+        const m = line.match(/^([ \t]*)\S/);
+        if (m) {
+            const len = m[1].length;
+            if (minIndent === null || len < minIndent) minIndent = len;
+        }
+    }
+
+    if (!minIndent || minIndent === 0) return lines.join("\n");
+    const regex = new RegExp(`^[ \\t]{0,${minIndent}}`);
+    return lines.map((l) => l.replace(regex, "")).join("\n");
+};
+
+const isHtmlDocument = (text: string) => {
+    const trimmed = text.trim();
+    return (
+        trimmed.startsWith("<!DOCTYPE") ||
+        trimmed.startsWith("<html") ||
+        /^<(div|main|section|article|header|footer|nav|form|table|style|body)(\s|>)/i.test(trimmed)
+    );
+};
+
+const MarkdownWithMermaid = ({ content }: { content: string }) => {
+    const ref = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        try {
+            mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
+        } catch {
+            // Mermaid may already be initialized by another preview instance.
+        }
+
+        if (!ref.current) return;
+
+        const blocks = Array.from(ref.current.querySelectorAll<HTMLDivElement>(".mermaid"));
+
+        (async () => {
+            for (const [idx, block] of blocks.entries()) {
+                if (!block || !block.isConnected) continue;
+
+                const raw = block.textContent ?? "";
+                const withoutYaml = stripYamlFrontMatter(raw);
+                const cleaned = dedent(withoutYaml);
+                const uniq =
+                    typeof crypto !== "undefined" && crypto.randomUUID
+                        ? crypto.randomUUID()
+                        : `${Date.now()}-${idx}-${Math.floor(Math.random() * 1000)}`;
+                const id = `mermaid-${uniq}`;
+
+                try {
+                    const { svg } = await mermaid.render(id, cleaned);
+                    if (!block.isConnected) continue;
+                    block.innerHTML = svg;
+                    block.classList.remove("mermaid");
+                } catch (error) {
+                    console.error("Mermaid render error:", error);
+                }
+            }
+        })();
+    }, [content]);
+
+    return (
+        <div ref={ref} className="markdown-body bg-white p-2 sm:p-4" style={{ colorScheme: "light" }}>
+            <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkBreaks]}
+                components={{
+                    code({ className, children }) {
+                        const lang = className?.replace("language-", "");
+                        if (lang === "mermaid") {
+                            const text = Array.isArray(children)
+                                ? children.join("")
+                                : String(children);
+                            return <div className="mermaid whitespace-pre-wrap">{text}</div>;
+                        }
+
+                        return (
+                            <pre>
+                                <code className={className}>{children}</code>
+                            </pre>
+                        );
+                    },
+                }}
+            >
+                {content}
+            </ReactMarkdown>
+        </div>
+    );
+};
 
 const DiffView = ({ original, modified }: { original: string; modified: string }) => {
     const changes = diffLines(original, modified);
@@ -93,6 +200,7 @@ export function DocumentPreviewModal({
     const [downloadingDoc, setDownloadingDoc] = useState(false);
     const [chatInput, setChatInput] = useState("");
     const [diffMode, setDiffMode] = useState(false);
+    const isHtmlPreview = isHtmlDocument(content || "");
 
     useEffect(() => {
         if (document) {
@@ -316,23 +424,31 @@ export function DocumentPreviewModal({
                                                     original={document.content || ""}
                                                     modified={content}
                                                 />
+                                            ) : isHtmlPreview ? (
+                                                <iframe
+                                                    srcDoc={content || ""}
+                                                    title="html-live-preview"
+                                                    sandbox="allow-scripts"
+                                                    className="h-full w-full border-0 bg-white"
+                                                />
                                             ) : (
-                                                <div className="markdown-body bg-white p-2 sm:p-4" style={{ colorScheme: "light" }}>
-                                                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
-                                                        {content}
-                                                    </ReactMarkdown>
-                                                </div>
+                                                <MarkdownWithMermaid content={content} />
                                             )}
                                         </div>
                                     </div>
                                 </div>
                             ) : (
                                 <div className="h-full min-h-0 min-w-0 overflow-y-auto overflow-x-hidden border border-gray-300 rounded-lg bg-white p-2 sm:p-4">
-                                    <div className="markdown-body bg-white" style={{ colorScheme: "light" }}>
-                                        <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
-                                            {document.content || "No content available"}
-                                        </ReactMarkdown>
-                                    </div>
+                                    {isHtmlDocument(document.content || "") ? (
+                                        <iframe
+                                            srcDoc={document.content || ""}
+                                            title="html-document-preview"
+                                            sandbox="allow-scripts"
+                                            className="h-full w-full border-0 bg-white"
+                                        />
+                                    ) : (
+                                        <MarkdownWithMermaid content={document.content || "No content available"} />
+                                    )}
                                 </div>
                             )}
                         </div>
