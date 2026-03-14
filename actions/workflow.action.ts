@@ -247,3 +247,46 @@ export async function exportWorkflowDocument(
         };
     }
 }
+
+/**
+ * Get session chat history by content ID
+ */
+export async function getWorkflowSessionHistory(
+    contentId: string,
+): Promise<ActionResponse<{ sessions: Array<{ role: string; message: string; create_at: string }> }>> {
+    try {
+        const accessToken = (await cookies()).get("access_token")?.value as string;
+
+        if (!accessToken) {
+            return {
+                success: false,
+                message: "Unauthorized",
+                statusCode: 401,
+            };
+        }
+
+        const response = await WorkflowService.getSessionHistory(accessToken, contentId);
+
+        if (response.success) {
+            return {
+                success: true,
+                message: "Session history retrieved successfully",
+                data: response.data,
+                statusCode: response.statusCode,
+            };
+        }
+
+        return {
+            success: false,
+            message: response.message || "Failed to fetch session history",
+            statusCode: response.statusCode,
+        };
+    } catch (error) {
+        console.error("Error fetching workflow session history:", error);
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "An unexpected error occurred",
+            statusCode: 500,
+        };
+    }
+}

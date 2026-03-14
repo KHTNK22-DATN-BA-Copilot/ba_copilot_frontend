@@ -301,4 +301,68 @@ export class WorkflowService {
             };
         }
     }
+
+    /**
+     * Get session chat history by content ID
+     */
+    public static async getSessionHistory(
+        token: string,
+        contentId: string,
+    ): Promise<ServiceResponse<{ sessions: Array<{ role: string; message: string; create_at: string }> }>> {
+        try {
+            if (!contentId) {
+                return {
+                    success: false,
+                    statusCode: 400,
+                    message: "Content ID is required",
+                };
+            }
+
+            const response = await fetch(
+                `${process.env.BACKEND_DOMAIN}/api/v1/sessions/list/${contentId}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return {
+                    success: false,
+                    statusCode: response.status,
+                    message: errorData.message || "Failed to fetch session history",
+                };
+            }
+
+            const data = await response.json();
+            const rawSessions = Array.isArray(data?.Sessions)
+                ? data.Sessions
+                : Array.isArray(data?.sessions)
+                    ? data.sessions
+                    : [];
+
+            const sessions = rawSessions.map((item: any) => ({
+                role: String(item?.role || "assistant"),
+                message: String(item?.message || ""),
+                create_at: String(item?.create_at || ""),
+            }));
+
+            return {
+                success: true,
+                statusCode: response.status,
+                data: { sessions },
+            };
+        } catch (error) {
+            console.error("Error fetching session history:", error);
+            return {
+                success: false,
+                statusCode: 500,
+                message: "An unexpected error occurred while fetching session history",
+            };
+        }
+    }
 }

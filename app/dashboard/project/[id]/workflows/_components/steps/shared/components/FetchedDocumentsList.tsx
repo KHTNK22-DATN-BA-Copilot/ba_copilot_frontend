@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { toast } from "sonner";
-import { regenerateDocument, exportDocument } from "../api";
+import { regenerateDocument, exportDocument, getDocumentsList } from "../api";
 import type { StepName } from "../types";
 import { DocumentPreviewModal } from "./DocumentPreviewModal";
 
@@ -50,6 +50,35 @@ export function FetchedDocumentsList({
         setIsPreviewOpen(true);
     };
 
+    const refreshPreviewDocument = async (documentId: string, previousContent?: string) => {
+        const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+        let lastFoundDoc: DocumentListItem | null = null;
+
+        // Regeneration can be eventually consistent, so retry for a short period.
+        for (let attempt = 0; attempt < 6; attempt += 1) {
+            const latest = await getDocumentsList(stepName, projectId);
+            if (latest.status === "error") {
+                throw new Error(latest.message || "Failed to refresh document preview");
+            }
+
+            const updatedDoc = (latest.documents || []).find((doc) => doc.document_id === documentId);
+            if (updatedDoc) {
+                lastFoundDoc = updatedDoc;
+
+                if (!previousContent || updatedDoc.content !== previousContent) {
+                    setPreviewDoc(updatedDoc);
+                    return;
+                }
+            }
+
+            await sleep(1000);
+        }
+
+        if (lastFoundDoc) {
+            setPreviewDoc(lastFoundDoc);
+        }
+    };
+
     const handleRegenerateFromModal = async (documentId: string, description?: string) => {
         setRegeneratingDocId(documentId);
 
@@ -58,6 +87,8 @@ export function FetchedDocumentsList({
         });
 
         try {
+            const previousContent =
+                previewDoc?.document_id === documentId ? previewDoc.content : undefined;
             const data = await regenerateDocument(
                 stepName,
                 projectId,
@@ -67,6 +98,14 @@ export function FetchedDocumentsList({
 
             if (data.status !== "error") {
                 toast.success("Document regenerated successfully");
+                // Update previewDoc immediately so the modal preview refreshes without closing.
+                if (data.result?.content) {
+                    setPreviewDoc(prev =>
+                        prev ? { ...prev, content: data.result.content } : prev
+                    );
+                } else {
+                    await refreshPreviewDocument(documentId, previousContent);
+                }
                 onRegenerateSuccess?.();
             } else {
                 throw new Error(data.message || "Failed to regenerate document");
@@ -115,6 +154,7 @@ export function FetchedDocumentsList({
             // Check if request was successful (not error status)
             if (data.status !== "error") {
                 toast.success("Document regenerated successfully");
+                await refreshPreviewDocument(selectedDoc.document_id, selectedDoc.content);
                 onRegenerateSuccess?.();
             } else {
                 throw new Error(data.message || "Failed to regenerate document");

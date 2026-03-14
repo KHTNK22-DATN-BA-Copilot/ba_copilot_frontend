@@ -148,3 +148,15 @@ export interface RegenerateDocumentResponse {
   message?: string;
   result?: any; // Backend response data
 }
+
+export interface SessionMessage {
+  role: string;
+  message: string;
+  create_at: string;
+}
+
+export interface SessionHistoryResponse {
+  status: "success" | "error";
+  sessions?: SessionMessage[];
+  message?: string;
+}

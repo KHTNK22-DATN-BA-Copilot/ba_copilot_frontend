@@ -6,13 +6,13 @@ import "github-markdown-css/github-markdown-light.css";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DocumentListItem } from "../types";
+import { DocumentListItem, SessionMessage } from "../types";
 import ReactMarkdown from "react-markdown";
 import { useEffect, useRef, useState } from "react";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { Download, Send, Loader2, GitCompare, Eye } from "lucide-react";
-import { exportDocument, regenerateDocument } from "../api";
+import { exportDocument, getSessionHistory, regenerateDocument } from "../api";
 import { toast } from "sonner";
 import type { StepName } from "../types";
 import { diffLines } from "diff";
@@ -199,14 +199,68 @@ export function DocumentPreviewModal({
     const [content, setContent] = useState("");
     const [downloadingDoc, setDownloadingDoc] = useState(false);
     const [chatInput, setChatInput] = useState("");
+    const [chatHistory, setChatHistory] = useState<SessionMessage[]>([]);
+    const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+    const [historyError, setHistoryError] = useState<string | null>(null);
     const [diffMode, setDiffMode] = useState(false);
+    const chatListRef = useRef<HTMLDivElement | null>(null);
     const isHtmlPreview = isHtmlDocument(content || "");
+
+    const isUserRole = (role: string) => role.toLowerCase() === "user";
+
+    const formatTimestamp = (timestamp: string) => {
+        if (!timestamp) return "";
+        const date = new Date(timestamp);
+        if (Number.isNaN(date.getTime())) return "";
+        return date.toLocaleString();
+    };
+
+    const loadSessionHistory = async (contentId: string) => {
+        if (!contentId) {
+            setChatHistory([]);
+            return;
+        }
+
+        setIsHistoryLoading(true);
+        setHistoryError(null);
+        try {
+            const response = await getSessionHistory(contentId);
+            if (response.status === "error") {
+                throw new Error(response.message || "Failed to load chat history");
+            }
+
+            setChatHistory(response.sessions || []);
+        } catch (error) {
+            console.error("Error loading chat history:", error);
+            const errorMessage = error instanceof Error ? error.message : "Failed to load chat history";
+            setHistoryError(errorMessage);
+        } finally {
+            setIsHistoryLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (document) {
             setContent(document.content || "");
         }
     }, [document]);
+
+    useEffect(() => {
+        if (!isOpen || !document?.document_id) {
+            setChatHistory([]);
+            setHistoryError(null);
+            return;
+        }
+
+        // The backend expects content_id = file_id of the previewed file.
+        // In this screen, the previewed file id is document.document_id.
+        void loadSessionHistory(document.document_id);
+    }, [document?.document_id, isOpen]);
+
+    useEffect(() => {
+        if (!chatListRef.current) return;
+        chatListRef.current.scrollTop = chatListRef.current.scrollHeight;
+    }, [chatHistory, isHistoryLoading]);
 
     const handleSend = async () => {
         if (!document || !chatInput.trim()) {
@@ -215,10 +269,16 @@ export function DocumentPreviewModal({
         }
 
         if (onRegenerate) {
-            // Use parent's regenerate handler to sync state
-            // Note: Parent handler should be updated to accept description
-            await onRegenerate(document.document_id, chatInput);
-            setChatInput(""); // Clear input after success
+            try {
+                // Use parent's regenerate handler to sync state.
+                await onRegenerate(document.document_id, chatInput);
+                setChatInput("");
+                void loadSessionHistory(document.document_id);
+            } catch (error) {
+                console.error("Error regenerating document:", error);
+                const errorMessage = error instanceof Error ? error.message : "Failed to regenerate document";
+                toast.error(errorMessage);
+            }
         } else {
             // Fallback to direct API call if no handler provided
             try {
@@ -231,6 +291,7 @@ export function DocumentPreviewModal({
                     }
                     setChatInput("");
                     onRegenerateSuccess?.();
+                    void loadSessionHistory(document.document_id);
                 } else {
                     throw new Error(response.message || "Failed to regenerate document");
                 }
@@ -344,11 +405,57 @@ export function DocumentPreviewModal({
                                 <h3 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 sm:mb-3 flex-shrink-0">
                                     Chat with AI
                                 </h3>
-                                <div className="flex-1 overflow-y-auto overflow-x-hidden mb-3 sm:mb-4 space-y-2 sm:space-y-3 min-h-0">
-                                    {/* Chat messages would go here */}
-                                    <div className="text-center text-gray-500 dark:text-gray-400 text-xs sm:text-sm py-4 sm:py-8 break-words">
-                                        Ask me to update your document!
-                                    </div>
+                                <div
+                                    ref={chatListRef}
+                                    className="flex-1 overflow-y-auto overflow-x-hidden mb-3 sm:mb-4 space-y-2 sm:space-y-3 min-h-0"
+                                >
+                                    {isHistoryLoading ? (
+                                        <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
+                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                            Loading chat history...
+                                        </div>
+                                    ) : historyError ? (
+                                        <div className="text-center text-red-500 text-xs sm:text-sm py-4 sm:py-8 break-words">
+                                            {historyError}
+                                        </div>
+                                    ) : chatHistory.length === 0 ? (
+                                        <div className="text-center text-gray-500 dark:text-gray-400 text-xs sm:text-sm py-4 sm:py-8 break-words">
+                                            Ask me to update your document!
+                                        </div>
+                                    ) : (
+                                        chatHistory.map((item, index) => {
+                                            const isUser = isUserRole(item.role);
+                                            return (
+                                                <div
+                                                    key={`${item.create_at || "no-time"}-${index}`}
+                                                    className={cn("flex", isUser ? "justify-end" : "justify-start")}
+                                                >
+                                                    <div
+                                                        className={cn(
+                                                            "max-w-[92%] rounded-lg px-2.5 py-2 text-xs sm:text-sm break-words",
+                                                            isUser
+                                                                ? "bg-blue-600 text-white"
+                                                                : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
+                                                        )}
+                                                    >
+                                                        <p className="whitespace-pre-wrap">{item.message}</p>
+                                                        {item.create_at ? (
+                                                            <p
+                                                                className={cn(
+                                                                    "mt-1 text-[10px] sm:text-[11px]",
+                                                                    isUser
+                                                                        ? "text-blue-100"
+                                                                        : "text-gray-500 dark:text-gray-400"
+                                                                )}
+                                                            >
+                                                                {formatTimestamp(item.create_at)}
+                                                            </p>
+                                                        ) : null}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
                                 </div>
                                 <div className="flex gap-2 flex-shrink-0">
                                     <Textarea

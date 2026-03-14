@@ -3,12 +3,14 @@ import {
   WorkflowWSMessage, 
   DocumentListResponse, 
   RegenerateDocumentResponse, 
+  SessionHistoryResponse,
   StepName 
 } from "./types";
 import {
   getWorkflowDocumentsByStep,
   regenerateWorkflowDocument,
   exportWorkflowDocument,
+  getWorkflowSessionHistory,
 } from "@/actions/workflow.action";
 
 /**
@@ -215,6 +217,37 @@ export async function regenerateDocument(
     };
   } catch (error) {
     console.error(`[API] regenerateDocument error (${stepName}):`, error);
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Unknown error occurred",
+    };
+  }
+}
+
+/**
+ * Get chat session history by content ID
+ *
+ * @param contentId - The content/file ID used by backend session history endpoint
+ */
+export async function getSessionHistory(
+  contentId: string
+): Promise<SessionHistoryResponse> {
+  try {
+    const response = await getWorkflowSessionHistory(contentId);
+
+    if (!response.success) {
+      return {
+        status: "error",
+        message: response.message || "Failed to fetch session history",
+      };
+    }
+
+    return {
+      status: "success",
+      sessions: response.data?.sessions || [],
+    };
+  } catch (error) {
+    console.error("[API] getSessionHistory error:", error);
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Unknown error occurred",

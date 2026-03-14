@@ -107,7 +107,7 @@ export const FolderComposite = ({
 
     const handleRemoveClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if(folder.type !== "folder") return;
+        if (folder.type !== "folder") return;
         const hasChildren = Array.isArray(folder.children) && folder.children.length > 0;
         if (hasChildren) {
             const ok = window.confirm(
@@ -121,7 +121,9 @@ export const FolderComposite = ({
     return (
         <div className="border rounded-lg w-full overflow-hidden">
             <div
-                className={`flex bg-blue-100 items-center justify-between p-4 cursor-pointer hover:bg-blue-200 transition-colors border-b`}
+                className={`flex items-center justify-between p-4 cursor-pointer transition-colors border-b
+    bg-blue-100 hover:bg-blue-200 border-blue-200
+    dark:bg-blue-900/20 dark:hover:bg-blue-900/40 dark:border-blue-800`}
                 onClick={() => !renaming && toggle(folder.id as number)}
             >
                 <div className="flex items-center gap-3">
@@ -153,7 +155,7 @@ export const FolderComposite = ({
                         <p className="text-sm text-muted-foreground">
                             {folder.type === "folder" && countFiles([folder])}{" "}
                             {folder.type === "folder" &&
-                            countFiles([folder]) === 1
+                                countFiles([folder]) === 1
                                 ? "file"
                                 : "files"}
                         </p>
@@ -243,8 +245,8 @@ export const FolderComposite = ({
             {expanded && (
                 <div className="p-4">
                     {folder.type === "folder" &&
-                    folder.children.length === 0 &&
-                    !creating ? (
+                        folder.children.length === 0 &&
+                        !creating ? (
                         <div className="text-center py-8 text-muted-foreground">
                             <Folder className="w-12 h-12 mx-auto mb-2 opacity-50" />
                             <p>No files in this folder</p>
@@ -309,7 +311,7 @@ export const FolderComposite = ({
                                             onDelete={onDelete}
                                             onDownload={onDownload}
                                             onSelect={onSelect}
-                                            onCreateFolder={onCreateFolder} 
+                                            onCreateFolder={onCreateFolder}
                                             onRemoveFolder={onRemoveFolder}
                                             onRenameFolder={onRenameFolder}
                                         />
