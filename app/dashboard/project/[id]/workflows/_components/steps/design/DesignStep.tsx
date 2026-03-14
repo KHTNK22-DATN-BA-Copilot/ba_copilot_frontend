@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useCallback } from "react";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
-import PreviewModal from "../../PreviewModal";
 import { designDocuments, documentFiles } from "./documents";
 import {
     DocumentSelector,
@@ -12,10 +11,12 @@ import {
     useDocumentPreview,
     useWorkflowGeneration,
     GenerateWorkflowPayload,
+    getDesignDocuments,
+    fetchAllDocument,
 } from "../shared";
 import { useDocumentConstraints } from "../shared/hooks/useDocumentConstraints";
 import useSWR from "swr";
-import { getDesignDocuments, fetchAllDocument } from "@/lib/helper";
+import PreviewModal from "../../PreviewModal";
 
 interface DesignStepProps {
     generatedWireframes: string[];
@@ -39,7 +40,7 @@ export default function DesignStep({
 
     const {
         data: existingDocIds = [],
-    } = useSWR (
+    } = useSWR(
         projectId,
         fetchAllDocument,
         {
@@ -57,7 +58,7 @@ export default function DesignStep({
 
     const fetchDesignDocument = async ([projectId, step]: [string, string]) => {
         const response = await getDesignDocuments(projectId);
-        if(response.documents) {
+        if (response.documents) {
             return response.documents;
         }
         else {
@@ -186,13 +187,15 @@ export default function DesignStep({
                 />
             )}
 
-            {/* Preview Modal */}
+            {/* Preview Modal for Template Documents */}
             {documentPreview.previewDocument && (
                 <PreviewModal
                     isOpen={!!documentPreview.previewDocument}
                     onClose={documentPreview.handleClosePreview}
-                    type="wireframe"
-                    title={documentPreview.getPreviewTitle(documentPreview.previewDocument)}
+                    type="document"
+                    title={documentPreview.getPreviewTitle(
+                        documentPreview.previewDocument,
+                    )}
                     content={documentPreview.previewContent}
                 />
             )}

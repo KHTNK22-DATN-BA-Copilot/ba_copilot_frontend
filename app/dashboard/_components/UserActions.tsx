@@ -96,7 +96,7 @@ export default function UserActions({
             </button>
 
             {/* Add */}
-            <button className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+            {/* <button className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
                 <svg
                     className="w-5 h-5"
                     fill="none"
@@ -110,7 +110,7 @@ export default function UserActions({
                         d="M12 4v16m8-8H4"
                     />
                 </svg>
-            </button>
+            </button> */}
 
             {/* Avatar with Dropdown */}
             <div className="relative">

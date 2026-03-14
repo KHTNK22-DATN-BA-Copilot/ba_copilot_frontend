@@ -8,13 +8,171 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DocumentListItem } from "../types";
 import ReactMarkdown from "react-markdown";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
-import { Download, X, Send, Loader2 } from "lucide-react";
+import { Download, Send, Loader2, GitCompare, Eye } from "lucide-react";
 import { exportDocument, regenerateDocument } from "../api";
 import { toast } from "sonner";
 import type { StepName } from "../types";
+import { diffLines } from "diff";
+import { cn } from "@/lib/utils";
+import mermaid from "mermaid";
+
+const stripYamlFrontMatter = (s: string) => {
+    if (!s) return s;
+    const withoutComments = s.replace(/^\s*%.*\n/gm, "");
+    const cleaned = withoutComments
+        .replace(/^\s*---\s*\r?\n[\s\S]*?\r?\n\s*---\s*\r?\n?/, "")
+        .trim();
+    return cleaned;
+};
+
+const dedent = (text: string) => {
+    if (!text) return text;
+    const lines = text.split(/\r?\n/);
+    while (lines.length && lines[0].trim() === "") lines.shift();
+    while (lines.length && lines[lines.length - 1].trim() === "") lines.pop();
+    if (!lines.length) return "";
+
+    let minIndent: number | null = null;
+    for (const line of lines) {
+        const m = line.match(/^([ \t]*)\S/);
+        if (m) {
+            const len = m[1].length;
+            if (minIndent === null || len < minIndent) minIndent = len;
+        }
+    }
+
+    if (!minIndent || minIndent === 0) return lines.join("\n");
+    const regex = new RegExp(`^[ \\t]{0,${minIndent}}`);
+    return lines.map((l) => l.replace(regex, "")).join("\n");
+};
+
+const isHtmlDocument = (text: string) => {
+    const trimmed = text.trim();
+    return (
+        trimmed.startsWith("<!DOCTYPE") ||
+        trimmed.startsWith("<html") ||
+        /^<(div|main|section|article|header|footer|nav|form|table|style|body)(\s|>)/i.test(trimmed)
+    );
+};
+
+const MarkdownWithMermaid = ({ content }: { content: string }) => {
+    const ref = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        try {
+            mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
+        } catch {
+            // Mermaid may already be initialized by another preview instance.
+        }
+
+        if (!ref.current) return;
+
+        const blocks = Array.from(ref.current.querySelectorAll<HTMLDivElement>(".mermaid"));
+
+        (async () => {
+            for (const [idx, block] of blocks.entries()) {
+                if (!block || !block.isConnected) continue;
+
+                const raw = block.textContent ?? "";
+                const withoutYaml = stripYamlFrontMatter(raw);
+                const cleaned = dedent(withoutYaml);
+                const uniq =
+                    typeof crypto !== "undefined" && crypto.randomUUID
+                        ? crypto.randomUUID()
+                        : `${Date.now()}-${idx}-${Math.floor(Math.random() * 1000)}`;
+                const id = `mermaid-${uniq}`;
+
+                try {
+                    const { svg } = await mermaid.render(id, cleaned);
+                    if (!block.isConnected) continue;
+                    block.innerHTML = svg;
+                    block.classList.remove("mermaid");
+                } catch (error) {
+                    console.error("Mermaid render error:", error);
+                }
+            }
+        })();
+    }, [content]);
+
+    return (
+        <div ref={ref} className="markdown-body bg-white p-2 sm:p-4" style={{ colorScheme: "light" }}>
+            <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkBreaks]}
+                components={{
+                    code({ className, children }) {
+                        const lang = className?.replace("language-", "");
+                        if (lang === "mermaid") {
+                            const text = Array.isArray(children)
+                                ? children.join("")
+                                : String(children);
+                            return <div className="mermaid whitespace-pre-wrap">{text}</div>;
+                        }
+
+                        return (
+                            <pre>
+                                <code className={className}>{children}</code>
+                            </pre>
+                        );
+                    },
+                }}
+            >
+                {content}
+            </ReactMarkdown>
+        </div>
+    );
+};
+
+const DiffView = ({ original, modified }: { original: string; modified: string }) => {
+    const changes = diffLines(original, modified);
+    return (
+        <div className="font-mono text-xs leading-5 overflow-x-auto">
+            {changes.map((part, idx) => {
+                const lines = part.value.split("\n");
+                if (lines[lines.length - 1] === "") lines.pop();
+                return lines.map((line, lineIdx) => (
+                    <div
+                        key={`${idx}-${lineIdx}`}
+                        className={cn(
+                            "flex px-2 py-0.5 whitespace-pre-wrap break-words",
+                            part.added
+                                ? "bg-green-50 dark:bg-green-950"
+                                : part.removed
+                                    ? "bg-red-50 dark:bg-red-950"
+                                    : ""
+                        )}
+                    >
+                        <span
+                            className={cn(
+                                "select-none mr-3 w-3 flex-shrink-0 font-bold",
+                                part.added
+                                    ? "text-green-600 dark:text-green-400"
+                                    : part.removed
+                                        ? "text-red-600 dark:text-red-400"
+                                        : "text-gray-400"
+                            )}
+                        >
+                            {part.added ? "+" : part.removed ? "-" : " "}
+                        </span>
+                        <span
+                            className={cn(
+                                part.added
+                                    ? "text-green-800 dark:text-green-200"
+                                    : part.removed
+                                        ? "text-red-800 dark:text-red-200"
+                                        : "text-gray-700 dark:text-gray-300"
+                            )}
+                        >
+                            {line}
+                        </span>
+                    </div>
+                ));
+            })}
+        </div>
+    );
+};
 
 interface DocumentPreviewModalProps {
     document: DocumentListItem | null;
@@ -24,7 +182,7 @@ interface DocumentPreviewModalProps {
     stepName: StepName;
     onRegenerateSuccess?: () => void;
     isRegenerating?: boolean;
-    onRegenerate?: (documentId: string) => Promise<void>;
+    onRegenerate?: (documentId: string, description?: string) => Promise<void>;
 }
 
 export function DocumentPreviewModal({
@@ -41,6 +199,8 @@ export function DocumentPreviewModal({
     const [content, setContent] = useState("");
     const [downloadingDoc, setDownloadingDoc] = useState(false);
     const [chatInput, setChatInput] = useState("");
+    const [diffMode, setDiffMode] = useState(false);
+    const isHtmlPreview = isHtmlDocument(content || "");
 
     useEffect(() => {
         if (document) {
@@ -56,12 +216,13 @@ export function DocumentPreviewModal({
 
         if (onRegenerate) {
             // Use parent's regenerate handler to sync state
-            await onRegenerate(document.document_id);
+            // Note: Parent handler should be updated to accept description
+            await onRegenerate(document.document_id, chatInput);
             setChatInput(""); // Clear input after success
         } else {
             // Fallback to direct API call if no handler provided
             try {
-                const response = await regenerateDocument(stepName, projectId, document.document_id);
+                const response = await regenerateDocument(stepName, projectId, document.document_id, chatInput);
 
                 if (response.status !== "error") {
                     toast.success("Document regenerated successfully");
@@ -143,7 +304,7 @@ export function DocumentPreviewModal({
                                 </div>
                             </div>
 
-                            {/* <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                            <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
                                 {edit && (
                                     <Button
                                         variant="default"
@@ -171,7 +332,7 @@ export function DocumentPreviewModal({
                                     <Download className={`w-4 h-4 ${downloadingDoc ? 'animate-pulse' : ''}`} />
                                     <span className="hidden sm:inline">{downloadingDoc ? "Downloading..." : "Download"}</span>
                                 </Button>
-                            </div> */}
+                            </div>
                         </div>
                     </DialogHeader>
 
@@ -235,25 +396,59 @@ export function DocumentPreviewModal({
 
                                     {/* Preview Panel */}
                                     <div className="flex flex-col h-full min-h-0 min-w-0">
-                                        <h3 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex-shrink-0">
-                                            Live Preview
-                                        </h3>
-                                        <div className="flex-1 overflow-y-auto overflow-x-hidden border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 p-2 sm:p-4 min-h-0">
-                                            <div className="markdown-body bg-transparent">
-                                                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
-                                                    {content}
-                                                </ReactMarkdown>
-                                            </div>
+                                        <div className="flex items-center justify-between mb-2 flex-shrink-0">
+                                            <h3 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                {diffMode ? "Diff View" : "Live Preview"}
+                                            </h3>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-6 px-2 gap-1 text-xs"
+                                                onClick={() => setDiffMode((v) => !v)}
+                                            >
+                                                {diffMode ? (
+                                                    <><Eye className="w-3 h-3" /> Preview</>
+                                                ) : (
+                                                    <><GitCompare className="w-3 h-3" /> Diff</>
+                                                )}
+                                            </Button>
+                                        </div>
+                                        <div className={cn(
+                                            "flex-1 overflow-y-auto overflow-x-hidden border rounded-lg min-h-0",
+                                            diffMode
+                                                ? "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
+                                                : "border-gray-300 bg-white"
+                                        )}>
+                                            {diffMode ? (
+                                                <DiffView
+                                                    original={document.content || ""}
+                                                    modified={content}
+                                                />
+                                            ) : isHtmlPreview ? (
+                                                <iframe
+                                                    srcDoc={content || ""}
+                                                    title="html-live-preview"
+                                                    sandbox="allow-scripts"
+                                                    className="h-full w-full border-0 bg-white"
+                                                />
+                                            ) : (
+                                                <MarkdownWithMermaid content={content} />
+                                            )}
                                         </div>
                                     </div>
                                 </div>
                             ) : (
-                                <div className="h-full min-h-0 min-w-0 overflow-y-auto overflow-x-hidden border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 p-2 sm:p-4">
-                                    <div className="markdown-body bg-transparent">
-                                        <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
-                                            {document.content || "No content available"}
-                                        </ReactMarkdown>
-                                    </div>
+                                <div className="h-full min-h-0 min-w-0 overflow-y-auto overflow-x-hidden border border-gray-300 rounded-lg bg-white p-2 sm:p-4">
+                                    {isHtmlDocument(document.content || "") ? (
+                                        <iframe
+                                            srcDoc={document.content || ""}
+                                            title="html-document-preview"
+                                            sandbox="allow-scripts"
+                                            className="h-full w-full border-0 bg-white"
+                                        />
+                                    ) : (
+                                        <MarkdownWithMermaid content={document.content || "No content available"} />
+                                    )}
                                 </div>
                             )}
                         </div>

@@ -50,7 +50,7 @@ export function FetchedDocumentsList({
         setIsPreviewOpen(true);
     };
 
-    const handleRegenerateFromModal = async (documentId: string) => {
+    const handleRegenerateFromModal = async (documentId: string, description?: string) => {
         setRegeneratingDocId(documentId);
 
         toast.info(`Regenerating document...`, {
@@ -61,7 +61,8 @@ export function FetchedDocumentsList({
             const data = await regenerateDocument(
                 stepName,
                 projectId,
-                documentId
+                documentId,
+                description
             );
 
             if (data.status !== "error") {
@@ -162,22 +163,8 @@ export function FetchedDocumentsList({
                             <div className="flex items-start justify-between gap-2">
                                 <div className="flex-1 min-w-0">
                                     <p className="font-medium text-gray-900 dark:text-gray-100">
-                                        {doc.design_type}
-                                    </p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                         {doc.project_name}
                                     </p>
-                                </div>
-
-                                <div className="flex items-center gap-2 flex-shrink-0">
-                                    <span
-                                        className={`text-xs px-2 py-1 rounded-full ${doc.status === "completed"
-                                            ? "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400"
-                                            : "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400"
-                                            }`}
-                                    >
-                                        {doc.status}
-                                    </span>
                                 </div>
                             </div>
 
@@ -202,17 +189,6 @@ export function FetchedDocumentsList({
                                         title="Download"
                                     >
                                         <Download className={`w-4 h-4 ${downloadingDocId === doc.document_id ? 'animate-pulse' : ''}`} />
-                                    </Button>
-
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="gap-2"
-                                        onClick={() => handleRegenerateClick(doc)}
-                                        disabled={regeneratingDocId !== null || downloadingDocId !== null}
-                                    >
-                                        <RefreshCw className={`w-4 h-4 ${regeneratingDocId === doc.document_id ? 'animate-spin' : ''}`} />
-                                        {regeneratingDocId === doc.document_id ? 'Regenerating...' : 'Regenerate'}
                                     </Button>
 
                                     <Button

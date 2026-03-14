@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useCallback, memo } from "react";
 import PromptWithFileSelection from "../../PromptWithFileSelection";
-import PreviewModal from "../../PreviewModal";
 import { planningDocuments, documentFiles } from "./documents";
 import {
     DocumentSelector,
@@ -13,10 +12,12 @@ import {
     useWorkflowGeneration,
     GenerateWorkflowPayload,
     DocumentListItem,
+    fetchAllDocument,
+    getPlanningDocuments,
 } from "../shared";
 import { useDocumentConstraints } from "../shared/hooks/useDocumentConstraints";
 import useSWR from "swr";
-import { fetchAllDocument, getPlanningDocuments } from "@/lib/helper";
+import PreviewModal from "../../PreviewModal";
 
 interface PlanningStepProps {
     generatedDiagrams: string[];
@@ -212,19 +213,6 @@ function PlanningStep({
                         documentPreview.previewDocument,
                     )}
                     content={documentPreview.previewContent}
-                />
-            )}
-
-            {/* Preview Modal for Fetched Documents */}
-            {previewFetchedDoc && (
-                <PreviewModal
-                    isOpen={!!previewFetchedDoc}
-                    onClose={() => setPreviewFetchedDoc(null)}
-                    type="document"
-                    title={`${previewFetchedDoc.design_type} - ${previewFetchedDoc.project_name}`}
-                    content={
-                        previewFetchedDoc.content || "No content available"
-                    }
                 />
             )}
 

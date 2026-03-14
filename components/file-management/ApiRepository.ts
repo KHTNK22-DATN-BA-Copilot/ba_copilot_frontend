@@ -99,7 +99,8 @@ export class ApiRepository implements IFileRepository {
     private readonly baseUrl: string;
 
     constructor() {
-        this.baseUrl = process.env.NEXT_PUBLIC_BACKEND_DOMAIN ?? "http://localhost:8010";
+        this.baseUrl =
+            process.env.NEXT_PUBLIC_BACKEND_DOMAIN ?? "http://localhost:8010";
     }
 
     // ── Auth helper ────────────────────────────────────────────
