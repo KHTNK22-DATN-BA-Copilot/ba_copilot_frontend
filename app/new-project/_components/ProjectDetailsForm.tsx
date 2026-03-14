@@ -60,7 +60,7 @@ export default function ProjectDetailsForm({
           </div>
 
           {/* Due Date and Team Size */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="due-date" className="text-gray-900 dark:text-gray-100">
                 Due Date
@@ -93,10 +93,10 @@ export default function ProjectDetailsForm({
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          </div> */}
 
           {/* Project Priority */}
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="priority" className="text-gray-900 dark:text-gray-100">
               Project Priority
             </Label>
@@ -111,7 +111,7 @@ export default function ProjectDetailsForm({
                 <SelectItem value="critical">Critical Priority</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
         </div>
       </CardContent>
     </Card>

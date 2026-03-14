@@ -14,7 +14,7 @@ export class WorkflowService {
     ): Promise<ServiceResponse<{ jobId: string }>> {
         try {
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/workflow/generate`,
+                `${process.env.BACKEND_DOMAIN}/api/v1/workflow/generate`,
                 {
                     method: "POST",
                     headers: {
@@ -74,7 +74,7 @@ export class WorkflowService {
             }
 
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/workflow/status/${jobId}`,
+                `${process.env.BACKEND_DOMAIN}/api/v1/workflow/status/${jobId}`,
                 {
                     method: "GET",
                     headers: {
@@ -136,7 +136,7 @@ export class WorkflowService {
             }
 
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/${stepName}/list/${projectId}`,
+                `${process.env.BACKEND_DOMAIN}/api/v1/${stepName}/list/${projectId}`,
                 {
                     method: "GET",
                     headers: {
@@ -202,7 +202,7 @@ export class WorkflowService {
             }
 
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/${stepName}/regenerate/${projectId}/${documentId}`,
+                `${process.env.BACKEND_DOMAIN}/api/v1/${stepName}/regenerate/${projectId}/${documentId}`,
                 {
                     method: "PATCH",
                     headers: {
@@ -255,7 +255,7 @@ export class WorkflowService {
             }
 
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/files/export/${documentId}`,
+                `${process.env.BACKEND_DOMAIN}/api/v1/files/export/${documentId}`,
                 {
                     method: "GET",
                     headers: {

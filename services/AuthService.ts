@@ -37,7 +37,7 @@ export class AuthService {
         try {
             const respond = await fetch(
                 `${
-                    process.env.NEXT_PUBLIC_BACKEND_DOMAIN
+                    process.env.BACKEND_DOMAIN
                 }/api/v1/auth/verify-email?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`,
                 {
                     method: "POST",

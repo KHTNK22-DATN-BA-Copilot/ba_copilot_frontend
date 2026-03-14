@@ -206,39 +206,6 @@ export async function regenerateWorkflowDocument(
 }
 
 /**
- * Get access token from httpOnly cookie for authenticated workflow clients
- */
-export async function getWorkflowAccessToken(): Promise<ActionResponse<{ access_token: string }>> {
-    try {
-        const accessToken = (await cookies()).get("access_token")?.value;
-
-        if (!accessToken) {
-            return {
-                success: false,
-                message: "Unauthorized",
-                statusCode: 401,
-            };
-        }
-
-        return {
-            success: true,
-            message: "Token retrieved successfully",
-            statusCode: 200,
-            data: {
-                access_token: accessToken,
-            },
-        };
-    } catch (error) {
-        console.error("Error getting workflow access token:", error);
-        return {
-            success: false,
-            message: error instanceof Error ? error.message : "An unexpected error occurred",
-            statusCode: 500,
-        };
-    }
-}
-
-/**
  * Export a workflow document and return downloadable data
  */
 export async function exportWorkflowDocument(

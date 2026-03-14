@@ -8,7 +8,6 @@ import {
 import {
   getWorkflowDocumentsByStep,
   regenerateWorkflowDocument,
-  getWorkflowAccessToken,
   exportWorkflowDocument,
 } from "@/actions/workflow.action";
 
@@ -31,18 +30,29 @@ const WS_CONFIG = {
  */
 
 /**
- * Get JWT token from server action
- * @returns Promise with JWT token string or null if not found
+ * Get JWT token from server route that reads httpOnly cookie.
  */
 export async function getAuthToken(): Promise<string | null> {
   try {
-    const response = await getWorkflowAccessToken();
-    if (!response.success || !response.data?.access_token) {
-      console.error("[Auth] Failed to get token:", response.statusCode);
+    const response = await fetch("/api/auth/token", {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      console.error("[Auth] Failed to get token:", response.status);
       return null;
     }
 
-    return response.data.access_token;
+    const data = await response.json();
+
+    if (!data?.access_token) {
+      console.error("[Auth] Missing token in response");
+      return null;
+    }
+
+    return data.access_token as string;
   } catch (error) {
     console.error('[Auth] Error getting auth token:', error);
     return null;

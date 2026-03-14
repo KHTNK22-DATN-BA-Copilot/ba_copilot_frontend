@@ -9,13 +9,13 @@ export const PHASES: Phase[] = [
             {
                 id: "stakeholder-register",
                 name: "Stakeholder Register",
-                status: "available",
+                status: "not-started",
                 lastGenerated: "2026-03-10",
             },
             {
                 id: "high-level-requirements",
                 name: "High-level Requirements",
-                status: "in-progress",
+                status: "not-started",
             },
             {
                 id: "requirements-management-plan",
