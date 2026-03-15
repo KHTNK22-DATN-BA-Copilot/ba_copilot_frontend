@@ -41,3 +41,14 @@ export async function createProject(name: string, description: string, status: s
         message: response.message
     }
 }
+
+export async function getRecentUpdatedFiles(projectId: string, limit = 6) {
+    const accessToken = (await cookies()).get("access_token")?.value as string
+    try {
+        return await ProjectService.getRecentUpdatedFiles(accessToken, projectId, limit);
+    }
+    catch (error) {
+        console.error(`Error fetching recent updated files for project ${projectId}:`, error);
+        return [];
+    }
+}
