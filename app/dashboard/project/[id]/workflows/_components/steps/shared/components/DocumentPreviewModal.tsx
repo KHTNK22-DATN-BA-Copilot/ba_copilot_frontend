@@ -49,6 +49,19 @@ const dedent = (text: string) => {
     return lines.map((l) => l.replace(regex, "")).join("\n");
 };
 
+const normalizeMermaidSource = (raw: string) => {
+    if (!raw) return "";
+
+    // Some backend payloads contain escaped newlines/tabs in plain text.
+    const unescaped = raw
+        .replace(/\\r\\n/g, "\n")
+        .replace(/\\n/g, "\n")
+        .replace(/\\t/g, "\t");
+
+    const withoutYaml = stripYamlFrontMatter(unescaped);
+    return dedent(withoutYaml).trim();
+};
+
 const isHtmlDocument = (text: string) => {
     const trimmed = text.trim();
     return (
@@ -130,47 +143,77 @@ const buildSrcDoc = (html: string, css: string) => `
 </html>
 `;
 
-const MarkdownWithMermaid = ({ content }: { content: string }) => {
+let mermaidInitialized = false;
+
+const ensureMermaidInitialized = () => {
+    if (mermaidInitialized) return;
+    mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
+    mermaidInitialized = true;
+};
+
+const MermaidBlock = ({ source }: { source: string }) => {
     const ref = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        try {
-            mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
-        } catch {
-            // Mermaid may already be initialized by another preview instance.
-        }
+        let isCancelled = false;
+        let rafA: number | null = null;
+        let rafB: number | null = null;
+        let retryTimer: number | null = null;
 
-        if (!ref.current) return;
+        const renderDiagram = async () => {
+            if (isCancelled || !ref.current) return;
 
-        const blocks = Array.from(ref.current.querySelectorAll<HTMLDivElement>(".mermaid"));
+            const cleaned = normalizeMermaidSource(source);
+            if (!cleaned) {
+                ref.current.textContent = "";
+                return;
+            }
 
-        (async () => {
-            for (const [idx, block] of blocks.entries()) {
-                if (!block || !block.isConnected) continue;
-
-                const raw = block.textContent ?? "";
-                const withoutYaml = stripYamlFrontMatter(raw);
-                const cleaned = dedent(withoutYaml);
+            try {
+                ensureMermaidInitialized();
                 const uniq =
                     typeof crypto !== "undefined" && crypto.randomUUID
                         ? crypto.randomUUID()
-                        : `${Date.now()}-${idx}-${Math.floor(Math.random() * 1000)}`;
+                        : `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
                 const id = `mermaid-${uniq}`;
+                const { svg } = await mermaid.render(id, cleaned);
 
-                try {
-                    const { svg } = await mermaid.render(id, cleaned);
-                    if (!block.isConnected) continue;
-                    block.innerHTML = svg;
-                    block.classList.remove("mermaid");
-                } catch (error) {
-                    console.error("Mermaid render error:", error);
-                }
+                if (isCancelled || !ref.current) return;
+                ref.current.innerHTML = svg;
+                ref.current.classList.remove("mermaid");
+            } catch (error) {
+                if (!ref.current) return;
+                // Keep fallback text visible when render fails.
+                ref.current.textContent = cleaned;
+                console.error("Mermaid render error:", error);
             }
-        })();
-    }, [content]);
+        };
 
+        // Render immediately and retry after paint to handle dialog mount timing.
+        void renderDiagram();
+        rafA = window.requestAnimationFrame(() => {
+            rafB = window.requestAnimationFrame(() => {
+                void renderDiagram();
+            });
+        });
+        retryTimer = window.setTimeout(() => {
+            void renderDiagram();
+        }, 120);
+
+        return () => {
+            isCancelled = true;
+            if (rafA !== null) window.cancelAnimationFrame(rafA);
+            if (rafB !== null) window.cancelAnimationFrame(rafB);
+            if (retryTimer !== null) window.clearTimeout(retryTimer);
+        };
+    }, [source]);
+
+    return <div ref={ref} className="mermaid whitespace-pre-wrap" />;
+};
+
+const MarkdownWithMermaid = ({ content }: { content: string }) => {
     return (
-        <div ref={ref} className="markdown-body bg-white p-2 sm:p-4" style={{ colorScheme: "light" }}>
+        <div className="markdown-body bg-white p-2 sm:p-4" style={{ colorScheme: "light" }}>
             <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkBreaks]}
                 components={{
@@ -180,7 +223,7 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
                             const text = Array.isArray(children)
                                 ? children.join("")
                                 : String(children);
-                            return <div className="mermaid whitespace-pre-wrap">{text}</div>;
+                            return <MermaidBlock source={text} />;
                         }
 
                         return (
