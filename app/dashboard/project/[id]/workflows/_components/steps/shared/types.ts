@@ -149,6 +149,12 @@ export interface RegenerateDocumentResponse {
   result?: any; // Backend response data
 }
 
+export interface UpdateDocumentResponse {
+  status: "success" | "error";
+  message?: string;
+  result?: any; // Backend response data
+}
+
 export interface SessionMessage {
   role: string;
   message: string;

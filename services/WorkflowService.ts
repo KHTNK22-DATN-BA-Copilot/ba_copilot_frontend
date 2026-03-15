@@ -240,6 +240,79 @@ export class WorkflowService {
     }
 
     /**
+     * Update document content for a workflow step
+     */
+    public static async updateDocument(
+        token: string,
+        stepName: string,
+        projectId: string,
+        documentId: string,
+        content: string,
+    ): Promise<ServiceResponse<any>> {
+        try {
+            if (!stepName || !projectId || !documentId) {
+                return {
+                    success: false,
+                    statusCode: 400,
+                    message: "Step name, project ID, and document ID are required",
+                };
+            }
+
+            if (!content?.trim()) {
+                return {
+                    success: false,
+                    statusCode: 400,
+                    message: "Document content is required",
+                };
+            }
+
+            const validSteps = ["planning", "analysis", "design"];
+            if (!validSteps.includes(stepName)) {
+                return {
+                    success: false,
+                    statusCode: 400,
+                    message: `Invalid step name. Must be one of: ${validSteps.join(", ")}`,
+                };
+            }
+
+            const response = await fetch(
+                `${process.env.BACKEND_DOMAIN}/api/v1/${stepName}/update/${projectId}/${documentId}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "Authorization": `Bearer ${token}`,
+                    },
+                    body: new URLSearchParams({ content }).toString(),
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return {
+                    success: false,
+                    statusCode: response.status,
+                    message: errorData.message || "Failed to update document",
+                };
+            }
+
+            const data = await response.json();
+            return {
+                success: true,
+                statusCode: response.status,
+                data,
+            };
+        } catch (error) {
+            console.error("Error updating document:", error);
+            return {
+                success: false,
+                statusCode: 500,
+                message: "An unexpected error occurred while updating document",
+            };
+        }
+    }
+
+    /**
      * Export a workflow document and return file metadata with base64 content
      */
     public static async exportDocument(

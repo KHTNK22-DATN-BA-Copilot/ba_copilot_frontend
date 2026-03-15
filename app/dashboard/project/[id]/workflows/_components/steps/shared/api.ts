@@ -3,12 +3,14 @@ import {
   WorkflowWSMessage, 
   DocumentListResponse, 
   RegenerateDocumentResponse, 
+  UpdateDocumentResponse,
   SessionHistoryResponse,
   StepName 
 } from "./types";
 import {
   getWorkflowDocumentsByStep,
   regenerateWorkflowDocument,
+  updateWorkflowDocument,
   exportWorkflowDocument,
   getWorkflowSessionHistory,
 } from "@/actions/workflow.action";
@@ -217,6 +219,49 @@ export async function regenerateDocument(
     };
   } catch (error) {
     console.error(`[API] regenerateDocument error (${stepName}):`, error);
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Unknown error occurred",
+    };
+  }
+}
+
+/**
+ * Update document content for a specific step and project
+ *
+ * @param stepName - The workflow step name (planning, analysis, design)
+ * @param projectId - The project ID
+ * @param documentId - The document ID to update
+ * @param content - New document content
+ * @returns Promise with updated document data
+ */
+export async function updateDocumentContent(
+  stepName: StepName,
+  projectId: string,
+  documentId: string,
+  content: string,
+): Promise<UpdateDocumentResponse> {
+  try {
+    const response = await updateWorkflowDocument(
+      stepName,
+      projectId,
+      documentId,
+      content,
+    );
+
+    if (!response.success) {
+      return {
+        status: "error",
+        message: response.message || "Failed to update document",
+      };
+    }
+
+    return {
+      status: "success",
+      result: response.data,
+    };
+  } catch (error) {
+    console.error(`[API] updateDocumentContent error (${stepName}):`, error);
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Unknown error occurred",

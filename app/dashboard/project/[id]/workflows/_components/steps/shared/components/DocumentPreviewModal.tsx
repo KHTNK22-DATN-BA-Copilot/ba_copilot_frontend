@@ -12,7 +12,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { Download, Send, Loader2, GitCompare, Eye } from "lucide-react";
-import { exportDocument, getSessionHistory, regenerateDocument } from "../api";
+import { exportDocument, getSessionHistory, regenerateDocument, updateDocumentContent } from "../api";
 import { toast } from "sonner";
 import type { StepName } from "../types";
 import { diffLines } from "diff";
@@ -312,6 +312,7 @@ export function DocumentPreviewModal({
 }: DocumentPreviewModalProps) {
     const [edit, setEdit] = useState(false);
     const [content, setContent] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
     const [downloadingDoc, setDownloadingDoc] = useState(false);
     const [chatInput, setChatInput] = useState("");
     const [chatHistory, setChatHistory] = useState<SessionMessage[]>([]);
@@ -468,13 +469,40 @@ export function DocumentPreviewModal({
     };
 
     const updateDocument = async () => {
+        if (isSaving) return;
+
+        setIsSaving(true);
         try {
-            // TODO: Implement API call to update document
-            console.log("Updating document with content:", content);
-            toast.info("Document update feature coming soon");
+            if (!document) return;
+
+            const trimmedContent = content.trim();
+            if (!trimmedContent) {
+                toast.error("Document content is required");
+                return;
+            }
+
+            const response = await updateDocumentContent(
+                stepName,
+                projectId,
+                document.document_id,
+                trimmedContent,
+            );
+
+            if (response.status === "error") {
+                throw new Error(response.message || "Failed to update document");
+            }
+
+            if (response.result?.content) {
+                setContent(response.result.content);
+            }
+
+            toast.success("Document updated successfully");
         } catch (error) {
             console.error("Failed to update document:", error);
-            toast.error("Failed to update document");
+            const errorMessage = error instanceof Error ? error.message : "Failed to update document";
+            toast.error(errorMessage);
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -531,9 +559,16 @@ export function DocumentPreviewModal({
                                         variant="default"
                                         onClick={updateDocument}
                                         size="sm"
-                                        disabled={content.trim() === (document.content || "").trim()}
+                                        disabled={isSaving || content.trim() === (document.content || "").trim()}
                                     >
-                                        Save Changes
+                                        {isSaving ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Saving...
+                                            </>
+                                        ) : (
+                                            "Save Changes"
+                                        )}
                                     </Button>
                                 )}
                                 <Button

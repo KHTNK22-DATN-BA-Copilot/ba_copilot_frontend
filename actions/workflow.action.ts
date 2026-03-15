@@ -206,6 +206,58 @@ export async function regenerateWorkflowDocument(
 }
 
 /**
+ * Update a specific document for a workflow step
+ */
+export async function updateWorkflowDocument(
+    stepName: string,
+    projectId: string,
+    documentId: string,
+    content: string,
+): Promise<ActionResponse> {
+    try {
+        const accessToken = (await cookies()).get("access_token")?.value as string;
+
+        if (!accessToken) {
+            return {
+                success: false,
+                message: "Unauthorized",
+                statusCode: 401,
+            };
+        }
+
+        const response = await WorkflowService.updateDocument(
+            accessToken,
+            stepName,
+            projectId,
+            documentId,
+            content,
+        );
+
+        if (response.success) {
+            return {
+                success: true,
+                message: "Document updated successfully",
+                data: response.data,
+                statusCode: response.statusCode,
+            };
+        }
+
+        return {
+            success: false,
+            message: response.message || "Failed to update document",
+            statusCode: response.statusCode,
+        };
+    } catch (error) {
+        console.error("Error updating document:", error);
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "An unexpected error occurred",
+            statusCode: 500,
+        };
+    }
+}
+
+/**
  * Export a workflow document and return downloadable data
  */
 export async function exportWorkflowDocument(
