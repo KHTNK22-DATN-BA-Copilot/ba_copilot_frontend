@@ -18,15 +18,15 @@ export class WorkflowService {
                 {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/x-www-form-urlencoded",
                         "Authorization": `Bearer ${token}`,
                     },
-                    body: JSON.stringify({
-                        prompt,
-                        selectedFiles,
-                        selectedDocIds,
-                        projectId,
-                    }),
+                    body: new URLSearchParams({
+                        prompt: String(prompt),
+                        selectedFiles: JSON.stringify(selectedFiles),
+                        selectedDocIds: JSON.stringify(selectedDocIds),
+                        projectId: String(projectId),
+                    }).toString(),
                 }
             );
 
@@ -184,6 +184,7 @@ export class WorkflowService {
         description?: string,
     ): Promise<ServiceResponse<any>> {
         try {
+            console.log("WorkflowService.regenerateDocument called with description:", description);
             if (!stepName || !projectId || !documentId) {
                 return {
                     success: false,
@@ -206,10 +207,10 @@ export class WorkflowService {
                 {
                     method: "PATCH",
                     headers: {
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/x-www-form-urlencoded",
                         "Authorization": `Bearer ${token}`,
                     },
-                    body: JSON.stringify({ ...(description ? { description } : {}) }),
+                    body: new URLSearchParams({ ...(description ? { description } : {}) }),
                 }
             );
 

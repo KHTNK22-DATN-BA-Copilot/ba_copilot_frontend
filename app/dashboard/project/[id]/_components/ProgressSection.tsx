@@ -25,7 +25,7 @@ export default function ProgressSection({ project }: ProgressSectionProps) {
                     </div>
                     <Progress value={project.progress} className="h-3" />
                     <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-                        <span>{project.completedTasks} of {project.totalTasks} tasks completed</span>
+                        <span>{project.completedTasks} of {project.totalTasks} generated documents</span>
                         <span>{project.totalTasks - project.completedTasks} remaining</span>
                     </div>
                 </div>

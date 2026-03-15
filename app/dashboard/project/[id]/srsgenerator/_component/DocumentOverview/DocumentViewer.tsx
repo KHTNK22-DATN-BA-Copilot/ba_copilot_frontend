@@ -73,9 +73,9 @@ export default function DocumentViewer({ projectId }: { projectId: string }) {
         }
     };
 
-    const regenerateDocument = async () => {
+    // const regenerateDocument = async () => {
 
-    }
+    // }
 
     return (
         <div className="w-full relative">

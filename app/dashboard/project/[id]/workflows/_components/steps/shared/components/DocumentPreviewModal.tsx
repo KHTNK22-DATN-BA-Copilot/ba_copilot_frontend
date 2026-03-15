@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DocumentListItem, SessionMessage } from "../types";
 import ReactMarkdown from "react-markdown";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { Download, Send, Loader2, GitCompare, Eye } from "lucide-react";
@@ -57,6 +57,78 @@ const isHtmlDocument = (text: string) => {
         /^<(div|main|section|article|header|footer|nav|form|table|style|body)(\s|>)/i.test(trimmed)
     );
 };
+
+type StructuredFormat = "markers" | "json";
+
+interface StructuredHtmlCss {
+    html: string;
+    css: string;
+    format: StructuredFormat;
+}
+
+const parseStructuredHtmlCss = (raw: string): StructuredHtmlCss | null => {
+    if (!raw) return null;
+
+    const markerHtmlStart = "<!--HTML_START-->";
+    const markerHtmlEnd = "<!--HTML_END-->";
+    const markerCssStart = "<!--CSS_START-->";
+    const markerCssEnd = "<!--CSS_END-->";
+
+    if (
+        raw.includes(markerHtmlStart) &&
+        raw.includes(markerHtmlEnd) &&
+        raw.includes(markerCssStart) &&
+        raw.includes(markerCssEnd)
+    ) {
+        try {
+            const html = raw.split(markerHtmlStart)[1].split(markerHtmlEnd)[0].trim();
+            const css = raw.split(markerCssStart)[1].split(markerCssEnd)[0].trim();
+            return { html, css, format: "markers" };
+        } catch {
+            // Fall through to JSON/plain HTML detection.
+        }
+    }
+
+    try {
+        const parsed = JSON.parse(raw) as { html?: unknown; css?: unknown };
+        if (typeof parsed?.html === "string" || typeof parsed?.css === "string") {
+            return {
+                html: typeof parsed.html === "string" ? parsed.html : "",
+                css: typeof parsed.css === "string" ? parsed.css : "",
+                format: "json",
+            };
+        }
+    } catch {
+        // Not JSON; continue.
+    }
+
+    return null;
+};
+
+const serializeStructuredHtmlCss = (
+    html: string,
+    css: string,
+    format: StructuredFormat
+) => {
+    if (format === "markers") {
+        return `<!--HTML_START-->\n${html}\n<!--HTML_END-->\n<!--CSS_START-->\n${css}\n<!--CSS_END-->`;
+    }
+
+    return JSON.stringify({ html, css });
+};
+
+const buildSrcDoc = (html: string, css: string) => `
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>${css}</style>
+  </head>
+  <body>
+    ${html}
+  </body>
+</html>
+`;
 
 const MarkdownWithMermaid = ({ content }: { content: string }) => {
     const ref = useRef<HTMLDivElement | null>(null);
@@ -203,8 +275,19 @@ export function DocumentPreviewModal({
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
     const [historyError, setHistoryError] = useState<string | null>(null);
     const [diffMode, setDiffMode] = useState(false);
+    const [codeTab, setCodeTab] = useState<"html" | "css">("html");
+    const [htmlContent, setHtmlContent] = useState("");
+    const [cssContent, setCssContent] = useState("");
+    const [structuredFormat, setStructuredFormat] = useState<StructuredFormat>("json");
     const chatListRef = useRef<HTMLDivElement | null>(null);
-    const isHtmlPreview = isHtmlDocument(content || "");
+
+    const structuredContent = useMemo(() => parseStructuredHtmlCss(content || ""), [content]);
+    const isStructuredHtmlCss = Boolean(structuredContent);
+    const isHtmlPreview = isStructuredHtmlCss || isHtmlDocument(content || "");
+
+    const previewHtml = isStructuredHtmlCss ? htmlContent : content || "";
+    const previewCss = isStructuredHtmlCss ? cssContent : "";
+    const previewSrcDoc = buildSrcDoc(previewHtml, previewCss);
 
     const isUserRole = (role: string) => role.toLowerCase() === "user";
 
@@ -246,6 +329,25 @@ export function DocumentPreviewModal({
     }, [document]);
 
     useEffect(() => {
+        if (!content) {
+            setHtmlContent("");
+            setCssContent("");
+            return;
+        }
+
+        const parsed = parseStructuredHtmlCss(content);
+        if (!parsed) {
+            setHtmlContent("");
+            setCssContent("");
+            return;
+        }
+
+        setHtmlContent(parsed.html || "");
+        setCssContent(parsed.css || "");
+        setStructuredFormat(parsed.format);
+    }, [content]);
+
+    useEffect(() => {
         if (!isOpen || !document?.document_id) {
             setChatHistory([]);
             setHistoryError(null);
@@ -263,15 +365,19 @@ export function DocumentPreviewModal({
     }, [chatHistory, isHistoryLoading]);
 
     const handleSend = async () => {
+        
         if (!document || !chatInput.trim()) {
             toast.error("Please enter a prompt");
             return;
         }
 
+        console.log("Sending prompt:", chatInput);
+
         if (onRegenerate) {
             try {
                 // Use parent's regenerate handler to sync state.
                 await onRegenerate(document.document_id, chatInput);
+                console.log("Document regenerated successfully via parent handler");
                 setChatInput("");
                 void loadSessionHistory(document.document_id);
             } catch (error) {
@@ -283,7 +389,7 @@ export function DocumentPreviewModal({
             // Fallback to direct API call if no handler provided
             try {
                 const response = await regenerateDocument(stepName, projectId, document.document_id, chatInput);
-
+                console.log("Document preview modal.ts chatitput",chatInput);
                 if (response.status !== "error") {
                     toast.success("Document regenerated successfully");
                     if (response.result?.content) {
@@ -327,6 +433,17 @@ export function DocumentPreviewModal({
             console.error("Failed to update document:", error);
             toast.error("Failed to update document");
         }
+    };
+
+    const handleStructuredCodeChange = (nextValue: string) => {
+        if (codeTab === "html") {
+            setHtmlContent(nextValue);
+            setContent(serializeStructuredHtmlCss(nextValue, cssContent, structuredFormat));
+            return;
+        }
+
+        setCssContent(nextValue);
+        setContent(serializeStructuredHtmlCss(htmlContent, nextValue, structuredFormat));
     };
 
     if (!document) return null;
@@ -493,12 +610,47 @@ export function DocumentPreviewModal({
                                         <h3 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex-shrink-0">
                                             Editor
                                         </h3>
-                                        <Textarea
-                                            value={content}
-                                            onChange={(e) => setContent(e.target.value)}
-                                            className="flex-1 w-full p-2 sm:p-4 text-xs sm:text-sm font-mono border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-0"
-                                            placeholder="Edit your document here..."
-                                        />
+                                        {isStructuredHtmlCss ? (
+                                            <>
+                                                <div className="flex border-b bg-gray-50 dark:bg-gray-800 rounded-t-lg overflow-hidden">
+                                                    <button
+                                                        className={cn(
+                                                            "px-4 py-2 font-medium transition-colors text-xs sm:text-sm",
+                                                            codeTab === "html"
+                                                                ? "bg-blue-500 text-white"
+                                                                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                        )}
+                                                        onClick={() => setCodeTab("html")}
+                                                    >
+                                                        HTML
+                                                    </button>
+                                                    <button
+                                                        className={cn(
+                                                            "px-4 py-2 font-medium transition-colors text-xs sm:text-sm",
+                                                            codeTab === "css"
+                                                                ? "bg-blue-500 text-white"
+                                                                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                        )}
+                                                        onClick={() => setCodeTab("css")}
+                                                    >
+                                                        CSS
+                                                    </button>
+                                                </div>
+                                                <Textarea
+                                                    value={codeTab === "html" ? htmlContent : cssContent}
+                                                    onChange={(e) => handleStructuredCodeChange(e.target.value)}
+                                                    className="flex-1 w-full p-2 sm:p-4 text-xs sm:text-sm font-mono border border-gray-300 dark:border-gray-600 rounded-b-lg resize-none bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-0"
+                                                    placeholder={`Edit ${codeTab.toUpperCase()} here...`}
+                                                />
+                                            </>
+                                        ) : (
+                                            <Textarea
+                                                value={content}
+                                                onChange={(e) => setContent(e.target.value)}
+                                                className="flex-1 w-full p-2 sm:p-4 text-xs sm:text-sm font-mono border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-0"
+                                                placeholder="Edit your document here..."
+                                            />
+                                        )}
                                     </div>
 
                                     {/* Preview Panel */}
@@ -533,7 +685,7 @@ export function DocumentPreviewModal({
                                                 />
                                             ) : isHtmlPreview ? (
                                                 <iframe
-                                                    srcDoc={content || ""}
+                                                    srcDoc={previewSrcDoc}
                                                     title="html-live-preview"
                                                     sandbox="allow-scripts"
                                                     className="h-full w-full border-0 bg-white"
@@ -546,15 +698,15 @@ export function DocumentPreviewModal({
                                 </div>
                             ) : (
                                 <div className="h-full min-h-0 min-w-0 overflow-y-auto overflow-x-hidden border border-gray-300 rounded-lg bg-white p-2 sm:p-4">
-                                    {isHtmlDocument(document.content || "") ? (
+                                    {isHtmlPreview ? (
                                         <iframe
-                                            srcDoc={document.content || ""}
+                                            srcDoc={previewSrcDoc}
                                             title="html-document-preview"
                                             sandbox="allow-scripts"
                                             className="h-full w-full border-0 bg-white"
                                         />
                                     ) : (
-                                        <MarkdownWithMermaid content={document.content || "No content available"} />
+                                        <MarkdownWithMermaid content={content || "No content available"} />
                                     )}
                                 </div>
                             )}
