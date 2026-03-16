@@ -6,6 +6,7 @@ import {
     StepName,
 } from "@/app/dashboard/project/[id]/workflows/_components/steps/shared/types";
 import { getAccessToken } from "./projects";
+import { WorkFlowService } from "@/services/WorkflowService";
 
 const API_CONFIG = {
     headers: {
