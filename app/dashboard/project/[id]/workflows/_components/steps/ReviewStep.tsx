@@ -4,12 +4,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2, FileText, Layout, BarChart3, RefreshCw } from "lucide-react";
-import PreviewModal from "../PreviewModal";
 import {
     DocumentListItem,
     FetchedDocumentsList,
+    getPlanningDocuments,
+    getAnalysisDocuments,
+    getDesignDocuments,
 } from "./shared";
-import { getPlanningDocuments, getAnalysisDocuments, getDesignDocuments } from "@/lib/helper";
 
 interface ReviewStepProps {
     requirements: string;
@@ -33,7 +34,6 @@ export default function ReviewStep({
     const [designDocs, setDesignDocs] = useState<DocumentListItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [previewDoc, setPreviewDoc] = useState<DocumentListItem | null>(null);
 
     const totalDocs = useMemo(
         () => planningDocs.length + analysisDocs.length + designDocs.length,
@@ -122,17 +122,17 @@ export default function ReviewStep({
 
             <div className="space-y-6">
                 <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-2 bg-blue-100 rounded-sm">
+                    <div className="flex items-center gap-3 p-2 bg-blue-100 dark:bg-blue-900/30 rounded-sm">
                         <div className="m-2 bg-blue-100 dark:bg-blue-900/20 rounded">
                             <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         </div>
+
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                             Planning Step Documents
                         </h3>
                     </div>
                     <FetchedDocumentsList
                         documents={planningDocs}
-                        onPreview={setPreviewDoc}
                         stepName="planning"
                         projectId={projectId}
                         onRegenerateSuccess={fetchAllGeneratedDocuments}
@@ -145,17 +145,17 @@ export default function ReviewStep({
                 </div>
 
                 <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-2 bg-purple-100 rounded-sm">
+                    <div className="flex items-center gap-3 p-2 bg-purple-100 dark:bg-purple-900/30 rounded-sm">
                         <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded">
                             <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                         </div>
+
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                             Analysis Step Documents
                         </h3>
                     </div>
                     <FetchedDocumentsList
                         documents={analysisDocs}
-                        onPreview={setPreviewDoc}
                         stepName="analysis"
                         projectId={projectId}
                         onRegenerateSuccess={fetchAllGeneratedDocuments}
@@ -168,17 +168,17 @@ export default function ReviewStep({
                 </div>
 
                 <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-2 bg-green-100 rounded-sm">
+                    <div className="flex items-center gap-3 p-2 bg-green-100 dark:bg-green-900/30 rounded-sm">
                         <div className="m-2 bg-green-100 dark:bg-green-900/20 rounded">
                             <Layout className="w-5 h-5 text-green-600 dark:text-green-400" />
                         </div>
+
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                             Design Step Documents
                         </h3>
                     </div>
                     <FetchedDocumentsList
                         documents={designDocs}
-                        onPreview={setPreviewDoc}
                         stepName="design"
                         projectId={projectId}
                         onRegenerateSuccess={fetchAllGeneratedDocuments}
@@ -190,17 +190,6 @@ export default function ReviewStep({
                     )}
                 </div>
             </div>
-
-            {/* Preview Modal */}
-            {previewDoc && (
-                <PreviewModal
-                    isOpen={!!previewDoc}
-                    onClose={() => setPreviewDoc(null)}
-                    type="document"
-                    title={`${previewDoc.design_type} - ${previewDoc.project_name}`}
-                    content={previewDoc.content || "No content available"}
-                />
-            )}
 
             <div className="flex justify-center items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <Button variant="outline" onClick={onBack} className="gap-2">

@@ -78,7 +78,7 @@ export default function NewProjectPage() {
               setDueDate={setDueDate}
             />
 
-            <ProjectFeatures />
+            {/* <ProjectFeatures /> */}
 
             <ProjectActions
               onCancel={handleClose}

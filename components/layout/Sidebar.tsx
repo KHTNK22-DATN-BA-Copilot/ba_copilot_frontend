@@ -2,74 +2,93 @@
 
 import { useRouter, usePathname, useParams } from 'next/navigation';
 import { useState } from 'react';
-import { HomeIcon, SRSIcon, WireframeIcon, DiagramIcon, ConversationIcon, SparkleIcon } from '@/components/icons/project-icons';
-import { FileIcon } from 'lucide-react';
-import { describe } from 'node:test';
+import { SparkleIcon, FolderOpen, Layers, ChevronDown, ChevronRight, Home, Folder, ChevronLeft } from 'lucide-react';
 
 interface SidebarProps {
-    isDarkMode: boolean;
+    isDarkMode?: boolean;
     isOpen?: boolean;
     onClose?: () => void;
     isMobile?: boolean;
     projectId?: string;
 }
 
-export default function Sidebar({ isDarkMode, isOpen = false, onClose, isMobile = false, projectId }: SidebarProps) {
+const cn = (...classes: (string | boolean | undefined)[]) => {
+    return classes.filter(Boolean).join(' ');
+};
+
+export default function Sidebar({ isDarkMode = false, isOpen = false, onClose, isMobile = false, projectId }: SidebarProps) {
     const router = useRouter();
     const pathname = usePathname();
-    const { id } = useParams()
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const { id } = useParams();
+    const [phasesExpanded, setPhasesExpanded] = useState(true);
 
+    // Determine current page based on pathname
+    const getCurrentPage = () => {
+        if (pathname?.includes('/workflows')) return 'workflow';
+        if (pathname?.includes('/files')) return 'files';
+        if (pathname?.includes('/phases/planning')) return 'phases-planning';
+        if (pathname?.includes('/phases/analysis')) return 'phases-analysis';
+        if (pathname?.includes('/phases/design')) return 'phases-design';
+        return 'project-details';
+    };
 
-    // Generate navigation items with dynamic project ID
-    const getNavigationItems = () => [
+    const currentPage = getCurrentPage();
+
+    const menuItems = [
         {
-            name: 'Project Overviews',
+            id: 'project-details',
+            label: 'Project Overview',
+            description: 'View project details',
+            icon: FolderOpen,
             href: `/dashboard/project/${id}`,
-            icon: <HomeIcon />,
-            description: 'Overview & Analytics'
         },
         {
-            name: 'Project Workflows',
-            description: 'All in one flow',
+            id: 'workflow',
+            label: 'Project Workflow',
+            description: 'Generate all in one flow',
+            icon: SparkleIcon,
             href: `/dashboard/project/${id}/workflows`,
-            icon: <SparkleIcon />
         },
         {
-            name: "File management",
+            id: 'files',
+            label: 'Files',
+            description: 'Manage project files',
+            icon: Folder,
             href: `/dashboard/project/${id}/files`,
-            icon: <FileIcon />,
-            description: 'Manage Project Files'
         },
-        // {
-        //     name: 'AI Conversations',
-        //     href: `/dashboard/project/${id}/aiconversations`,
-        //     icon: <ConversationIcon />,
-        //     description: 'Chat with AI Assistants'
-        // },
+    ];
+
+    const phaseSubItems = [
         {
-            name: 'Planning Phase',
-            href: `/dashboard/project/${id}/diagrams`,
-            icon: <DiagramIcon />,
-            description: 'Create planning documents'
+            id: 'phases-planning',
+            label: 'Planning',
+            description: 'Project planning documents',
+            href: `/dashboard/project/${id}/phases/planning`,
         },
         {
-            name: 'Analysis Phase',
-            href: `/dashboard/project/${id}/srsgenerator`,
-            icon: <SRSIcon />,
-            description: 'Create analysis documents'
+            id: 'phases-analysis',
+            label: 'Analysis',
+            description: 'Analysis phase documents',
+            href: `/dashboard/project/${id}/phases/analysis`,
         },
         {
-            name: 'Design Phase',
-            href: `/dashboard/project/${id}/wireframegenerator`,
-            icon: <WireframeIcon />,
-            description: 'Create design documents'
-        }
+            id: 'phases-design',
+            label: 'Design',
+            description: 'Design phase documents',
+            href: `/dashboard/project/${id}/phases/design`,
+        },
     ];
 
     const handleNavigation = (href: string) => {
         router.push(href);
         // Close mobile sidebar when navigating
+        if (isMobile && onClose) {
+            onClose();
+        }
+    };
+
+    const handleBackToDashboard = () => {
+        router.push('/dashboard');
         if (isMobile && onClose) {
             onClose();
         }
@@ -92,99 +111,132 @@ export default function Sidebar({ isDarkMode, isOpen = false, onClose, isMobile 
                     }`
                     : 'fixed left-0 top-16 bottom-0 z-40'
                 }
-                ${isCollapsed ? 'w-16' : 'w-64'} 
-                bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 
-                ${isMobile ? '' : 'transition-all duration-300'} 
+                w-64
+                ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}
+                border-r
+                ${isMobile ? '' : 'transition-all duration-300'}
                 flex flex-col overflow-y-auto
             `}>
                 {/* Sidebar Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-                    {!isCollapsed && (
-                        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                            Navigation
-                        </h2>
-                    )}
-
-                    <div className="flex items-center space-x-1">
-                        {/* Mobile close button */}
-                        {isMobile && (
-                            <button
-                                onClick={onClose}
-                                className="xl:hidden p-1.5 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                                aria-label="Close sidebar"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        )}
-
-                        {/* Desktop collapse button */}
-                        {!isMobile && (
-                            <button
-                                onClick={() => setIsCollapsed(!isCollapsed)}
-                                className="p-1.5 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                            >
-                                <svg
-                                    className={`w-4 h-4 transition-transform duration-200 ${isCollapsed ? 'rotate-180' : ''}`}
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
-                        )}
-                    </div>
+                <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} flex items-center justify-between`}>
+                    <button className={`p-1 rounded ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}>
+                        <ChevronLeft className="w-4 h-4" />
+                    </button>
                 </div>
 
-                {/* Navigation Items */}
-                <nav className="flex-1 p-4 space-y-2">
-                    {getNavigationItems().map((item) => {
-                        const isActive = pathname === item.href;
-                        return (
-                            <button
-                                key={item.name}
-                                onClick={() => handleNavigation(item.href)}
-                                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-3' : 'px-3'
-                                    } py-2.5 rounded-lg text-left transition-all duration-200 group ${isActive
-                                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
-                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100'
-                                    }`}
-                            >
-                                <div className={`${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300'
-                                    } transition-colors`}>
-                                    {item.icon}
-                                </div>
+                {/* Back to Dashboard Button */}
+                <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <button
+                        onClick={handleBackToDashboard}
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors ${isDarkMode
+                            ? 'bg-gray-800 hover:bg-gray-700 text-gray-200'
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                            }`}
+                    >
+                        <Home className="w-4 h-4" />
+                        Back to Dashboard
+                    </button>
+                </div>
 
-                                {!isCollapsed && (
-                                    <div className="ml-3 flex-1">
-                                        <div className={`font-medium ${isActive ? 'text-blue-700 dark:text-blue-300' : 'text-gray-900 dark:text-gray-100'
-                                            }`}>
-                                            {item.name}
-                                        </div>
-                                        <div className={`text-xs ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'
-                                            } mt-0.5`}>
+                {/* Navigation Section */}
+                <div className="p-4 flex-1 overflow-y-auto">
+                    <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mb-2`}>Navigation</div>
+                    <nav className="space-y-1">
+                        {menuItems.map((item) => {
+                            const Icon = item.icon;
+                            const isActive = currentPage === item.id;
+                            return (
+                                <button
+                                    key={item.id}
+                                    onClick={() => handleNavigation(item.href)}
+                                    className={cn(
+                                        'w-full flex items-start gap-3 p-3 rounded-lg text-left transition-colors',
+                                        isActive
+                                            ? isDarkMode
+                                                ? 'bg-blue-900/30 text-blue-400'
+                                                : 'bg-blue-50 text-blue-600'
+                                            : isDarkMode
+                                                ? 'hover:bg-gray-800 text-gray-300 hover:text-gray-100'
+                                                : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
+                                    )}
+                                >
+                                    <Icon className={cn('w-5 h-5 mt-0.5 flex-shrink-0', isActive ? isDarkMode ? 'text-blue-400' : 'text-blue-600' : isDarkMode ? 'text-gray-500' : 'text-gray-400')} />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-sm">{item.label}</div>
+                                        <div className={cn('text-xs', isActive ? isDarkMode ? 'text-blue-400/70' : 'text-blue-600/70' : isDarkMode ? 'text-gray-400' : 'text-gray-500')}>
                                             {item.description}
                                         </div>
                                     </div>
-                                )}
+                                </button>
+                            );
+                        })}
 
-                                {isActive && (
-                                    <div className="w-1 h-6 bg-blue-600 dark:bg-blue-400 rounded-full ml-auto"></div>
+                        {/* Phases with Sub-items */}
+                        <div>
+                            <button
+                                onClick={() => setPhasesExpanded(!phasesExpanded)}
+                                className={cn(
+                                    'w-full flex items-start gap-3 p-3 rounded-lg text-left transition-colors',
+                                    currentPage.startsWith('phases')
+                                        ? isDarkMode
+                                            ? 'bg-blue-900/30 text-blue-400'
+                                            : 'bg-blue-50 text-blue-600'
+                                        : isDarkMode
+                                            ? 'hover:bg-gray-800 text-gray-300 hover:text-gray-100'
+                                            : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
+                                )}
+                            >
+                                <Layers className={cn('w-5 h-5 mt-0.5 flex-shrink-0', currentPage.startsWith('phases') ? isDarkMode ? 'text-blue-400' : 'text-blue-600' : isDarkMode ? 'text-gray-500' : 'text-gray-400')} />
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-sm">Phases</div>
+                                    <div className={cn('text-xs', currentPage.startsWith('phases') ? isDarkMode ? 'text-blue-400/70' : 'text-blue-600/70' : isDarkMode ? 'text-gray-400' : 'text-gray-500')}>
+                                        Generate phase documents
+                                    </div>
+                                </div>
+                                {phasesExpanded ? (
+                                    <ChevronDown className="w-4 h-4 mt-1 flex-shrink-0" />
+                                ) : (
+                                    <ChevronRight className="w-4 h-4 mt-1 flex-shrink-0" />
                                 )}
                             </button>
-                        );
-                    })}
-                </nav>
 
-                {/* Sidebar Footer */}
-                <div className="border-t border-gray-200 dark:border-gray-700 p-4">
-                    {!isCollapsed && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                            BA Copilot Platform
+                            {phasesExpanded && (
+                                <div className="ml-8 mt-1 space-y-1">
+                                    {phaseSubItems.map((subItem) => {
+                                        const isActive = currentPage === subItem.id;
+                                        return (
+                                            <button
+                                                key={subItem.id}
+                                                onClick={() => handleNavigation(subItem.href)}
+                                                className={cn(
+                                                    'w-full flex items-start gap-2 p-2 rounded-lg text-left transition-colors',
+                                                    isActive
+                                                        ? isDarkMode
+                                                            ? 'bg-blue-900/30 text-blue-400'
+                                                            : 'bg-blue-50 text-blue-600'
+                                                        : isDarkMode
+                                                            ? 'hover:bg-gray-800 text-gray-300 hover:text-gray-100'
+                                                            : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
+                                                )}
+                                            >
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-sm">{subItem.label}</div>
+                                                    <div className={cn('text-xs', isActive ? isDarkMode ? 'text-blue-400/70' : 'text-blue-600/70' : isDarkMode ? 'text-gray-400' : 'text-gray-500')}>
+                                                        {subItem.description}
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </nav>
+                </div>
+
+                {/* Footer */}
+                <div className={`mt-auto p-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>BA Copilot Platform</div>
                 </div>
             </aside>
         </>

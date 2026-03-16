@@ -8,7 +8,7 @@
  *                 constraint in the UI).
  */
 
-import { getPlanningDocuments, getDesignDocuments, getAnalysisDocuments } from "@/lib/helper";
+import { getPlanningDocuments, getDesignDocuments, getAnalysisDocuments } from "./api";
 import { DocumentListResponse } from "./types";
 
 export interface DocumentDependency {
