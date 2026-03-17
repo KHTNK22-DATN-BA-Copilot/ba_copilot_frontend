@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { WorkflowDocument, ConstrainedDocument, ConstrainedSubItem } from "../types";
 import {
-  DOCUMENT_DEPENDENCIES,
+  getDocumentDisplayName,
   getRequiredDocs,
   getTransitiveDependents,
 } from "../documentDependencies";
@@ -23,7 +23,7 @@ function getLeafIds(documents: WorkflowDocument[]): string[] {
  */
 function buildDisabledReason(missingIds: string[]): string | undefined {
   if (missingIds.length === 0) return undefined;
-  return `Missing: ${missingIds.join(", ")} in your database or checkbox`;
+  return `Missing: ${missingIds.map(getDocumentDisplayName).join(", ")} in your database or checkbox`;
 }
 
 // ─── Hook ────────────────────────────────────────────────────────────

@@ -34,7 +34,7 @@ import {
   getGeneratedDocumentsByPhase,
   resolveGeneratedDocumentTypeId,
 } from "./api";
-import { findDocument, getPhases } from "./phase-data";
+import { findDocument, getPhases, getPhaseDocumentCount, getPhaseLeafDocuments } from "./phase-data";
 import { DocumentStatus, PhaseId } from "./types";
 
 interface PhasesBoardProps {
@@ -72,7 +72,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
 
   const summaryBadge =
     phaseFilter && filteredPhases[0]
-      ? `${filteredPhases[0].documents.length} Documents`
+      ? `${getPhaseDocumentCount(filteredPhases[0])} Documents`
       : `${filteredPhases.length} Phases`;
 
   const selectedEntry = selectedDocument ? findDocument(selectedDocument) : null;
@@ -245,10 +245,11 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-2">
             {filteredPhases.map((phase) => {
-              const availableCount = phase.documents.filter((doc) =>
+              const phaseDocuments = getPhaseLeafDocuments(phase);
+              const availableCount = phaseDocuments.filter((doc) =>
                 Boolean(getMatchedGeneratedDocument(phase.id, doc.id))
               ).length;
-              const totalCount = phase.documents.length;
+              const totalCount = phaseDocuments.length;
               const completionPercent =
                 totalCount > 0 ? (availableCount / totalCount) * 100 : 0;
 
@@ -286,7 +287,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
 
                   <CardContent className="pt-0">
                     <div className="space-y-2">
-                      {phase.documents.map((doc) => {
+                      {phaseDocuments.map((doc) => {
                         const matchedGeneratedDoc = getMatchedGeneratedDocument(
                           phase.id,
                           doc.id
@@ -315,6 +316,11 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                   {doc.name}
                                 </p>
+                                {doc.parentName && (
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    Group: {doc.parentName}
+                                  </p>
+                                )}
                                 {matchedGeneratedDoc?.updated_at && (
                                   <p className="text-xs text-gray-500 dark:text-gray-400">
                                     Last updated: {formatLastGenerated(
@@ -374,6 +380,11 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                         Phase: {selectedEntry.phase.name}
                       </p>
+                      {selectedEntry.parentDocument && (
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                          Group: {selectedEntry.parentDocument.name}
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-2">

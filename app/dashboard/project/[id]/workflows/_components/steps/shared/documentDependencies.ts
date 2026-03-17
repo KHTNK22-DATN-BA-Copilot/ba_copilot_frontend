@@ -8,13 +8,35 @@
  *                 constraint in the UI).
  */
 
+import { analysisDocuments } from "../analysis/documents";
+import { designDocuments } from "../design/documents";
+import { planningDocuments } from "../planning/documents";
 import { getPlanningDocuments, getDesignDocuments, getAnalysisDocuments } from "./api";
-import { DocumentListResponse } from "./types";
+import { WorkflowDocument } from "./types";
 
 export interface DocumentDependency {
   required: string[];
   recommended: string[];
 }
+
+const ALL_WORKFLOW_DOCUMENTS: WorkflowDocument[] = [
+  ...planningDocuments,
+  ...analysisDocuments,
+  ...designDocuments,
+];
+
+const DOCUMENT_NAME_MAP = ALL_WORKFLOW_DOCUMENTS.reduce<Record<string, string>>(
+  (map, document) => {
+    map[document.id] = document.name;
+
+    document.subItems?.forEach((subItem) => {
+      map[subItem.id] = subItem.name;
+    });
+
+    return map;
+  },
+  {},
+);
 
 export const DOCUMENT_DEPENDENCIES: Record<string, DocumentDependency> = {
   // ────────── Planning ──────────
@@ -126,6 +148,20 @@ export function getRequiredDocs(docId: string): string[] {
  */
 export function getRecommendedDocs(docId: string): string[] {
   return DOCUMENT_DEPENDENCIES[docId]?.recommended ?? [];
+}
+
+export function getDocumentDisplayName(docId: string): string {
+  return DOCUMENT_NAME_MAP[docId] ?? docId;
+}
+
+export function getDependencyDisplay(docId: string): {
+  required: string[];
+  recommended: string[];
+} {
+  return {
+    required: getRequiredDocs(docId).map(getDocumentDisplayName),
+    recommended: getRecommendedDocs(docId).map(getDocumentDisplayName),
+  };
 }
 
 /**
