@@ -324,6 +324,12 @@ export function DocumentPreviewModal({
     const [cssContent, setCssContent] = useState("");
     const [structuredFormat, setStructuredFormat] = useState<StructuredFormat>("json");
     const chatListRef = useRef<HTMLDivElement | null>(null);
+    const hasAutoSwitchedToDiffRef = useRef(false);
+    const editorPanelRef = useRef<HTMLDivElement | null>(null);
+    const previewPanelRef = useRef<HTMLDivElement | null>(null);
+    const htmlPreviewIframeRef = useRef<HTMLIFrameElement | null>(null);
+    const iframeScrollCleanupRef = useRef<(() => void) | null>(null);
+    const scrollingSourceRef = useRef<"editor" | "preview" | null>(null);
 
     const structuredContent = useMemo(() => parseStructuredHtmlCss(content || ""), [content]);
     const isStructuredHtmlCss = Boolean(structuredContent);
@@ -407,6 +413,146 @@ export function DocumentPreviewModal({
         if (!chatListRef.current) return;
         chatListRef.current.scrollTop = chatListRef.current.scrollHeight;
     }, [chatHistory, isHistoryLoading]);
+
+    const getScrollRatio = (scrollTop: number, scrollHeight: number, clientHeight: number) => {
+        const maxScroll = Math.max(scrollHeight - clientHeight, 0);
+        if (maxScroll === 0) return 0;
+        return Math.min(Math.max(scrollTop / maxScroll, 0), 1);
+    };
+
+    const getEditorElement = () => {
+        return editorPanelRef.current?.querySelector("textarea") ?? null;
+    };
+
+    const applyScrollToEditor = (ratio: number) => {
+        const editor = getEditorElement();
+        if (!editor) return;
+
+        const maxScroll = Math.max(editor.scrollHeight - editor.clientHeight, 0);
+        editor.scrollTop = ratio * maxScroll;
+    };
+
+    const applyScrollToPreview = (ratio: number) => {
+        if (isHtmlPreview && !diffMode) {
+            const iframe = htmlPreviewIframeRef.current;
+            const win = iframe?.contentWindow;
+            const doc = iframe?.contentDocument;
+            if (!win || !doc) return;
+
+            const root = doc.documentElement;
+            const body = doc.body;
+            const scrollHeight = Math.max(
+                root?.scrollHeight ?? 0,
+                body?.scrollHeight ?? 0,
+            );
+            const clientHeight = win.innerHeight;
+            const maxScroll = Math.max(scrollHeight - clientHeight, 0);
+
+            win.scrollTo({ top: ratio * maxScroll });
+            return;
+        }
+
+        const preview = previewPanelRef.current;
+        if (!preview) return;
+
+        const maxScroll = Math.max(preview.scrollHeight - preview.clientHeight, 0);
+        preview.scrollTop = ratio * maxScroll;
+    };
+
+    const syncPreviewFromEditor = () => {
+        const editor = getEditorElement();
+        if (!editor) return;
+
+        const ratio = getScrollRatio(editor.scrollTop, editor.scrollHeight, editor.clientHeight);
+        applyScrollToPreview(ratio);
+    };
+
+    const handleEditorScroll = () => {
+        if (!edit) return;
+        if (scrollingSourceRef.current === "preview") return;
+
+        scrollingSourceRef.current = "editor";
+        syncPreviewFromEditor();
+        requestAnimationFrame(() => {
+            if (scrollingSourceRef.current === "editor") {
+                scrollingSourceRef.current = null;
+            }
+        });
+    };
+
+    const handlePreviewScroll = (scrollTop: number, scrollHeight: number, clientHeight: number) => {
+        if (!edit) return;
+        if (scrollingSourceRef.current === "editor") return;
+
+        scrollingSourceRef.current = "preview";
+        const ratio = getScrollRatio(scrollTop, scrollHeight, clientHeight);
+        applyScrollToEditor(ratio);
+        requestAnimationFrame(() => {
+            if (scrollingSourceRef.current === "preview") {
+                scrollingSourceRef.current = null;
+            }
+        });
+    };
+
+    useEffect(() => {
+        return () => {
+            iframeScrollCleanupRef.current?.();
+        };
+    }, []);
+
+    useEffect(() => {
+        iframeScrollCleanupRef.current?.();
+        iframeScrollCleanupRef.current = null;
+
+        if (!edit || !isHtmlPreview || diffMode) return;
+
+        const iframe = htmlPreviewIframeRef.current;
+        const win = iframe?.contentWindow;
+        const doc = iframe?.contentDocument;
+        if (!iframe || !win || !doc) return;
+
+        const onIframeScroll = () => {
+            const root = doc.documentElement;
+            const body = doc.body;
+            const scrollTop = win.scrollY;
+            const scrollHeight = Math.max(
+                root?.scrollHeight ?? 0,
+                body?.scrollHeight ?? 0,
+            );
+            const clientHeight = win.innerHeight;
+            handlePreviewScroll(scrollTop, scrollHeight, clientHeight);
+        };
+
+        win.addEventListener("scroll", onIframeScroll, { passive: true });
+        iframeScrollCleanupRef.current = () => {
+            win.removeEventListener("scroll", onIframeScroll);
+        };
+
+        syncPreviewFromEditor();
+
+        return () => {
+            iframeScrollCleanupRef.current?.();
+            iframeScrollCleanupRef.current = null;
+        };
+    }, [edit, isHtmlPreview, diffMode, previewSrcDoc]);
+
+    useEffect(() => {
+        if (!edit || !document) {
+            hasAutoSwitchedToDiffRef.current = false;
+            return;
+        }
+
+        const hasChanges = content !== (document.content || "");
+
+        if (hasChanges && !hasAutoSwitchedToDiffRef.current) {
+            setDiffMode(true);
+            hasAutoSwitchedToDiffRef.current = true;
+        }
+
+        if (!hasChanges) {
+            hasAutoSwitchedToDiffRef.current = false;
+        }
+    }, [edit, content, document]);
 
     const handleSend = async () => {
         
@@ -684,7 +830,7 @@ export function DocumentPreviewModal({
                             {edit ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 h-full min-h-0 min-w-0">
                                     {/* Editor Panel */}
-                                    <div className="flex flex-col h-full min-h-0 min-w-0">
+                                    <div ref={editorPanelRef} className="flex flex-col h-full min-h-0 min-w-0">
                                         <h3 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex-shrink-0">
                                             Editor
                                         </h3>
@@ -717,6 +863,7 @@ export function DocumentPreviewModal({
                                                 <Textarea
                                                     value={codeTab === "html" ? htmlContent : cssContent}
                                                     onChange={(e) => handleStructuredCodeChange(e.target.value)}
+                                                    onScroll={handleEditorScroll}
                                                     className="flex-1 w-full p-2 sm:p-4 text-xs sm:text-sm font-mono border border-gray-300 dark:border-gray-600 rounded-b-lg resize-none bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-0"
                                                     placeholder={`Edit ${codeTab.toUpperCase()} here...`}
                                                 />
@@ -725,6 +872,7 @@ export function DocumentPreviewModal({
                                             <Textarea
                                                 value={content}
                                                 onChange={(e) => setContent(e.target.value)}
+                                                onScroll={handleEditorScroll}
                                                 className="flex-1 w-full p-2 sm:p-4 text-xs sm:text-sm font-mono border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-0"
                                                 placeholder="Edit your document here..."
                                             />
@@ -750,7 +898,17 @@ export function DocumentPreviewModal({
                                                 )}
                                             </Button>
                                         </div>
-                                        <div className={cn(
+                                        <div
+                                            ref={previewPanelRef}
+                                            onScroll={(e) => {
+                                                const target = e.currentTarget;
+                                                handlePreviewScroll(
+                                                    target.scrollTop,
+                                                    target.scrollHeight,
+                                                    target.clientHeight,
+                                                );
+                                            }}
+                                            className={cn(
                                             "flex-1 overflow-y-auto overflow-x-hidden border rounded-lg min-h-0",
                                             diffMode
                                                 ? "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
@@ -763,6 +921,8 @@ export function DocumentPreviewModal({
                                                 />
                                             ) : isHtmlPreview ? (
                                                 <iframe
+                                                    ref={htmlPreviewIframeRef}
+                                                    onLoad={syncPreviewFromEditor}
                                                     srcDoc={previewSrcDoc}
                                                     title="html-live-preview"
                                                     sandbox="allow-scripts"
