@@ -22,6 +22,13 @@ export interface Activity {
     link: string;
 }
 
+export interface RecentFile {
+    id: string;
+    name: string;
+    extension?: string;
+    updated_at?: string;
+}
+
 export interface QuickStat {
     label: string;
     value: string;

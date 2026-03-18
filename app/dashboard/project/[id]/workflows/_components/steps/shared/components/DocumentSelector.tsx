@@ -7,6 +7,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Eye, ChevronDown, ChevronRight, Lock } from "lucide-react";
+import { getDependencyDisplay } from "../documentDependencies";
 import { ConstrainedDocument } from "../types";
 
 interface DocumentSelectorProps {
@@ -32,6 +33,38 @@ function isIndeterminate(doc: ConstrainedDocument): boolean {
     if (enabled.length === 0) return false;
     const checkedCount = enabled.filter((s) => s.isChecked).length;
     return checkedCount > 0 && checkedCount < enabled.length;
+}
+
+function DependencyDetails({ docId }: { docId: string }) {
+    const dependencyDisplay = getDependencyDisplay(docId);
+
+    if (
+        dependencyDisplay.required.length === 0 &&
+        dependencyDisplay.recommended.length === 0
+    ) {
+        return null;
+    }
+
+    return (
+        <div className="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
+            {dependencyDisplay.required.length > 0 && (
+                <p>
+                    <span className="font-medium text-amber-700 dark:text-amber-300">
+                        Required:
+                    </span>{" "}
+                    {dependencyDisplay.required.join(", ")}
+                </p>
+            )}
+            {dependencyDisplay.recommended.length > 0 && (
+                <p>
+                    <span className="font-medium text-sky-700 dark:text-sky-300">
+                        Recommended:
+                    </span>{" "}
+                    {dependencyDisplay.recommended.join(", ")}
+                </p>
+            )}
+        </div>
+    );
 }
 
 export function DocumentSelector({
@@ -131,6 +164,7 @@ export function DocumentSelector({
                                                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                                                     {doc.description}
                                                 </p>
+                                                <DependencyDetails docId={doc.id} />
                                             </div>
                                             {!doc.subItems && (
                                                 <Button
@@ -200,6 +234,7 @@ export function DocumentSelector({
                                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                                             {doc.description}
                                         </p>
+                                        <DependencyDetails docId={doc.id} />
                                     </div>
                                     {!doc.subItems && (
                                         <Button
@@ -240,6 +275,7 @@ export function DocumentSelector({
                                                                 >
                                                                     {subItem.name}
                                                                 </label>
+                                                                <DependencyDetails docId={subItem.id} />
                                                             </div>
                                                             <Button
                                                                 variant="ghost"
@@ -279,6 +315,7 @@ export function DocumentSelector({
                                                         >
                                                             {subItem.name}
                                                         </label>
+                                                        <DependencyDetails docId={subItem.id} />
                                                     </div>
                                                     <Button
                                                         variant="ghost"

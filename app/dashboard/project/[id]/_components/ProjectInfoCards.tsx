@@ -24,15 +24,15 @@ export default function ProjectInfoCards({ project }: ProjectInfoCardsProps) {
             value: `${project.team_size} Members`,
             icon: Users,
         },
-        {
-            label: 'Status',
-            value: `${project.progress}%`,
-            icon: CheckCircle2,
-        },
+        // {
+        //     label: 'Status',
+        //     value: `${project.progress}%`,
+        //     icon: CheckCircle2,
+        // },
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {infoCards.map((card, index) => {
                 const Icon = card.icon;
                 return (

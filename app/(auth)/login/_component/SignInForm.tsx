@@ -69,7 +69,7 @@ export default function SignInForm() {
                     Welcome back! Please sign in to continue
                 </p>
                 <div className="mt-7 gap-y-3 flex flex-col sm:flex-row w-full md:justify-between sm:gap-x-3">
-                    <div className="w-full">
+                    {/* <div className="w-full">
                         <Button
                             variant="outline"
                             className="w-full cursor-pointer"
@@ -77,7 +77,7 @@ export default function SignInForm() {
                             <Github className="mr-1 h-4 w-4" />
                             GitHub
                         </Button>
-                    </div>
+                    </div> */}
                     <div className="w-full cursor-pointer">
                         <Button
                             variant="outline"
