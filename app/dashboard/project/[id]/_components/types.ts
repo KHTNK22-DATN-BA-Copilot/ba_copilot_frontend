@@ -12,6 +12,7 @@ export interface Project {
     priority?: 'low' | 'medium' | 'high';
     updated_at?: string;
     team_size?: number;
+    detail?: string;
 }
 
 export interface Activity {
@@ -20,6 +21,13 @@ export interface Activity {
     title: string;
     description: string;
     link: string;
+}
+
+export interface RecentFile {
+    id: string;
+    name: string;
+    extension?: string;
+    updated_at?: string;
 }
 
 export interface QuickStat {

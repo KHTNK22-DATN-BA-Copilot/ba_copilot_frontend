@@ -6,8 +6,9 @@ import QuickStatsSection from './_components/QuickStatsSection';
 import RecentActivitySection from './_components/RecentActivitySection';
 import TasksOverviewSection from './_components/TasksOverviewSection';
 import DeleteProjectSection from './_components/DeleteProjectSection';
-import { Activity, QuickStat, TaskOverview } from './_components/types';
-import { getProjectById } from '@/actions/project.action';
+import { QuickStat, RecentFile, TaskOverview } from './_components/types';
+import { getProjectById, getRecentUpdatedFiles } from '@/actions/project.action';
+import { notFound } from 'next/navigation';
 
 const Error = ({error}: {error: string}) => {
     return (
@@ -29,21 +30,27 @@ export default async function ProjectOverviewPage({
     const { id } = await params;
 
     const project = await getProjectById(id);
+    console.log("Fetched project:", project);
+    if (project.detail === "Project not found") {
+        notFound();
+    }
+    
+    const recentFilesFromApi = await getRecentUpdatedFiles(id, 6);
+    const recentFiles: RecentFile[] = recentFilesFromApi.map((file) => ({
+        id: file.id,
+        name: file.name,
+        extension: file.extension,
+        updated_at: file.updated_at,
+    }));
 
-    // Mock data for sections (these should eventually come from API)
-    const recentActivities: Activity[] = [
-        { id: 0, type: "oneclick", title: "Onclick Workflow", description: "Workflow created using one-click feature", link: `/dashboard/project/${project.id}/workflows` },
-        { id: 1, type: "srs", title: "SRS Document Updated", description: "Updated the SRS document with new requirements", link: `/dashboard/project/${project.id}/srsgenerator` },
-        { id: 2, type: "wireframe", title: "Dashboard Wireframe Created", description: "Created initial wireframe for the dashboard", link: `/dashboard/project/${project.id}/wireframegenerator` },
-        { id: 3, type: "diagram", title: "Sequence Diagram Generated", description: "Generated sequence diagram for user login flow", link: `/dashboard/project/${project.id}/diagrams` },
-        { id: 4, type: "conversation", title: "AI Conversation: User Flow", description: "Started AI conversation to discuss user flow", link: `/dashboard/project/${project.id}/aiconversations` },
-    ];
+    console.log('Project Data:', project);
+    console.log('ProjectOverviewPage() - Recent Files:', recentFiles);
 
     const quickStats: QuickStat[] = [
-        { label: "Documents", value: "0", icon: "FileText" },
-        { label: "Wireframes", value: "0", icon: "Layout" },
-        { label: "Diagrams", value: "0", icon: "BarChart3" },
-        { label: "AI Chats", value: "0", icon: "MessageSquare" },
+        { label: "Planning", value: "0", icon: "FileText" },
+        { label: "Analysis", value: "0", icon: "Layout" },
+        { label: "Design", value: "0", icon: "BarChart3" },
+        // { label: "AI Chats", value: "0", icon: "MessageSquare" },
     ];
 
     const tasksOverview: TaskOverview = {
@@ -96,7 +103,7 @@ export default async function ProjectOverviewPage({
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                     {/* Recent Activity */}
                     <div className="lg:col-span-2">
-                        <RecentActivitySection activities={recentActivities} />
+                        <RecentActivitySection files={recentFiles} projectId={project.id as string} />
                     </div>
 
                     {/* Quick Actions & Tasks */}

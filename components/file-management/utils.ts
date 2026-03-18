@@ -4,9 +4,10 @@ import { FileNode } from "./type";
  * Format raw byte size into human-readable string (KB or MB).
  */
 export function formatFileSize(sizeBytes: number): string {
-    if (sizeBytes < 1024 * 1024) {
-        return `${(sizeBytes / 1024).toFixed(2)} KB`;
+    if(sizeBytes < 1024) {
+        return `${sizeBytes} KB`;
     }
+
     return `${(sizeBytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
@@ -104,4 +105,40 @@ export function calculateFolderPath(
         }
     }
     return "";
+}
+
+/**
+ * Export / download a file from the backend via client-side fetch.
+ * This must stay client-side because server actions cannot stream blobs
+ * or trigger browser downloads.
+ */
+export async function exportFileFromClient(
+    documentId: number | string,
+    accessToken: string,
+): Promise<void> {
+    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_DOMAIN ?? "http://localhost:8010";
+    const resp = await fetch(`${baseUrl}/api/v1/files/export/${documentId}`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${accessToken}` },
+        credentials: "include",
+    });
+    if (!resp.ok) throw new Error(`Failed to export file: ${resp.status}`);
+
+    const blob = await resp.blob();
+
+    const disposition = resp.headers.get("Content-Disposition");
+    let filename = "download";
+    if (disposition) {
+        const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (match?.[1]) filename = match[1].replace(/['"]/g, "");
+    }
+
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    window.URL.revokeObjectURL(url);
 }

@@ -30,17 +30,24 @@ import type { DocumentListItem, GenerateWorkflowPayload, GenerationDocumentItem,
 import { useWorkflowGeneration } from "../../workflows/_components/steps/shared/hooks/useWorkflowGeneration";
 import { GenerationLoadingDialog } from "../../workflows/_components/steps/shared/components/GenerationLoadingDialog";
 import {
+  getDependencyDisplay,
+  getDocumentDisplayName,
+  getRequiredDocs,
+} from "../../workflows/_components/steps/shared/documentDependencies";
+import {
   GeneratedPhaseDocument,
   getGeneratedDocumentsByPhase,
   resolveGeneratedDocumentTypeId,
 } from "./api";
-import { findDocument, getPhases } from "./phase-data";
+import { findDocument, getPhases, getPhaseDocumentCount, getPhaseLeafDocuments } from "./phase-data";
 import { DocumentStatus, PhaseId } from "./types";
 
 interface PhasesBoardProps {
   phaseFilter?: PhaseId;
   projectId: string;
 }
+
+const ALL_PHASE_IDS: PhaseId[] = ["planning", "analysis", "design"];
 
 export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps) {
   const filteredPhases = useMemo(() => getPhases(phaseFilter), [phaseFilter]);
@@ -54,6 +61,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
   const [additionalInstructions, setAdditionalInstructions] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [generatingDocumentItem, setGeneratingDocumentItem] = useState<GenerationDocumentItem | null>(null);
+  const [isSyncingDocuments, setIsSyncingDocuments] = useState(true);
 
   const { generateDocuments, isGenerating, error: wsError, cancelGeneration, documentStatuses } = useWorkflowGeneration(
     undefined,
@@ -72,7 +80,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
 
   const summaryBadge =
     phaseFilter && filteredPhases[0]
-      ? `${filteredPhases[0].documents.length} Documents`
+      ? `${getPhaseDocumentCount(filteredPhases[0])} Documents`
       : `${filteredPhases.length} Phases`;
 
   const selectedEntry = selectedDocument ? findDocument(selectedDocument) : null;
@@ -81,25 +89,37 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
     let isMounted = true;
 
     const fetchGeneratedDocuments = async () => {
-      const phaseIds = Array.from(new Set(filteredPhases.map((phase) => phase.id)));
-
-      const results = await Promise.all(
-        phaseIds.map(async (phaseId) => {
-          const documents = await getGeneratedDocumentsByPhase(phaseId, projectId);
-          return [phaseId, documents] as const;
-        })
-      );
-
-      if (!isMounted) {
-        return;
+      if (isMounted) {
+        setIsSyncingDocuments(true);
       }
 
-      setGeneratedByPhase(
-        results.reduce((acc, [phaseId, documents]) => {
-          acc[phaseId] = documents;
-          return acc;
-        }, {} as Partial<Record<PhaseId, GeneratedPhaseDocument[]>>)
-      );
+      try {
+        const results = await Promise.all(
+          ALL_PHASE_IDS.map(async (phaseId) => {
+            const documents = await getGeneratedDocumentsByPhase(phaseId, projectId);
+            return [phaseId, documents] as const;
+          })
+        );
+
+        if (!isMounted) {
+          return;
+        }
+
+        setGeneratedByPhase(
+          results.reduce((acc, [phaseId, documents]) => {
+            acc[phaseId] = documents;
+            return acc;
+          }, {} as Partial<Record<PhaseId, GeneratedPhaseDocument[]>>)
+        );
+      } catch {
+        if (isMounted) {
+          toast.error("Failed to sync phase documents");
+        }
+      } finally {
+        if (isMounted) {
+          setIsSyncingDocuments(false);
+        }
+      }
     };
 
     fetchGeneratedDocuments();
@@ -133,6 +153,21 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
     return generatedDocumentIndex[phaseId]?.[documentId.toLowerCase()];
   };
 
+  const availableDocumentIds = useMemo(() => {
+    const ids = new Set<string>();
+
+    Object.values(generatedByPhase).forEach((documents) => {
+      documents?.forEach((document) => {
+        const normalizedId = resolveGeneratedDocumentTypeId(document);
+        if (normalizedId) {
+          ids.add(normalizedId);
+        }
+      });
+    });
+
+    return ids;
+  }, [generatedByPhase]);
+
   const getPhaseDocumentStatus = (
     phaseId: PhaseId,
     documentId: string,
@@ -157,6 +192,25 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
     }
   }, [wsError]);
 
+  const selectedDependencyInfo = useMemo(() => {
+    if (!selectedEntry) {
+      return null;
+    }
+
+    const dependencyDisplay = getDependencyDisplay(selectedEntry.document.id);
+    const missingRequired = getRequiredDocs(selectedEntry.document.id)
+      .filter((requiredId) => !availableDocumentIds.has(requiredId.toLowerCase()))
+      .map(getDocumentDisplayName);
+
+    return {
+      ...dependencyDisplay,
+      missingRequired,
+    };
+  }, [selectedEntry, availableDocumentIds]);
+
+  const hasMissingRequiredDependencies =
+    (selectedDependencyInfo?.missingRequired.length ?? 0) > 0;
+
   const handleGenerate = async () => {
     if (!selectedEntry) return;
 
@@ -164,6 +218,13 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
       getMatchedGeneratedDocument(selectedEntry.phase.id, selectedEntry.document.id)
     );
     if (isAlreadyAvailable) return;
+
+    if (hasMissingRequiredDependencies) {
+      toast.error(
+        `Missing required documents: ${selectedDependencyInfo?.missingRequired.join(", ")}`
+      );
+      return;
+    }
 
     try {
       const project = await getProjectById(projectId);
@@ -242,13 +303,27 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {isSyncingDocuments ? (
+          <Card>
+            <CardContent className="flex items-center gap-3 py-10 text-gray-700 dark:text-gray-300">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <div>
+                <p className="text-sm font-medium">Syncing project documents...</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Please wait while we load the latest document states.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-2">
             {filteredPhases.map((phase) => {
-              const availableCount = phase.documents.filter((doc) =>
+              const phaseDocuments = getPhaseLeafDocuments(phase);
+              const availableCount = phaseDocuments.filter((doc) =>
                 Boolean(getMatchedGeneratedDocument(phase.id, doc.id))
               ).length;
-              const totalCount = phase.documents.length;
+              const totalCount = phaseDocuments.length;
               const completionPercent =
                 totalCount > 0 ? (availableCount / totalCount) * 100 : 0;
 
@@ -286,11 +361,16 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
 
                   <CardContent className="pt-0">
                     <div className="space-y-2">
-                      {phase.documents.map((doc) => {
+                      {phaseDocuments.map((doc) => {
                         const matchedGeneratedDoc = getMatchedGeneratedDocument(
                           phase.id,
                           doc.id
                         );
+                        const isGenerated = Boolean(matchedGeneratedDoc);
+                        const dependencyDisplay = getDependencyDisplay(doc.id);
+                        const missingRequired = getRequiredDocs(doc.id)
+                          .filter((requiredId) => !availableDocumentIds.has(requiredId.toLowerCase()))
+                          .map(getDocumentDisplayName);
                         const displayStatus = getPhaseDocumentStatus(
                           phase.id,
                           doc.id,
@@ -305,6 +385,8 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                               "flex w-full cursor-pointer items-center justify-between rounded-lg border p-3 text-left transition-all",
                               selectedDocument === doc.id
                                 ? "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30"
+                                : isGenerated
+                                ? "border-emerald-300 bg-emerald-50/70 hover:bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/30"
                                 : "border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800/60"
                             )}
                             onClick={() => setSelectedDocument(doc.id)}
@@ -315,6 +397,26 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                   {doc.name}
                                 </p>
+                                {/* {doc.parentName && (
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    Group: {doc.parentName}
+                                  </p>
+                                )} */}
+                                {!isGenerated && dependencyDisplay.required.length > 0 && (
+                                  <p className="text-xs text-amber-700 dark:text-amber-300">
+                                    Required: {dependencyDisplay.required.join(", ")}
+                                  </p>
+                                )}
+                                {!isGenerated && dependencyDisplay.recommended.length > 0 && (
+                                  <p className="text-xs text-sky-700 dark:text-sky-300">
+                                    Recommended: {dependencyDisplay.recommended.join(", ")}
+                                  </p>
+                                )}
+                                {missingRequired.length > 0 && (
+                                  <p className="text-xs text-red-600 dark:text-red-400">
+                                    Missing: {missingRequired.join(", ")}
+                                  </p>
+                                )}
                                 {matchedGeneratedDoc?.updated_at && (
                                   <p className="text-xs text-gray-500 dark:text-gray-400">
                                     Last updated: {formatLastGenerated(
@@ -367,6 +469,15 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                   </CardHeader>
 
                   <CardContent className="space-y-4">
+                    {(() => {
+                      const selectedIsGenerated = Boolean(
+                        getMatchedGeneratedDocument(
+                          selectedEntry.phase.id,
+                          selectedEntry.document.id
+                        )
+                      );
+
+                      return (
                     <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {selectedEntry.document.name}
@@ -374,7 +485,34 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                         Phase: {selectedEntry.phase.name}
                       </p>
+                      {selectedEntry.parentDocument && (
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                          Group: {selectedEntry.parentDocument.name}
+                        </p>
+                      )}
+                      {!selectedIsGenerated && selectedDependencyInfo?.required.length ? (
+                        <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
+                          Required: {selectedDependencyInfo.required.join(", ")}
+                        </p>
+                      ) : null}
+                      {!selectedIsGenerated && selectedDependencyInfo?.recommended.length ? (
+                        <p className="mt-1 text-xs text-sky-700 dark:text-sky-300">
+                          Recommended: {selectedDependencyInfo.recommended.join(", ")}
+                        </p>
+                      ) : null}
+                      {selectedIsGenerated && (
+                        <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                          Generated and available
+                        </p>
+                      )}
+                      {selectedDependencyInfo?.missingRequired.length ? (
+                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                          Missing: {selectedDependencyInfo.missingRequired.join(", ")}
+                        </p>
+                      ) : null}
                     </div>
+                      );
+                    })()}
 
                     <div className="space-y-2">
                       <label
@@ -398,6 +536,8 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                       onClick={handleGenerate}
                       disabled={
                         isGenerating ||
+                        isSyncingDocuments ||
+                        hasMissingRequiredDependencies ||
                         Boolean(
                           getMatchedGeneratedDocument(
                             selectedEntry.phase.id,
@@ -413,6 +553,12 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                       )}
                       {isGenerating ? "Generating..." : "Generate"}
                     </Button>
+
+                    {hasMissingRequiredDependencies && (
+                      <p className="text-xs text-red-600 dark:text-red-400">
+                        Complete required documents before generating this one.
+                      </p>
+                    )}
 
                     {selectedEntry &&
                       getMatchedGeneratedDocument(
@@ -455,7 +601,8 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
               )}
             </div>
           </div>
-        </div>
+          </div>
+        )}
       </div>
 
       <DocumentPreviewModal

@@ -151,7 +151,9 @@ export default function UserProfile({
                                 onClick={sendAlert}
                                 disabled={
                                     isEqual(originalProfile, EditProfile) ||
-                                    state.state === "pending"
+                                    state.state === "pending" ||
+                                    !EditProfile.email.trim() ||
+                                    !EditProfile.fullName.trim()
                                 }
                             >
                                 {state.state === "pending"

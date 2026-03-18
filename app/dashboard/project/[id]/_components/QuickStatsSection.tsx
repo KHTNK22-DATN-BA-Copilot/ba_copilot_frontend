@@ -13,7 +13,7 @@ export default function QuickStatsSection({ stats }: QuickStatsSectionProps) {
                 <CardTitle>Quick Statistics</CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {stats.map((stat, index) => {
                         const Icon = projectIcons[stat.icon as IconType] || projectIcons.FileText;
                         return (
