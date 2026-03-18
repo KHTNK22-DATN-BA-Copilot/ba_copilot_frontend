@@ -34,6 +34,8 @@ export default function FileManagement({ projectId }: { projectId: string }) {
     const [creatingParent, setCreatingParent] = useState<number | null>(null);
     const [newName, setNewName] = useState("");
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const [loadingFiles, setLoadingFiles] = useState<Set<string | number>>(new Set());
+
 
     useEffect(() => {
         if (creating) {
@@ -97,8 +99,10 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                 const formData = new FormData();
                 formData.append("path", folderPath);
                 formData.append("files", file);
-
+                
+                setLoadingFiles((prev) => new Set(prev).add(tempFileNode.id));
                 const uploadedFiles = await uploadFileAction(projectId, folderId, formData);
+                
 
                 // Replace optimistic temp node with real server data
                 setFileNode((prev) => {
@@ -113,6 +117,12 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                 console.error("Failed to upload file:", err);
                 setFileNode(previousState);
                 alert("Failed to upload file. Please try again.");
+            } finally {
+                setLoadingFiles((prev) => {
+                    const next = new Set(prev);
+                    next.delete(tempFileNode.id);
+                    return next;
+                });
             }
         };
         fileInput.click();
@@ -259,6 +269,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                                     expanded={expandedFolders.has(
                                         folder.id as number,
                                     )}
+                                    isUploading={loadingFiles}
                                     toggle={toggleFolder}
                                     onUpload={handleFileUpload}
                                     onDelete={handleDeleteFile}

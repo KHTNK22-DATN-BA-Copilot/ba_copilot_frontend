@@ -4,9 +4,10 @@ import { FileNode } from "./type";
  * Format raw byte size into human-readable string (KB or MB).
  */
 export function formatFileSize(sizeBytes: number): string {
-    if (sizeBytes < 1024 * 1024) {
-        return `${(sizeBytes / 1024).toFixed(2)} KB`;
+    if(sizeBytes < 1024) {
+        return `${sizeBytes} KB`;
     }
+
     return `${(sizeBytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 

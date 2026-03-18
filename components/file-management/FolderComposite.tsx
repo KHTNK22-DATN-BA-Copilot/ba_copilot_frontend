@@ -21,6 +21,7 @@ type FolderCompositeProps = {
     folder: FileNode;
     expanded?: boolean;
     expandedFolders: Set<number>;
+    isUploading?: Set<string | number>;
     toggle: (id: number) => void;
     onUpload: (folderId: number) => void;
     onDelete: (folderId: number, fileId: number) => void;
@@ -42,7 +43,8 @@ export const FolderComposite = ({
     onSelect,
     onCreateFolder,
     onRemoveFolder,
-    onRenameFolder
+    onRenameFolder,
+    isUploading,
 }: FolderCompositeProps) => {
     const [creating, setCreating] = useState(false);
     const [renaming, setRenaming] = useState(false);
@@ -289,6 +291,7 @@ export const FolderComposite = ({
                                         <FileLeaf
                                             key={`${file.id}-${index}`}
                                             file={file}
+                                            isUploading={isUploading}
                                             onDelete={(fileId) =>
                                                 onDelete(
                                                     folder.id as number,
@@ -314,6 +317,7 @@ export const FolderComposite = ({
                                             onCreateFolder={onCreateFolder}
                                             onRemoveFolder={onRemoveFolder}
                                             onRenameFolder={onRenameFolder}
+                                            isUploading={isUploading}
                                         />
                                     )
                                 )}

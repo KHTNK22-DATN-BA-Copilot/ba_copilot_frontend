@@ -8,6 +8,7 @@ import TasksOverviewSection from './_components/TasksOverviewSection';
 import DeleteProjectSection from './_components/DeleteProjectSection';
 import { QuickStat, RecentFile, TaskOverview } from './_components/types';
 import { getProjectById, getRecentUpdatedFiles } from '@/actions/project.action';
+import { notFound } from 'next/navigation';
 
 const Error = ({error}: {error: string}) => {
     return (
@@ -29,6 +30,11 @@ export default async function ProjectOverviewPage({
     const { id } = await params;
 
     const project = await getProjectById(id);
+    console.log("Fetched project:", project);
+    if (project.detail === "Project not found") {
+        notFound();
+    }
+    
     const recentFilesFromApi = await getRecentUpdatedFiles(id, 6);
     const recentFiles: RecentFile[] = recentFilesFromApi.map((file) => ({
         id: file.id,

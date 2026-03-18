@@ -22,6 +22,7 @@ export interface ApiFileRaw {
     file_metadata?: { size?: number };
     created_at?: string;
     updated_at?: string;
+    file_size?: number; 
 }
 
 // ── Service ────────────────────────────────────────────────────
