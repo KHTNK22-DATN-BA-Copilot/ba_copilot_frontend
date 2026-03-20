@@ -45,12 +45,10 @@ export async function SignIn(email: string, password: string): Promise<ActionRes
 
         (await cookies()).set("access_token", tokenResponse.data.access_token, {
             httpOnly: true,
-            secure: true,
             expires: new Date(Date.now() + 30 * 60 * 1000),
         });
         (await cookies()).set("refresh_token", tokenResponse.data.refresh_token, {
             httpOnly: true,
-            secure: true,
             expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         });
         return {
