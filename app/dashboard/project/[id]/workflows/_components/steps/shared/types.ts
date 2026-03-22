@@ -158,11 +158,12 @@ export interface UpdateDocumentResponse {
 export interface SessionMessage {
   role: string;
   message: string;
+  summary: string;
   create_at: string;
 }
 
 export interface SessionHistoryResponse {
   status: "success" | "error";
-  sessions?: SessionMessage[];
+  Sessions?: SessionMessage[];
   message?: string;
 }

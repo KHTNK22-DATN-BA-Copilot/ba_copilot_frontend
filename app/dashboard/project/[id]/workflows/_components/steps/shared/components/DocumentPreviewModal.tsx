@@ -316,6 +316,7 @@ export function DocumentPreviewModal({
     const [downloadingDoc, setDownloadingDoc] = useState(false);
     const [chatInput, setChatInput] = useState("");
     const [chatHistory, setChatHistory] = useState<SessionMessage[]>([]);
+    const [isSendingMessage, setIsSendingMessage] = useState(false);
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
     const [historyError, setHistoryError] = useState<string | null>(null);
     const [diffMode, setDiffMode] = useState(false);
@@ -358,11 +359,12 @@ export function DocumentPreviewModal({
         setHistoryError(null);
         try {
             const response = await getSessionHistory(contentId);
+            console.log("Session history response:", response);
             if (response.status === "error") {
                 throw new Error(response.message || "Failed to load chat history");
             }
 
-            setChatHistory(response.sessions || []);
+            setChatHistory(response.Sessions || []);
         } catch (error) {
             console.error("Error loading chat history:", error);
             const errorMessage = error instanceof Error ? error.message : "Failed to load chat history";
@@ -412,7 +414,7 @@ export function DocumentPreviewModal({
     useEffect(() => {
         if (!chatListRef.current) return;
         chatListRef.current.scrollTop = chatListRef.current.scrollHeight;
-    }, [chatHistory, isHistoryLoading]);
+    }, [chatHistory, isHistoryLoading, isSendingMessage]);
 
     const getScrollRatio = (scrollTop: number, scrollHeight: number, clientHeight: number) => {
         const maxScroll = Math.max(scrollHeight - clientHeight, 0);
@@ -555,37 +557,51 @@ export function DocumentPreviewModal({
     }, [edit, content, document]);
 
     const handleSend = async () => {
-        
-        if (!document || !chatInput.trim()) {
+        if (!document || !chatInput.trim() || isSendingMessage) {
             toast.error("Please enter a prompt");
             return;
         }
 
-        console.log("Sending prompt:", chatInput);
+        const prompt = chatInput.trim();
+
+        setChatHistory((prev) => [
+            ...prev,
+            {
+                role: "user",
+                message: prompt,
+                summary: "",
+                create_at: new Date().toISOString(),
+            },
+        ]);
+        setChatInput("");
+        setIsSendingMessage(true);
+
+        console.log("Sending prompt:", prompt);
 
         if (onRegenerate) {
             try {
                 // Use parent's regenerate handler to sync state.
-                await onRegenerate(document.document_id, chatInput);
+                await onRegenerate(document.document_id, prompt);
                 console.log("Document regenerated successfully via parent handler");
-                setChatInput("");
                 void loadSessionHistory(document.document_id);
             } catch (error) {
                 console.error("Error regenerating document:", error);
                 const errorMessage = error instanceof Error ? error.message : "Failed to regenerate document";
                 toast.error(errorMessage);
+            } finally {
+                setIsSendingMessage(false);
             }
         } else {
             // Fallback to direct API call if no handler provided
             try {
-                const response = await regenerateDocument(stepName, projectId, document.document_id, chatInput);
-                console.log("Document preview modal.ts chatitput",chatInput);
+                const response = await regenerateDocument(stepName, projectId, document.document_id, prompt);
+                console.log("Regenerate document response:", response);
+                console.log("Document preview modal.ts chatitput", prompt);
                 if (response.status !== "error") {
                     toast.success("Document regenerated successfully");
                     if (response.result?.content) {
                         setContent(response.result.content);
                     }
-                    setChatInput("");
                     onRegenerateSuccess?.();
                     void loadSessionHistory(document.document_id);
                 } else {
@@ -595,6 +611,8 @@ export function DocumentPreviewModal({
                 console.error("Error regenerating document:", error);
                 const errorMessage = error instanceof Error ? error.message : "Failed to regenerate document";
                 toast.error(errorMessage);
+            } finally {
+                setIsSendingMessage(false);
             }
         }
     };
@@ -766,6 +784,7 @@ export function DocumentPreviewModal({
                                     ) : (
                                         chatHistory.map((item, index) => {
                                             const isUser = isUserRole(item.role);
+                                            const displayText = isUser ? item.message : item.summary;
                                             return (
                                                 <div
                                                     key={`${item.create_at || "no-time"}-${index}`}
@@ -779,7 +798,7 @@ export function DocumentPreviewModal({
                                                                 : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
                                                         )}
                                                     >
-                                                        <p className="whitespace-pre-wrap">{item.message}</p>
+                                                        <p className="whitespace-pre-wrap">{displayText}</p>
                                                         {item.create_at ? (
                                                             <p
                                                                 className={cn(
@@ -797,6 +816,17 @@ export function DocumentPreviewModal({
                                             );
                                         })
                                     )}
+
+                                    {isSendingMessage ? (
+                                        <div className="flex justify-start">
+                                            <div className="max-w-[92%] rounded-lg px-2.5 py-2 text-xs sm:text-sm break-words bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">
+                                                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                    <span>AI đang phản hồi...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : null}
                                 </div>
                                 <div className="flex gap-2 flex-shrink-0">
                                     <Textarea
@@ -804,7 +834,7 @@ export function DocumentPreviewModal({
                                         className="min-h-[32px] sm:min-h-[36px] resize-none text-xs sm:text-sm w-full break-words"
                                         value={chatInput}
                                         onChange={(e) => setChatInput(e.target.value)}
-                                        disabled={isRegenerating}
+                                        disabled={isRegenerating || isSendingMessage}
                                         onKeyDown={(e) => {
                                             if (e.key === "Enter" && !e.shiftKey) {
                                                 e.preventDefault();
@@ -816,9 +846,9 @@ export function DocumentPreviewModal({
                                         size="sm"
                                         className="self-end flex-shrink-0 min-h-[32px] sm:min-h-[36px]"
                                         onClick={handleSend}
-                                        disabled={isRegenerating || !chatInput.trim()}
+                                        disabled={isRegenerating || isSendingMessage || !chatInput.trim()}
                                     >
-                                        {isRegenerating ? (
+                                        {isRegenerating || isSendingMessage ? (
                                             <Loader2 className="w-4 h-4 animate-spin" />
                                         ) : (
                                             <Send className="w-4 h-4" />
