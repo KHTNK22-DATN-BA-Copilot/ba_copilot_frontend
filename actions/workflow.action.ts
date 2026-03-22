@@ -305,7 +305,7 @@ export async function exportWorkflowDocument(
  */
 export async function getWorkflowSessionHistory(
     contentId: string,
-): Promise<ActionResponse<{ sessions: Array<{ role: string; message: string; create_at: string }> }>> {
+): Promise<ActionResponse<{ Sessions: Array<{ role: string; message: string; summary: string; create_at: string }> }>> {
     try {
         const accessToken = (await cookies()).get("access_token")?.value as string;
 
