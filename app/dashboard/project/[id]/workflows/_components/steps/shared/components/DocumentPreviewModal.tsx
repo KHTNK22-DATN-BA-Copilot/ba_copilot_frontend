@@ -822,7 +822,7 @@ export function DocumentPreviewModal({
                                             <div className="max-w-[92%] rounded-lg px-2.5 py-2 text-xs sm:text-sm break-words bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">
                                                 <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                                                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                                    <span>AI đang phản hồi...</span>
+                                                    <span>Generating...</span>
                                                 </div>
                                             </div>
                                         </div>
