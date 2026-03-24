@@ -2,172 +2,31 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { searchEntities } from '@/actions/search.action';
 
 interface SearchProps {
     isOpen: boolean;
     setIsOpen: (open: boolean) => void;
+    query: string;
+    setQuery: (value: string) => void;
 }
 
 interface SearchResult {
-    id: string;
+    entity_id: string;
+    entity_type: string;
+    project_id: number | null;
     title: string;
-    type: 'project' | 'user' | 'document' | 'page';
-    description?: string;
-    lastModified?: string;
-    route?: string;
+    rank: number;
 }
 
-// Mock data for demonstration - In real app, this would come from API/context
-const mockSearchData: SearchResult[] = [
-    // BA Copilot Pages
-    {
-        id: 'page-dashboard',
-        title: 'Dashboard',
-        type: 'page',
-        description: 'Main dashboard with project overview and analytics',
-        lastModified: 'Always available',
-        route: '/dashboard'
-    },
-    {
-        id: 'page-ai-conversations',
-        title: 'AI Conversations',
-        type: 'page',
-        description: 'Chat with AI assistants for business analysis tasks',
-        lastModified: 'Ready to use',
-        route: '/aiconversations'
-    },
-    {
-        id: 'page-diagrams',
-        title: 'Diagrams',
-        type: 'page',
-        description: 'Create flowcharts, process diagrams, and system architecture',
-        lastModified: 'Design tools',
-        route: '/diagrams'
-    },
-    {
-        id: 'page-srs-generator',
-        title: 'SRS Generator',
-        type: 'page',
-        description: 'Generate comprehensive Software Requirements Specification documents',
-        lastModified: 'AI-powered',
-        route: '/srsgenerator'
-    },
-    {
-        id: 'page-wireframe-generator',
-        title: 'Wireframe Generator',
-        type: 'page',
-        description: 'Create professional wireframes and mockups with AI assistance',
-        lastModified: 'Design tools',
-        route: '/wireframegenerator'
-    },
-    // Sample Projects
-    {
-        id: '1',
-        title: 'BA Copilot Dashboard',
-        type: 'project',
-        description: 'Main dashboard for BA Copilot application',
-        lastModified: '2 hours ago'
-    },
-    {
-        id: '2',
-        title: 'Authentication System',
-        type: 'project',
-        description: 'User login and registration system',
-        lastModified: '1 day ago'
-    },
-    {
-        id: '3',
-        title: 'Project Management Tool',
-        type: 'project',
-        description: 'Project tracking and management tools',
-        lastModified: '3 days ago'
-    },
-    {
-        id: '4',
-        title: 'E-commerce Platform',
-        type: 'project',
-        description: 'Online shopping and payment system',
-        lastModified: '5 days ago'
-    },
-    {
-        id: '5',
-        title: 'Mobile Banking App',
-        type: 'project',
-        description: 'Secure mobile banking application',
-        lastModified: '1 week ago'
-    },
-    // Sample Documents
-    {
-        id: '6',
-        title: 'User Settings',
-        type: 'document',
-        description: 'Configuration and preferences',
-        lastModified: '1 week ago'
-    },
-    {
-        id: '7',
-        title: 'API Documentation',
-        type: 'document',
-        description: 'Backend API endpoints and usage',
-        lastModified: '2 weeks ago'
-    },
-    {
-        id: '8',
-        title: 'Design System Guide',
-        type: 'document',
-        description: 'UI components and design guidelines',
-        lastModified: '3 weeks ago'
-    },
-    // Sample Users
-    {
-        id: '9',
-        title: 'Admin User',
-        type: 'user',
-        description: 'System administrator account',
-        lastModified: 'Online now'
-    },
-    {
-        id: '10',
-        title: 'Project Manager',
-        type: 'user',
-        description: 'Project management team lead',
-        lastModified: '5 minutes ago'
-    }
-];
-
-export default function Search({ isOpen, setIsOpen }: SearchProps) {
+export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchProps) {
     const router = useRouter();
-    const [query, setQuery] = useState('');
     const [results, setResults] = useState<SearchResult[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [searchError, setSearchError] = useState<string | null>(null);
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const [recentSearches, setRecentSearches] = useState<string[]>(['Dashboard', 'AI Conversations', 'Diagrams']);
-    const searchInputRef = useRef<HTMLInputElement>(null);
-    const searchContainerRef = useRef<HTMLDivElement>(null);
-
-    // Focus input when search opens
-    useEffect(() => {
-        if (isOpen && searchInputRef.current) {
-            searchInputRef.current.focus();
-        }
-    }, [isOpen]);
-
-    // Handle click outside to close search
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-
-        if (isOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isOpen, setIsOpen]);
+    const requestIdRef = useRef(0);
 
     // Handle keyboard navigation
     useEffect(() => {
@@ -177,8 +36,8 @@ export default function Search({ isOpen, setIsOpen }: SearchProps) {
             switch (event.key) {
                 case 'Escape':
                     setIsOpen(false);
-                    setQuery('');
                     setResults([]);
+                    setSearchError(null);
                     break;
                 case 'ArrowDown':
                     event.preventDefault();
@@ -204,26 +63,82 @@ export default function Search({ isOpen, setIsOpen }: SearchProps) {
     // Search function with debounce
     useEffect(() => {
         const searchTimeout = setTimeout(() => {
-            if (query.trim()) {
-                setIsLoading(true);
-                // Simulate API call delay
-                setTimeout(() => {
-                    const filteredResults = mockSearchData.filter(item =>
-                        item.title.toLowerCase().includes(query.toLowerCase()) ||
-                        item.description?.toLowerCase().includes(query.toLowerCase())
-                    );
-                    setResults(filteredResults);
-                    setSelectedIndex(-1);
-                    setIsLoading(false);
-                }, 300);
-            } else {
+            const keyword = query.trim();
+
+            if (!keyword) {
                 setResults([]);
                 setSelectedIndex(-1);
+                setSearchError(null);
+                setIsLoading(false);
+                return;
             }
+
+            const currentRequestId = ++requestIdRef.current;
+            setIsLoading(true);
+            setSearchError(null);
+
+            void (async () => {
+                try {
+                    const response = await searchEntities(keyword, 1, 20);
+
+                    if (currentRequestId !== requestIdRef.current) return;
+
+                    if (response.success && response.data) {
+                        setResults(response.data.results);
+                    } else {
+                        setResults([]);
+                        setSearchError(response.message || 'Failed to search');
+                    }
+                } catch (error) {
+                    if (currentRequestId !== requestIdRef.current) return;
+                    console.error('Search error:', error);
+                    setResults([]);
+                    setSearchError('An unexpected error occurred while searching');
+                } finally {
+                    if (currentRequestId === requestIdRef.current) {
+                        setIsLoading(false);
+                        setSelectedIndex(-1);
+                    }
+                }
+            })();
         }, 200);
 
         return () => clearTimeout(searchTimeout);
     }, [query]);
+
+    const pageRouteByEntityId: Record<string, string> = {
+        'page-dashboard': '/dashboard',
+        'page-ai-conversations': '/aiconversations',
+        'page-diagrams': '/diagrams',
+        'page-srs-generator': '/srsgenerator',
+        'page-wireframe-generator': '/wireframegenerator',
+    };
+
+    const pageRouteByTitle: Record<string, string> = {
+        dashboard: '/dashboard',
+        'ai conversations': '/aiconversations',
+        diagrams: '/diagrams',
+        'srs generator': '/srsgenerator',
+        'wireframe generator': '/wireframegenerator',
+    };
+
+    const resolveRoute = (result: SearchResult): string | null => {
+        const type = result.entity_type.toLowerCase();
+
+        if (type === 'project' && result.project_id) {
+            return `/dashboard/project/${result.project_id}`;
+        }
+
+        if (type === 'page') {
+            const byEntityId = pageRouteByEntityId[result.entity_id.toLowerCase()];
+            if (byEntityId) return byEntityId;
+
+            const byTitle = pageRouteByTitle[result.title.toLowerCase()];
+            if (byTitle) return byTitle;
+        }
+
+        return null;
+    };
 
     const handleResultClick = (result: SearchResult) => {
         console.log('Selected result:', result);
@@ -232,24 +147,23 @@ export default function Search({ isOpen, setIsOpen }: SearchProps) {
         const updatedRecent = [result.title, ...recentSearches.filter(s => s !== result.title)].slice(0, 3);
         setRecentSearches(updatedRecent);
 
-        // Navigate to the page if it has a route
-        if (result.route) {
-            router.push(result.route);
+        const route = resolveRoute(result);
+
+        if (route) {
+            router.push(route);
         } else {
-            // For projects, documents, users without specific routes
             console.log('Navigate to result:', result);
-            // You can implement specific navigation logic here
-            // For example: router.push(`/dashboard/project/${result.id}`);
         }
 
         // Close search and reset state
         setIsOpen(false);
         setQuery('');
         setResults([]);
+        setSearchError(null);
     };
 
-    const getResultIcon = (type: SearchResult['type']) => {
-        switch (type) {
+    const getResultIcon = (type: string) => {
+        switch (type.toLowerCase()) {
             case 'page':
                 return (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,8 +193,8 @@ export default function Search({ isOpen, setIsOpen }: SearchProps) {
         }
     };
 
-    const getTypeColor = (type: SearchResult['type']) => {
-        switch (type) {
+    const getTypeColor = (type: string) => {
+        switch (type.toLowerCase()) {
             case 'page':
                 return 'text-indigo-600 dark:text-indigo-400';
             case 'project':
@@ -298,54 +212,22 @@ export default function Search({ isOpen, setIsOpen }: SearchProps) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-none flex items-start justify-center pt-16 sm:pt-20 px-4">
-            <div
-                ref={searchContainerRef}
-                className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700"
-            >
-                {/* Enhanced Search Input */}
-                <div className="flex items-center px-4 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <svg className="w-5 h-5 text-gray-400 dark:text-gray-500 mr-2 sm:mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <input
-                        ref={searchInputRef}
-                        type="text"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search..."
-                        className="flex-1 bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 outline-none text-sm sm:text-base md:text-lg font-medium whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
-                    />
-                    {query && (
-                        <button
-                            onClick={() => {
-                                setQuery('');
-                                setResults([]);
-                                searchInputRef.current?.focus();
-                            }}
-                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ml-2 p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    )}
-                    <button
-                        onClick={() => setIsOpen(false)}
-                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ml-2 p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-
+        <div className="absolute top-full left-0 right-0 mt-2 z-50">
+            <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                 {/* Search Results */}
                 <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
                     {isLoading ? (
                         <div className="flex items-center justify-center py-8">
                             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 dark:border-blue-400"></div>
                             <span className="ml-3 text-gray-600 dark:text-gray-400 font-medium">Searching...</span>
+                        </div>
+                    ) : searchError ? (
+                        <div className="text-center py-12 px-4">
+                            <svg className="w-16 h-16 text-red-300 dark:text-red-500/70 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3m0 4h.01M5.071 19h13.858c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <p className="text-red-700 dark:text-red-300 font-medium mb-1">Search failed</p>
+                            <p className="text-sm text-red-600 dark:text-red-400">{searchError}</p>
                         </div>
                     ) : query && results.length === 0 ? (
                         <div className="text-center py-12">
@@ -365,7 +247,7 @@ export default function Search({ isOpen, setIsOpen }: SearchProps) {
                                     key={index}
                                     onClick={() => {
                                         setQuery(search);
-                                        searchInputRef.current?.focus();
+                                        setIsOpen(true);
                                     }}
                                     className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
                                 >
@@ -384,14 +266,14 @@ export default function Search({ isOpen, setIsOpen }: SearchProps) {
                         <div className="py-2">
                             {results.map((result, index) => (
                                 <button
-                                    key={result.id}
+                                    key={`${result.entity_type}-${result.entity_id}-${index}`}
                                     onClick={() => handleResultClick(result)}
                                     className={`w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group ${index === selectedIndex ? 'bg-blue-50 dark:bg-blue-900/20 border-r-2 border-blue-500' : ''
                                         }`}
                                 >
                                     <div className="flex items-start space-x-3">
-                                        <div className={`flex-shrink-0 mt-0.5 p-1.5 rounded-md ${getTypeColor(result.type)} ${index === selectedIndex ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-700'}`}>
-                                            {getResultIcon(result.type)}
+                                        <div className={`flex-shrink-0 mt-0.5 p-1.5 rounded-md ${getTypeColor(result.entity_type)} ${index === selectedIndex ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-700'}`}>
+                                            {getResultIcon(result.entity_type)}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center space-x-2 mb-1">
@@ -399,21 +281,18 @@ export default function Search({ isOpen, setIsOpen }: SearchProps) {
                                                     }`}>
                                                     {result.title}
                                                 </p>
-                                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getTypeColor(result.type)
+                                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getTypeColor(result.entity_type)
                                                     } bg-opacity-20 dark:bg-opacity-30 uppercase tracking-wide`}>
-                                                    {result.type}
+                                                    {result.entity_type}
                                                 </span>
                                             </div>
-                                            {result.description && (
-                                                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-1">
-                                                    {result.description}
-                                                </p>
-                                            )}
-                                            {result.lastModified && (
-                                                <p className="text-xs text-gray-500 dark:text-gray-500">
-                                                    {result.lastModified}
-                                                </p>
-                                            )}
+                                            {/* <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-1">
+                                                Entity ID: {result.entity_id}
+                                                {typeof result.project_id === 'number' ? ` • Project: ${result.project_id}` : ''}
+                                            </p> */}
+                                            <p className="text-xs text-gray-500 dark:text-gray-500">
+                                                Rank: {result.rank}
+                                            </p>
                                         </div>
                                     </div>
                                 </button>
