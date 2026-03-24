@@ -784,7 +784,17 @@ export function DocumentPreviewModal({
                                     ) : (
                                         chatHistory.map((item, index) => {
                                             const isUser = isUserRole(item.role);
-                                            const displayText = isUser ? item.message : item.summary;
+                                            const aiSummary = item.summary?.trim();
+                                            const displayText = isUser
+                                                ? item.message
+                                                : aiSummary === '""' || !aiSummary
+                                                    ? `I changed this ${document.design_type || "document"}`
+                                                    : item.summary;
+                                            const normalizedDisplayText = displayText?.trim() || "";
+
+                                            if (!normalizedDisplayText) {
+                                                return null;
+                                            }
                                             return (
                                                 <div
                                                     key={`${item.create_at || "no-time"}-${index}`}
@@ -798,8 +808,8 @@ export function DocumentPreviewModal({
                                                                 : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
                                                         )}
                                                     >
-                                                        <p className="whitespace-pre-wrap">{displayText}</p>
-                                                        {item.create_at ? (
+                                                        <p className="whitespace-pre-wrap">{normalizedDisplayText}</p>
+                                                        {item.create_at && normalizedDisplayText ? (
                                                             <p
                                                                 className={cn(
                                                                     "mt-1 text-[10px] sm:text-[11px]",
