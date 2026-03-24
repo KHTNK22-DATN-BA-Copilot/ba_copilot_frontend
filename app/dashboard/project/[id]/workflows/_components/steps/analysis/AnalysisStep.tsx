@@ -113,7 +113,7 @@ export default function AnalysisStep({
         }));
 
         const payload: GenerateWorkflowPayload = {
-            description: prompt || "Generate analysis documents.",
+            description: prompt,
             project_name: projectName || "Test Project",
             documents: documents
         };
