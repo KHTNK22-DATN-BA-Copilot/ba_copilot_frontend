@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }}/frontend:latest
+  IMAGE_NAME: ghcr.io/khtnk22-datn-ba-copilot/frontend:latest
 
 jobs:
   # ========== CI: Build & Push ==========
@@ -15,7 +15,7 @@ jobs:
 
     permissions:
       contents: read
-      packages: write   # 🔥 BẮT BUỘC cho GHCR
+      packages: write 
 
     steps:
       - name: Checkout code
