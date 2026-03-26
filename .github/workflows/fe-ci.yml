@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  IMAGE_NAME: ghcr.io/khtnk22-datn-ba-copilot/frontend:latest
+  IMAGE_NAME: ghcr.io/khtnk22-datn-ba-copilot/ba_copilot_frontend/frontend:latest
 
 jobs:
   # ========== CI: Build & Push ==========
