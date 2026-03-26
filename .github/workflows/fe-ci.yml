@@ -4,90 +4,49 @@ on:
   push:
     branches: 
       - main
-  pull_request:
-    branches:
-      - main
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }}/frontend:latest
 
 jobs:
-  # ========== CI: Build ==========
-  build:
-    runs-on: ["self-hosted", "Linux", "X64"]
+  # ========== CI: Build & Push ==========
+  build_and_publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write   # 🔥 BẮT BUỘC cho GHCR
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: 'npm'
+      - name: Login to GHCR
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ secrets.ACTOR }} --password-stdin
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Build Docker image
+        run: |
+          docker build -t $IMAGE_NAME .
 
-      # - name: Lint
-      #   run: npm run lint
+      - name: Push Docker image
+        run: |
+          docker push $IMAGE_NAME
 
-      - name: Build
-        run: npm run build
-
-  # ========== CI: Test ==========
-  test:
-    runs-on: ["self-hosted", "Linux", "X64"]
-    needs: build
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm run test --if-present
-
-      - name: Run test coverage
-        run: npm run test:coverage --if-present
-
-  # ========== CD: Deploy to VPS ==========
+  # ========== CD: Deploy ==========
   deploy:
     runs-on: ["self-hosted", "Linux", "X64"]
-    needs: test
+    needs: build_and_publish
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Login to GHCR (server)
+        run: echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.ACTOR }} --password-stdin
 
-      - name: Pull latest code to VPS
-        run: |
-          cd /home/bacopilot/bacopilot/ba_copilot_frontend
-          git pull origin main
+      - name: Pull latest image
+        run: docker pull $IMAGE_NAME
 
-      - name: Stop frontend container
-        run: docker compose stop frontend || true
-        working-directory: /home/bacopilot/bacopilot
-
-      - name: Remove frontend container
-        run: docker compose rm -f frontend || true
-        working-directory: /home/bacopilot/bacopilot
-
-      - name: Build frontend image
-        run: docker compose build --no-cache frontend
-        working-directory: /home/bacopilot/bacopilot
-
-      - name: Start frontend container
+      - name: Restart container
         run: docker compose up -d frontend
         working-directory: /home/bacopilot/bacopilot
 
-      - name: Cleanup old Docker images
+      - name: Cleanup old images
         run: docker image prune -f
-
-      - name: Health check
-        run: |
-          echo "Waiting for frontend container to start..."
-          sleep 10
-          docker ps | grep ba-copilot-frontend || echo "Warning: Frontend container may not be running"
