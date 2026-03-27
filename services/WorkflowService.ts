@@ -382,7 +382,7 @@ export class WorkflowService {
     public static async getSessionHistory(
         token: string,
         contentId: string,
-    ): Promise<ServiceResponse<{ sessions: Array<{ role: string; message: string; create_at: string }> }>> {
+    ): Promise<ServiceResponse<{ Sessions: Array<{ role: string; message: string; summary: string; create_at: string }> }>> {
         try {
             if (!contentId) {
                 return {
@@ -413,22 +413,19 @@ export class WorkflowService {
             }
 
             const data = await response.json();
-            const rawSessions = Array.isArray(data?.Sessions)
-                ? data.Sessions
-                : Array.isArray(data?.sessions)
-                    ? data.sessions
-                    : [];
+            const rawSessions = Array.isArray(data?.Sessions) ? data.Sessions : [];
 
-            const sessions = rawSessions.map((item: any) => ({
-                role: String(item?.role || "assistant"),
+            const Sessions = rawSessions.map((item: any) => ({
+                role: String(item?.role || ""),
                 message: String(item?.message || ""),
+                summary: String(item?.summary || ""),
                 create_at: String(item?.create_at || ""),
             }));
 
             return {
                 success: true,
                 statusCode: response.status,
-                data: { sessions },
+                data: { Sessions },
             };
         } catch (error) {
             console.error("Error fetching session history:", error);

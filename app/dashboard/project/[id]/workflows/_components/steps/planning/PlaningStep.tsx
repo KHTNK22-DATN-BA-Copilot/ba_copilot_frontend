@@ -130,8 +130,7 @@ function PlanningStep({
 
         const payload: GenerateWorkflowPayload = {
             project_name: projectName || "Test Project",
-            description:
-                prompt || "Generate planning documents for the project",
+            description: prompt,
             documents: documents,
         };
 

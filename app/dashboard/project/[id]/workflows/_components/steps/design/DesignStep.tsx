@@ -115,7 +115,7 @@ export default function DesignStep({
 
         const payload: GenerateWorkflowPayload = {
             project_name: projectName || "Test Project",
-            description: prompt || "Generate design documents for the project",
+            description: prompt,
             documents: documents
         };
 

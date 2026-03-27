@@ -22,7 +22,21 @@ export interface ApiFileRaw {
     file_metadata?: { size?: number };
     created_at?: string;
     updated_at?: string;
-    file_size?: number; 
+    file_size?: number;
+}
+
+interface FileUploadResponse {
+    status: "success" | "error" | "ok";
+    files: [
+        {
+            id: string;
+            name: string;
+            size_kb: number;
+            type: string;
+            content: string;
+            created_at: string;
+        },
+    ];
 }
 
 // ── Service ────────────────────────────────────────────────────
@@ -31,7 +45,10 @@ export class FileService {
     private static readonly baseUrl =
         process.env.BACKEND_DOMAIN ?? "http://localhost:8010";
 
-    private static authHeaders(token: string, json = false): Record<string, string> {
+    private static authHeaders(
+        token: string,
+        json = false,
+    ): Record<string, string> {
         const headers: Record<string, string> = {
             Authorization: `Bearer ${token}`,
         };
@@ -66,7 +83,8 @@ export class FileService {
                 body: JSON.stringify({ name, parent_id: parentId }),
             },
         );
-        if (!resp.ok) throw new Error(`Failed to create folder: ${resp.status}`);
+        if (!resp.ok)
+            throw new Error(`Failed to create folder: ${resp.status}`);
         return resp.json();
     }
 
@@ -74,14 +92,12 @@ export class FileService {
         token: string,
         folderId: number,
     ): Promise<void> {
-        const resp = await fetch(
-            `${this.baseUrl}/api/v1/folders/${folderId}`,
-            {
-                method: "DELETE",
-                headers: this.authHeaders(token),
-            },
-        );
-        if (!resp.ok) throw new Error(`Failed to delete folder: ${resp.status}`);
+        const resp = await fetch(`${this.baseUrl}/api/v1/folders/${folderId}`, {
+            method: "DELETE",
+            headers: this.authHeaders(token),
+        });
+        if (!resp.ok)
+            throw new Error(`Failed to delete folder: ${resp.status}`);
     }
 
     public static async renameFolder(
@@ -89,15 +105,13 @@ export class FileService {
         folderId: number,
         newName: string,
     ): Promise<void> {
-        const resp = await fetch(
-            `${this.baseUrl}/api/v1/folders/${folderId}`,
-            {
-                method: "PATCH",
-                headers: this.authHeaders(token, true),
-                body: JSON.stringify({ name: newName }),
-            },
-        );
-        if (!resp.ok) throw new Error(`Failed to rename folder: ${resp.status}`);
+        const resp = await fetch(`${this.baseUrl}/api/v1/folders/${folderId}`, {
+            method: "PATCH",
+            headers: this.authHeaders(token, true),
+            body: JSON.stringify({ name: newName }),
+        });
+        if (!resp.ok)
+            throw new Error(`Failed to rename folder: ${resp.status}`);
     }
 
     public static async uploadFile(
@@ -114,7 +128,37 @@ export class FileService {
                 body: formData,
             },
         );
+
         if (!resp.ok) throw new Error(`Failed to upload file: ${resp.status}`);
-        return resp.json();
+        const response = await resp.json() as FileUploadResponse;
+
+        if(response.status === "ok") {
+
+            const data = response.files       
+            const result: ApiFileRaw[] = data.map(item => {
+                return {
+                    id: parseInt(item.id),
+                    name: item.name,
+                    file_size: item.size_kb, 
+                    extension: item.type, 
+                    created_at: item.created_at,
+                }
+            })   
+            
+            return result;
+        }
+        else {
+            return []
+        }
+        
     }
+
+    public static async deleteFile(token: string, fileId: number): Promise<void> {
+        const resp = await fetch(`${this.baseUrl}/api/v1/files/${fileId}`, {
+            method: "DELETE",
+            headers: this.authHeaders(token),
+        });
+        if (!resp.ok) throw new Error(`Failed to delete file: ${resp.status}`);
+    }
+
 }

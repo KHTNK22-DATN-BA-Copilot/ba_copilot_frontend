@@ -87,3 +87,8 @@ export async function uploadFileAction(
     const result = await FileService.uploadFile(token, projectId, folderId, formData);
     return buildUploadedFiles(result);
 }
+
+export async function deleteFileAction(fileId: number): Promise<void> {
+    const token = (await cookies()).get("access_token")?.value as string;
+    await FileService.deleteFile(token, fileId);
+}
