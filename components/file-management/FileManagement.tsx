@@ -22,6 +22,7 @@ import {
     deleteFolderAction,
     renameFolderAction,
     uploadFileAction,
+    deleteFileAction
 } from "@/actions/file.action";
 import { getAccessToken } from "@/lib/projects";
 
@@ -34,6 +35,8 @@ export default function FileManagement({ projectId }: { projectId: string }) {
     const [creatingParent, setCreatingParent] = useState<number | null>(null);
     const [newName, setNewName] = useState("");
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const [loadingFiles, setLoadingFiles] = useState<Set<string | number>>(new Set());
+
 
     useEffect(() => {
         if (creating) {
@@ -71,39 +74,55 @@ export default function FileManagement({ projectId }: { projectId: string }) {
     const handleFileUpload = async (folderId: number) => {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
-        fileInput.multiple = false;
+        fileInput.multiple = true;
         fileInput.onchange = async (e: Event) => {
             const target = e.target as HTMLInputElement;
-            const file = target.files?.[0];
-            if (!file) return;
+            const files = target.files ? Array.from(target.files) : [];
+            if (files.length === 0) return;
 
-            const tempFileNode: FileNode = {
-                id: Date.now(),
+            const tempFileNodes: FileNode[] = files.map((file, index) => ({
+                id: `${Date.now()}-${index}`,
                 name: file.name,
                 type: "file",
                 size: formatFileSize(file.size),
                 uploadedDate: formatDate(Date.now()),
                 fileType: file.name.split(".").pop() || "",
                 file,
-            };
+            }));
 
             // Optimistic update
             const previousState = fileNode;
-            setFileNode(addChildToNode(fileNode, folderId, tempFileNode));
+            let optimisticState = fileNode;
+            for (const tempFileNode of tempFileNodes) {
+                optimisticState = addChildToNode(optimisticState, folderId, tempFileNode);
+            }
+            setFileNode(optimisticState);
             setExpandedFolders((prev) => new Set(prev).add(folderId));
 
             try {
                 const folderPath = calculateFolderPath(fileNode, folderId);
                 const formData = new FormData();
                 formData.append("path", folderPath);
-                formData.append("files", file);
-
+                for (const file of files) {
+                    formData.append("files", file);
+                }
+                
+                setLoadingFiles((prev) => {
+                    const next = new Set(prev);
+                    for (const tempFileNode of tempFileNodes) {
+                        next.add(tempFileNode.id);
+                    }
+                    return next;
+                });
                 const uploadedFiles = await uploadFileAction(projectId, folderId, formData);
+                
 
                 // Replace optimistic temp node with real server data
                 setFileNode((prev) => {
-                    const withoutTemp = removeNodeById(prev, tempFileNode.id);
-                    let updated = withoutTemp;
+                    let updated = prev;
+                    for (const tempFileNode of tempFileNodes) {
+                        updated = removeNodeById(updated, tempFileNode.id);
+                    }
                     for (const f of uploadedFiles) {
                         updated = addChildToNode(updated, folderId, f);
                     }
@@ -113,12 +132,24 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                 console.error("Failed to upload file:", err);
                 setFileNode(previousState);
                 alert("Failed to upload file. Please try again.");
+            } finally {
+                setLoadingFiles((prev) => {
+                    const next = new Set(prev);
+                    for (const tempFileNode of tempFileNodes) {
+                        next.delete(tempFileNode.id);
+                    }
+                    return next;
+                });
             }
         };
         fileInput.click();
     };
 
     const handleDeleteFile = (folderId: number, fileId: number) => {
+        deleteFileAction(fileId).catch((err) => {
+            console.error("Failed to delete file:", err);
+            alert("Failed to delete file. Please try again.");
+        })
         setFileNode((prev) => removeNodeById(prev, fileId));
     };
 
@@ -259,6 +290,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                                     expanded={expandedFolders.has(
                                         folder.id as number,
                                     )}
+                                    isUploading={loadingFiles}
                                     toggle={toggleFolder}
                                     onUpload={handleFileUpload}
                                     onDelete={handleDeleteFile}

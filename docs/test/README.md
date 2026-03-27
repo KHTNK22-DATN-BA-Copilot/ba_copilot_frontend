@@ -1,186 +1,105 @@
-# Test Documentation Index
+# Tài Liệu Kiểm Thử - BA Copilot
 
-**Last Updated**: December 13, 2025  
-**Version**: 1.1.0
+**Ngày cập nhật**: 12/03/2026  
+**Phiên bản**: 2.0  
+**Tổng số test case**: 229  
+**Số file kiểm thử**: 17
 
-## Overview
+## Tổng quan
 
-This directory contains comprehensive test documentation for the BA Copilot frontend application. Each feature module has its own detailed testing document covering test plans, test cases, performance benchmarks, and known issues.
-
-## Test Documentation Structure
-
-### Core Features Testing
-- **[Authentication & User Management](authentication/auth-testing.md)** - User registration, login, profile management
-- **[Project Management](project-management/project-testing.md)** - Project creation, collaboration, settings
-- **[SRS Generator](srs-generator/srs-testing.md)** - Software Requirements Specification generation and management
-
-### New Features Testing (v1.1.0)
-
-#### File Management System
-- **[File Management](file-management/file-management.md)** - Complete file upload, organization, and management testing
-  - File upload (single/multiple, drag & drop)
-  - Folder hierarchy with Composite Pattern
-  - File operations (CRUD, move, copy, delete)
-  - Version control integration
-  - Performance benchmarks for large file handling
-
-#### Diagram Generator
-- **[Diagram Generator](diagram-generator/diagram-generator.md)** - Mermaid.js diagram creation and management testing
-  - Multiple diagram types (flowchart, sequence, class, ERD)
-  - Real-time preview and syntax validation
-  - AI-powered diagram generation
-  - Export capabilities (PNG, SVG, PDF)
-  - Template system and customization
-
-#### Workflow Management
-- **[Workflow Management](workflows/workflows.md)** - Node-based workflow orchestration testing
-  - Visual workflow designer
-  - Node configuration and connections
-  - Execution engine with state management
-  - Error handling and recovery
-  - Performance testing for complex workflows
-
-#### AI Conversations
-- **[Enhanced AI Conversations](ai-conversations/ai-conversations.md)** - Intelligent conversation management testing
-  - Context-aware multi-turn conversations
-  - AI response quality and relevance
-  - Conversation history and search
-  - Export and sharing capabilities
-  - Real-time collaboration features
-
-#### Chat Bot Integration
-- **[Chat Bot Integration](chat-bot-integration/chat-bot-integration.md)** - AI-powered assistance integration testing
-  - Chat bot interface and interactions
-  - Feature-specific contextual help
-  - Multi-modal responses
-  - Performance under concurrent load
-  - Customization and training capabilities
-
-## Testing Methodology
-
-### Test Types Covered
-1. **Functional Testing** - Feature functionality and user workflows
-2. **Integration Testing** - Component and service interactions
-3. **Performance Testing** - Speed, scalability, and resource usage
-4. **Security Testing** - Authentication, authorization, and data protection
-5. **Accessibility Testing** - WCAG compliance and usability
-6. **Cross-browser Testing** - Compatibility across different browsers
-
-### Test Environments
-- **Development**: Local development environment for unit and integration tests
-- **Staging**: Pre-production environment for comprehensive testing
-- **Production**: Live environment monitoring and user acceptance testing
-
-## Test Execution Guidelines
-
-### Prerequisites
-- Node.js 18+ and npm/yarn
-- Test user accounts with appropriate permissions
-- Test data sets for various scenarios
-- Browser testing tools (Chrome, Firefox, Safari, Edge)
-
-### Running Tests
-```bash
-# Install dependencies
-npm install
-
-# Run all tests
-npm run test
-
-# Run specific test suite
-npm run test -- --grep "authentication"
-
-# Run performance tests
-npm run test:performance
-
-# Run accessibility tests
-npm run test:accessibility
-```
-
-### Test Data Management
-- Use test-specific data sets
-- Clean up test data after execution
-- Maintain data isolation between test runs
-- Use mock services for external dependencies
-
-## Quality Metrics
-
-### Coverage Targets
-- **Unit Tests**: > 80% code coverage
-- **Integration Tests**: > 90% API coverage
-- **E2E Tests**: > 95% user flow coverage
-
-### Performance Benchmarks
-- **Page Load**: < 3 seconds
-- **API Response**: < 500ms (average)
-- **Test Execution**: < 10 minutes (full suite)
-
-### Quality Gates
-- All critical path tests must pass
-- No high-severity bugs in production
-- Performance benchmarks must be met
-- Accessibility score > 90%
-
-## Bug Tracking and Reporting
-
-### Severity Levels
-- **Critical**: System crashes, data loss, security issues
-- **High**: Major functionality broken, performance issues
-- **Medium**: Minor functionality issues, UI problems
-- **Low**: Cosmetic issues, minor enhancements
-
-### Reporting Process
-1. Document bug with steps to reproduce
-2. Assign severity and priority
-3. Attach screenshots/logs
-4. Track in issue management system
-5. Verify fix and regression testing
-
-## Continuous Integration
-
-### Automated Testing
-- **Pre-commit**: Linting and unit tests
-- **Pull Request**: Integration and E2E tests
-- **Deployment**: Full regression suite
-- **Nightly**: Performance and load tests
-
-### Test Automation Tools
-- **Jest**: Unit and integration testing
-- **Playwright**: E2E and UI testing
-- **Lighthouse**: Performance and accessibility
-- **OWASP ZAP**: Security testing
-
-## Maintenance and Updates
-
-### Documentation Updates
-- Update test docs when features change
-- Review and update test cases quarterly
-- Maintain test data currency
-- Archive obsolete test documentation
-
-### Test Suite Maintenance
-- Remove obsolete tests
-- Update tests for code changes
-- Add tests for new features
-- Optimize test execution time
-
-## Contact Information
-
-**Test Lead**: QA Team Lead  
-**Development Team**: Frontend Development Team  
-**Product Owner**: Product Management  
+Bộ tài liệu kiểm thử toàn diện cho hệ thống BA Copilot, bao gồm Frontend (Next.js), Backend (FastAPI), và AI Service (LangGraph). Các test case được viết bằng tiếng Việt, tổ chức theo từng module chức năng.
 
 ---
 
-## Revision History
+## Danh sách file kiểm thử
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | Nov 2025 | Initial test documentation structure |
-| 1.1.0 | Dec 2025 | Added comprehensive testing for new features:<br>- File Management System<br>- Diagram Generator<br>- Workflow Management<br>- Enhanced AI Conversations<br>- Chat Bot Integration |
+### Phase 1: Xác thực & Tài khoản (84 TC)
+
+| # | Module | File | Số TC |
+|---|--------|------|-------|
+| 1 | Đăng nhập | [dang-nhap/dang-nhap.md](dang-nhap/dang-nhap.md) | 15 |
+| 2 | Đăng ký | [dang-ky/dang-ky.md](dang-ky/dang-ky.md) | 20 |
+| 3 | Quên mật khẩu | [quen-mat-khau/quen-mat-khau.md](quen-mat-khau/quen-mat-khau.md) | 15 |
+| 4 | Xác thực email | [xac-thuc-email/xac-thuc-email.md](xac-thuc-email/xac-thuc-email.md) | 8 |
+| 5 | Đăng xuất | [dang-xuat/dang-xuat.md](dang-xuat/dang-xuat.md) | 6 |
+| 6 | Đổi mật khẩu | [doi-mat-khau/doi-mat-khau.md](doi-mat-khau/doi-mat-khau.md) | 8 |
+| 7 | Hồ sơ người dùng | [ho-so-nguoi-dung/ho-so-nguoi-dung.md](ho-so-nguoi-dung/ho-so-nguoi-dung.md) | 12 |
+
+### Phase 2: Dashboard & Quản lý (48 TC)
+
+| # | Module | File | Số TC |
+|---|--------|------|-------|
+| 8 | Bảng điều khiển | [bang-dieu-khien/bang-dieu-khien.md](bang-dieu-khien/bang-dieu-khien.md) | 10 |
+| 9 | Quản lý dự án | [quan-ly-du-an/quan-ly-du-an.md](quan-ly-du-an/quan-ly-du-an.md) | 18 |
+| 10 | Quản lý file | [quan-ly-file/quan-ly-file.md](quan-ly-file/quan-ly-file.md) | 20 |
+
+### Phase 3: Tạo tài liệu (45 TC)
+
+| # | Module | File | Số TC |
+|---|--------|------|-------|
+| 11 | Tạo SRS | [tao-srs/tao-srs.md](tao-srs/tao-srs.md) | 15 |
+| 12 | Tạo Diagram | [tao-diagram/tao-diagram.md](tao-diagram/tao-diagram.md) | 18 |
+| 13 | Tạo Wireframe | [tao-wireframe/tao-wireframe.md](tao-wireframe/tao-wireframe.md) | 12 |
+
+### Phase 4: Quy trình & AI (42 TC)
+
+| # | Module | File | Số TC |
+|---|--------|------|-------|
+| 14 | Quy trình làm việc | [quy-trinh-lam-viec/quy-trinh-lam-viec.md](quy-trinh-lam-viec/quy-trinh-lam-viec.md) | 20 |
+| 15 | Trợ lý AI | [tro-ly-ai/tro-ly-ai.md](tro-ly-ai/tro-ly-ai.md) | 12 |
+| 16 | Chatbot | [chatbot/chatbot.md](chatbot/chatbot.md) | 10 |
+
+### Phase 5: Phi chức năng (10 TC)
+
+| # | Module | File | Số TC |
+|---|--------|------|-------|
+| 17 | Phi chức năng | [phi-chuc-nang/phi-chuc-nang.md](phi-chuc-nang/phi-chuc-nang.md) | 10 |
 
 ---
 
-**Document Owner**: QA Team  
-**Last Review**: December 13, 2025  
-**Next Review**: March 2026
+## Thống kê tổng hợp
+
+| Hạng mục | Số lượng |
+|----------|----------|
+| **Tổng test case** | **229** |
+| Authentication & Account | 84 |
+| Dashboard & Quản lý | 48 |
+| Document Generation | 45 |
+| Quy trình & AI | 42 |
+| Phi chức năng | 10 |
+
+---
+
+## Định dạng test case
+
+Mỗi test case bao gồm 5 trường:
+
+| Trường | Mô tả |
+|--------|-------|
+| **Tên test case** | Mô tả ngắn gọn mục đích kiểm thử |
+| **Điều kiện tiên quyết** | Các điều kiện cần có trước khi thực hiện |
+| **Các bước thực hiện** | Hướng dẫn từng bước chi tiết |
+| **Dữ liệu test** | Dữ liệu đầu vào cụ thể |
+| **Kết quả mong đợi** | Kết quả kỳ vọng khi kiểm thử thành công |
+
+**Quy ước mã test case**: `TC-{MODULE}-{NNN}`  
+VD: `TC-LG-001` (Login), `TC-RG-001` (Register), `TC-NF-001` (Non-Functional)
+
+---
+
+## Hệ thống được kiểm thử
+
+| Thành phần | Công nghệ | Đường dẫn |
+|-----------|-----------|-----------|
+| Frontend | Next.js, React, TypeScript | `Frontend/ba-copilot/` |
+| Backend | FastAPI, SQLAlchemy, PostgreSQL | `ba_copilot_backend/` |
+| AI Service | LangGraph, OpenRouter LLM | `ba_copilot_ai/` |
+| Database | PostgreSQL (Supabase) | `schema_improved.sql` |
+
+## Lịch sử cập nhật
+
+| Phiên bản | Ngày | Thay đổi |
+|-----------|------|----------|
+| 1.0.0 | 11/2025 | Cấu trúc ban đầu |
+| 1.1.0 | 12/2025 | Thêm file management, diagram, workflow, AI conversations, chatbot |
+| 2.0.0 | 03/2026 | Viết lại toàn bộ - 17 file, 229 test case bằng tiếng Việt theo format chuẩn |

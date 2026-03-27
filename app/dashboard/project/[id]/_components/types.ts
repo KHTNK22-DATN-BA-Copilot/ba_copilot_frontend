@@ -12,6 +12,7 @@ export interface Project {
     priority?: 'low' | 'medium' | 'high';
     updated_at?: string;
     team_size?: number;
+    detail?: string;
 }
 
 export interface Activity {
