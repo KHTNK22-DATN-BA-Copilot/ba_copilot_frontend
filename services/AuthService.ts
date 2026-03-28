@@ -58,7 +58,7 @@ export class AuthService {
     public static async signIn(email: string, password: string): Promise<ServiceResponse<TokenResponse>> {
         try {
             const response = await fetch(
-                `${process.env.BACKEND_DOMAIN}/api/v1/auth/login`,
+                `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/auth/login`,
                 {
                     method: "POST",
                     headers: {
