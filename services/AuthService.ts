@@ -1,7 +1,12 @@
 import { TokenResponse, RegisterUser, ServiceResponse } from "@/type/types";
+import { redirect } from "next/navigation";
 
 export class AuthService {
-    public static async signUp(name: string, email: string, password: string): Promise<ServiceResponse<RegisterUser>> {
+    public static async signUp(
+        name: string,
+        email: string,
+        password: string,
+    ): Promise<ServiceResponse<RegisterUser>> {
         const response = await fetch(
             `${process.env.BACKEND_DOMAIN}/api/v1/auth/register`,
             {
@@ -13,23 +18,20 @@ export class AuthService {
             },
         );
 
-
-
-        if(response.ok) {
+        if (response.ok) {
             const data: RegisterUser = await response.json();
             return {
                 data: data,
                 statusCode: response.status,
                 success: true,
-            }
+            };
         }
         const data = await response.json();
         return {
             success: false,
             statusCode: response.status,
-            message: data.message
-        }
-
+            message: data.message,
+        };
     }
 
     public static async verifyEmail(email: string, code: string) {
@@ -55,7 +57,10 @@ export class AuthService {
         }
     }
 
-    public static async signIn(email: string, password: string): Promise<ServiceResponse<TokenResponse>> {
+    public static async signIn(
+        email: string,
+        password: string,
+    ): Promise<ServiceResponse<TokenResponse>> {
         try {
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/auth/login`,
@@ -71,12 +76,12 @@ export class AuthService {
                 },
             );
 
-            if(response.status === 401) {
+            if (response.status === 401) {
                 return {
                     success: false,
                     statusCode: 401,
                     message: "Invalid email or password. Please try again.",
-                }
+                };
             }
 
             const data: TokenResponse = await response.json();
@@ -84,11 +89,41 @@ export class AuthService {
                 success: true,
                 data: data,
                 statusCode: response.status,
-            }
+            };
         } catch (error) {
             console.error("Sign-in error:", error);
             throw new Error(
                 "An unexpected error occurred during sign-in. Please try again.",
+            );
+        }
+    }
+    
+    public static async getGoogleCredentials(
+        code: string,
+    ): Promise<ServiceResponse<TokenResponse>> {
+        try {
+            const response = await fetch(
+                `${process.env.BACKEND_DOMAIN}/api/v1/oauth/google/credentials`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        "code": code,
+                    }),
+                },
+            );
+            const data: TokenResponse = await response.json();
+            return {
+                success: true,
+                data: data,
+                statusCode: response.status,
+            };
+        } catch (error) {
+            console.error("Get Google credentials error:", error);
+            throw new Error(
+                "An unexpected error occurred while getting Google credentials. Please try again.",
             );
         }
     }
