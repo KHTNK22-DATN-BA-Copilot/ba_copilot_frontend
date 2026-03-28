@@ -9,7 +9,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { SignIn } from "@/actions/auth.action";
+import { SignIn, getGoogleAuthUrl } from "@/actions/auth.action";
 
 //import Icon
 import { ChartGantt, Github, ChevronRightIcon } from "lucide-react";
@@ -55,6 +55,12 @@ export default function SignInForm() {
         message: "",
     });
 
+    async function handleGoogleLogin() {
+        const response = await getGoogleAuthUrl();
+        console.log("Google Auth URL:", response);
+        redirect(response);
+    }
+
     return (
         <div className="w-full sm:w-[50%] lg:w-[30%] mt-5">
             <div className="shadow-2xl px-7 md:mx-auto bg-white dark:bg-gray-800 rounded-t-2xl">
@@ -80,7 +86,7 @@ export default function SignInForm() {
                             GitHub
                         </Button>
                     </div> */}
-                    <div className="w-full cursor-pointer">
+                    <div className="w-full cursor-pointer" onClick={handleGoogleLogin}>
                         <Button variant="outline" className="w-full cursor-pointer">
                             <FcGoogle className="mr-1 h-4 w-4" /> Google
                         </Button>
