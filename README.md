@@ -1,82 +1,54 @@
 # BA Copilot Frontend
 
-> AI-powered Business Analysis assistant — built with Next.js 15, React 19, and TypeScript.
+> AI-powered Business Analysis assistant built with Next.js 15, React 19, and TypeScript.
 
-BA Copilot helps Business Analysts automate documentation, generate diagrams, create wireframes, and manage project workflows with the power of AI. The frontend communicates with a FastAPI backend via server-side API route proxies and WebSocket connections.
+This frontend helps Business Analysts generate and manage project artifacts (planning, analysis, design docs, SRS, diagrams, wireframes), then iterate with AI-assisted refinement flows. It integrates with FastAPI backend services via server-side API routes, server actions, and WebSocket streaming.
 
 ---
 
 ## ✨ Key Features
 
 ### 🔐 Authentication & User Management
-- **Email/Password login** with Zod schema validation
-- **Forgot Password** — multi-step flow (Email → OTP → Reset → Success) with `InputOTP` component
-- **Email Verification** — token-based verification with auto-redirect
-- **JWT Authentication** — httpOnly cookies (`access_token` 30 min, `refresh_token` 7 days)
-- **Middleware** — automatic token refresh for protected `/dashboard/*` routes
-- **Account Settings** — profile editing, visibility settings, account deletion
-- **Logout** — clears cookies, localStorage, sessionStorage
+- Email/password sign in with Zod validation
+- Google OAuth entry points (login/register)
+- Forgot password multi-step flow (Email → OTP → Reset → Success) with InputOTP
+- Email verification flow with OTP UI and redirect to login on success
+- JWT auth via httpOnly cookies (`access_token`, `refresh_token`)
+- Middleware token refresh for protected `/dashboard/*` routes
+- Account settings: profile update, visibility section, account deletion, logout
 
-### 📋 Dashboard
-- **Project Overview** — stat cards (total projects from API), quick actions
-- **Project Management** — create, edit, soft-delete projects with loading skeletons
-- **Search** — full-screen modal (Ctrl+K / Cmd+K) across pages, projects, documents
-- **Dark/Light Mode** — persistent toggle saved to localStorage
-- **Responsive Layout** — collapsible sidebar on desktop, overlay on mobile
+### 📋 Dashboard & Navigation
+- Dashboard overview with project cards and quick actions
+- Project lifecycle: create, edit, soft-delete
+- Global search (Ctrl+K / Cmd+K) for pages/projects/documents/users
+- Dark/light mode with localStorage persistence
+- Responsive layout: desktop sidebar + mobile overlay navigation
 
-### 🔄 Project Workflows (5-Step Wizard)
-A guided workflow for generating BA documents across 3 phases:
+### 🔄 Workflow & Phase Generation
 
-| Step | Documents |
-|------|-----------|
-| **Planning** | Project Charter (Stakeholder Register, High-level Requirements, Requirements Management Plan), Business Case, Scope Statement, Product Roadmap |
-| **Analysis** | Feasibility Study, Cost-Benefit Analysis, Risk Register, Compliance |
-| **Design** | SRS, HLD (Architecture, Cloud, Tech Stack), LLD (Architecture, DB, API, Pseudocode), UI/UX (Wireframes, Mockups, Prototypes), RTM |
+The app exposes a guided workflow driven by three main phases. It allows real-time, WebSocket-streamed document generation. 
 
-- **WebSocket-based generation** — real-time progress streaming via `ws://localhost:8010`
-- **Document constraints** — dependency-aware selection; prerequisite documents must exist before dependents can be generated (cascade uncheck, topological select-all)
-- **Cross-step dependencies** — Design documents can require Planning/Analysis docs as prerequisites
-- **Prompt input** with file attachment support
-- **Markdown + Mermaid preview** with `github-markdown-css` styling
+1. **Planning Phase**: Stakeholder Register, High-level Requirements, Requirements Management Plan, Business Case, Scope Statement, Product Roadmap.
+2. **Analysis Phase**: Feasibility Study, Cost-Benefit Analysis, Risk Register, Compliance.
+3. **Design Phase**: SRS, HLD (Architecture/Cloud/Tech Stack), LLD (Architecture/DB/API/Pseudocode), UI/UX (Wireframe/Mockup/Prototype), RTM.
 
-### 📊 Diagram Generator
-- **Diagram types**: Use Case, Class, Activity
-- **Create**: title/description + file upload → AI generation
-- **View**: Mermaid.js rendering with Markdown support
-- **AI Regeneration**: iterative editing via `ChatWithAI` component
-- **History**: list all project diagrams
-
-### 📝 SRS Generator
-- **Multi-tab interface**: Create New, Template, Recent Documents
-- **Create**: project overview + requirements + diagram options + constraints + file upload
-- **View**: rich Markdown rendering (`react-markdown` + `remark-gfm` + `remark-breaks`)
-- **Download**: export as `.md` file
-- **AI Regeneration**: iterative document refinement via chat
-- **Context management**: `SrsDataStoreProvider` for form state
-
-### 🎨 Wireframe Generator
-- **Create**: file upload → AI-generated HTML/CSS wireframes
-- **Live Preview**: iframe `srcDoc` rendering with split view toggle (code + preview)
-- **Code View**: tabbed HTML/CSS editor
-- **AI Regeneration**: iterative wireframe refinement via chat
-- **History**: list all project wireframes
-
-### 💬 AI Conversations
-- Chat interface with conversation management sidebar
-- Suggestion prompts for empty states
-- New conversation creation
+Capabilities:
+- WebSocket streaming generation via `NEXT_PUBLIC_WS_DOMAIN` (default local: `ws://localhost:8010`)
+- Dependency-aware document constraints (`required` and `recommended`)
+- Cascading dependent uncheck and cross-phase prerequisite validation
+- Prompt + reference file input for generation and regeneration
+- Markdown preview with Mermaid support
 
 ### 📁 File Management
-- **Tree-based UI** — Composite pattern (`FolderComposite`, `FileLeaf`)
-- **Repository pattern** — `IFileRepository` interface with `ApiRepository` implementation
-- **Operations**: upload files, create/rename/delete folders, drag-and-drop support
-- **Supported formats**: PDF, DOC, DOCX, TXT, MD (max 10MB)
-- **Optimistic UI** — instant updates with rollback on error
+- Tree UI with Composite-style folder/file components
+- Operations: upload, create folder, rename folder, delete file/folder, download/export
+- Optimistic updates for upload with rollback on failure
+- Supported upload types: PDF, DOC, DOCX, TXT, MD (max 10MB)
 
-### 🤖 Reusable Chat System
-- `ChatWithAI` — configurable chat component with pre-built configs for SRS, Diagram, Wireframe regeneration
-- Supports FormData and JSON payloads, custom response extractors, Markdown rendering
-- Used across all viewer components for AI-powered iterative editing
+### 🤖 Reusable AI Chat System
+- `ChatWithAI` configurable for FormData/JSON APIs
+- Prebuilt configs for SRS, diagram, and wireframe regeneration (`chat-configs.ts`)
+- Supports custom payload builders and response extractors
 
 ---
 
@@ -84,19 +56,18 @@ A guided workflow for generating BA documents across 3 phases:
 
 | Category | Technology |
 |----------|-----------|
-| **Framework** | Next.js 15.5 (App Router), React 19.1, TypeScript 5 |
-| **Styling** | Tailwind CSS v4, `tw-animate-css`, dark/light mode |
-| **UI Components** | Radix UI (Dialog, Tabs, Select, Checkbox, Tooltip, Progress, etc.), shadcn/ui |
-| **State** | React Context (`FileContext`, `SRSGeneratorContext`), SWR, custom hooks |
-| **Validation** | Zod v4 |
-| **Markdown** | `react-markdown` + `remark-gfm` + `remark-breaks` + `github-markdown-css` |
-| **Diagrams** | Mermaid.js 11.12 |
-| **Icons** | Lucide React, Heroicons, FontAwesome, React Icons |
-| **Notifications** | Sonner (toast) |
-| **Fonts** | Geist Sans + Geist Mono |
-| **Backend** | FastAPI (Python) at `localhost:8010` |
-| **Real-time** | WebSocket for workflow document generation |
-| **Deployment** | Docker, Vercel |
+| Framework | Next.js 15.5 (App Router), React 19.1, TypeScript 5 |
+| Styling | Tailwind CSS v4, `tw-animate-css`, dark/light mode |
+| UI | Radix UI + shadcn/ui, Lucide, Heroicons, FontAwesome, React Icons |
+| Additional UI libs | MUI (`@mui/material`) + Emotion |
+| State/Data | React Context, SWR, server actions, custom hooks |
+| Validation | Zod v4 |
+| Markdown | `react-markdown`, `remark-gfm`, `remark-breaks`, `github-markdown-css` |
+| Diagrams | Mermaid.js 11.12 |
+| Notifications | Sonner |
+| Observability | Sentry (`@sentry/nextjs`) |
+| HTTP/Utils | Fetch API, Axios, Diff |
+| Fonts | Geist Sans + Geist Mono |
 
 ---
 
@@ -104,141 +75,126 @@ A guided workflow for generating BA documents across 3 phases:
 
 ### Prerequisites
 - Node.js 18+ (or Docker)
-- Backend running at `http://localhost:8010`
+- Backend services available (default local backend: `http://localhost:8010`)
 
 ### Option 1: npm
 
 ```bash
-# Install dependencies
 npm install
-
-# Start dev server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open http://localhost:3000.
 
 ### Option 2: Docker
 
 ```bash
-cd ba-copilot
 docker compose up --build -d
 ```
 
 ### ⚠️ Environment Setup
 
-Create a `.env` file with the backend domain:
+Create or update `.env` in this folder:
 
-| Runtime | `BACKEND_URL` |
-|---------|---------------|
-| npm (local) | `http://localhost:8010` |
-| Docker | `http://host.docker.internal:8010` |
+| Variable | Example (local) | Purpose |
+|----------|------------------|---------|
+| `BACKEND_DOMAIN` | `http://localhost:8010` | Server-side API proxy and middleware refresh |
+| `NEXT_PUBLIC_BACKEND_DOMAIN` | `http://localhost:8010` | Client-side authenticated API calls (where needed) |
+| `NEXT_PUBLIC_WS_DOMAIN` | `ws://localhost:8010` | Workflow WebSocket generation stream |
+
+Optional:
+
+| Variable | Purpose |
+|----------|---------|
+| `AI_DOMAIN` / `NEXT_PUBLIC_AI_DOMAIN` | AI service endpoint references |
 
 ---
 
 ## 📁 Project Structure
 
-```
+```text
 ba-copilot/
 ├── app/
-│   ├── (auth)/                  # Auth pages (login, register, forgot-password, verify)
-│   │   ├── login/
-│   │   ├── register/
-│   │   ├── forgot-password/
-│   │   ├── verify-email/
-│   │   └── verify-success/
-│   ├── api/                     # Next.js API routes (server-side proxy to backend)
-│   │   ├── login/
-│   │   ├── logout/
-│   │   ├── me/
-│   │   ├── projects/
+│   ├── (auth)/                    # Login/register/forgot-password/verify flows
+│   ├── auth/google/callback/      # Google OAuth callback page
+│   ├── api/                       # Next.js route handlers (BFF/proxy)
+│   │   ├── auth/token/
+│   │   ├── login/ logout/ register/ me/
+│   │   ├── projects/[id]/
+│   │   ├── forgot-password/*
 │   │   ├── diagram/
-│   │   ├── srs-generate/
-│   │   ├── wireframe-generate/
-│   │   ├── workflow/
-│   │   └── forgot-password/
+│   │   ├── srs-generate/ (+ download/doc)
+│   │   └── wireframe-generate/ (+ template)
 │   ├── dashboard/
-│   │   ├── page.tsx             # Dashboard overview
-│   │   ├── layout.tsx           # Dashboard layout (Header, Sidebar, Footer)
-│   │   ├── accountsetting/      # Profile & account management
-│   │   └── project/[id]/        # Project detail
-│   │       ├── workflows/       # 5-step workflow wizard
-│   │       ├── diagrams/        # Diagram generator
-│   │       ├── srsgenerator/    # SRS generator
-│   │       ├── wireframegenerator/  # Wireframe generator
-│   │       ├── aiconversations/ # AI chat
-│   │       └── files/           # File management
-│   ├── new-project/             # New project form
-│   ├── globals.css              # Global styles + Tailwind theme
-│   ├── layout.tsx               # Root layout
-│   └── page.tsx                 # Landing page
+│   │   ├── page.tsx
+│   │   ├── layout.tsx
+│   │   ├── accountsetting/
+│   │   └── project/[id]/
+│   │       ├── workflows/         # Guided 5-step workflow
+│   │       ├── phases/            # Planning / Analysis / Design boards
+│   │       ├── diagrams/
+│   │       ├── srsgenerator/
+│   │       ├── wireframegenerator/
+│   │       ├── aiconversations/
+│   │       └── files/
+│   ├── new-project/
+│   └── layout.tsx
+├── actions/                       # Server actions
+├── services/                      # Service layer for backend communication
 ├── components/
-│   ├── ui/                      # Shadcn UI components (button, dialog, checkbox, tooltip, etc.)
-│   ├── layout/                  # Header, Sidebar, Footer
-│   ├── chat-bot/                # ChatWithAI, ChatBot, chat-configs
-│   ├── file/                    # File upload components
-│   ├── file-management/         # Tree-based file/folder manager
-│   └── icons/                   # Custom icon components
-├── context/                     # React Context providers
-│   ├── FileContext.tsx           # File upload state
-│   └── SRSGeneratorContext.tsx   # SRS form state
-├── lib/                         # Utilities, API helpers, types
-├── public/                      # Static assets (logos, icons)
-├── docs/                        # Project documentation
-├── middleware.ts                # Auth middleware (token refresh, route protection)
-├── package.json
-├── tsconfig.json
+│   ├── chat-bot/
+│   ├── file-management/
+│   ├── file/
+│   ├── layout/
+│   └── ui/
+├── context/
+├── hooks/
+├── docs/
+├── middleware.ts
 └── docker-compose.yml
 ```
 
 ---
 
-## 🏗 Architecture
+## 🏗 Architecture Notes
 
-### Server Components (Default)
-All `page.tsx` and `layout.tsx` files are **server components** by default. Client interactivity is isolated into dedicated `_components/` folders with `'use client'` directives.
+### Server-first Rendering
+`page.tsx` and `layout.tsx` are server components by default. Interactive sections are moved into client components (`"use client"`).
 
-### API Route Proxy Pattern
-All frontend API routes (`app/api/`) act as **server-side proxies** to the Python backend, handling authentication via httpOnly cookies. The frontend never exposes the backend URL to the browser.
+### BFF + Server Action Pattern
+The frontend combines:
+- Route handlers in `app/api/*` as a backend-for-frontend layer
+- Server actions in `actions/*` for typed backend operations
 
-### Document Constraint System
-The workflow system implements a **dependency-aware document selection** mechanism:
-- Each document type declares `required` and `recommended` prerequisites
-- Unchecking a document cascades to all transitive dependents (BFS traversal)
-- Select-all uses topological ordering to respect dependency order
-- Cross-step constraints: Design docs can require Planning/Analysis docs
+This keeps cookies/token handling on the server and limits direct backend exposure to the browser.
 
----
+### Workflow Dependency System
+Workflow and phase generation use a centralized dependency map (required/recommended) to:
+- prevent invalid selections
+- show missing prerequisites
+- support dependent cascade behavior
+- enforce cross-phase generation order
 
-## 📋 Shadcn UI Components
-
-Installed components: `alert-dialog`, `badge`, `button`, `card`, `checkbox`, `dialog`, `input`, `input-otp`, `label`, `progress`, `select`, `tabs`, `textarea`, `tooltip`.
-
-```bash
-# Install a new component
-npx shadcn@latest add <component-name>
-```
-
-Documentation: https://ui.shadcn.com/docs/components
+### Real-time Generation
+Phase/wizard generation streams status updates through WebSocket (`planning`, `analysis`, `design`) and updates per-document progress in UI.
 
 ---
 
 ## 🌐 Deployment
 
-- **Platform**: Vercel
-- **Live URL**: https://ba-copilot-frontend.vercel.app/
-- **Docker**: production-ready `Dockerfile` with standalone output
+- Docker-ready (`Dockerfile`, `docker-compose.yml`)
+- CI/CD workflow available in `.github/workflows/fe-ci.yml` (build and image publish/deploy)
+- Vercel-compatible Next.js application
 
 ---
 
 ## 📄 Development Guidelines
 
-1. **Server-first**: Keep `page.tsx` and `layout.tsx` as server components to reduce bundle size
-2. **Component naming**: PascalCase (e.g., `SignInButton`, `DocumentSelector`)
-3. **Custom components**: Place outside `components/ui/` (reserved for Shadcn)
-4. **API calls**: Always go through Next.js API routes — never call backend directly from client
-5. **State management**: Use React Context for cross-component state, SWR for data fetching
-6. **Dark mode**: All UI must support both light and dark themes
+1. Keep server-first boundaries clear: only use client components where interaction is required.
+2. Place reusable primitives in `components/ui`, feature components outside `components/ui`.
+3. Prefer server actions and API proxies for authenticated backend operations.
+4. Keep workflow document dependencies in sync with backend constraints.
+5. Ensure all UI changes support dark mode and responsive layouts.
 
 
 
