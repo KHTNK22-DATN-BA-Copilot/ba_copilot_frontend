@@ -289,7 +289,7 @@ export async function getSessionHistory(
 
     return {
       status: "success",
-      sessions: response.data?.sessions || [],
+      Sessions: response.data?.Sessions || [],
     };
   } catch (error) {
     console.error("[API] getSessionHistory error:", error);

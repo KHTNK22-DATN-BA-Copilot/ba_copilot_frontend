@@ -16,6 +16,11 @@ const nextConfig: NextConfig = {
         ignoreDuringBuilds: true,
     },
     output: "standalone",
+    experimental: {
+      serverActions: {
+        bodySizeLimit: "10mb",
+      }
+    }
 };
 
 export default withSentryConfig(nextConfig, {
