@@ -14,7 +14,6 @@ export default function GoogleCallbackPage() {
 
     useEffect(() => {
         const code = searchParams.get("code");
-        console.log("Received code from Google:", code);
 
         if (!code) {
             setError("Không tìm thấy mã xác thực từ Google.");

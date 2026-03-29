@@ -27,16 +27,14 @@ export interface ApiFileRaw {
 
 interface FileUploadResponse {
     status: "success" | "error" | "ok";
-    files: [
-        {
-            id: string;
-            name: string;
-            size_kb: number;
-            type: string;
-            content: string;
-            created_at: string;
-        },
-    ];
+    files: {
+        id: string;
+        name: string;
+        size_kb: number;
+        type: string;
+        content: string;
+        created_at: string;
+    }[];
 }
 
 // ── Service ────────────────────────────────────────────────────
@@ -130,35 +128,34 @@ export class FileService {
         );
 
         if (!resp.ok) throw new Error(`Failed to upload file: ${resp.status}`);
-        const response = await resp.json() as FileUploadResponse;
+        const response = (await resp.json()) as FileUploadResponse;
 
-        if(response.status === "ok") {
-
-            const data = response.files       
-            const result: ApiFileRaw[] = data.map(item => {
+        if (response.status === "ok") {
+            const data = response.files;
+            const result: ApiFileRaw[] = data.map((item) => {
                 return {
                     id: parseInt(item.id),
                     name: item.name,
-                    file_size: item.size_kb, 
-                    extension: item.type, 
+                    file_size: item.size_kb,
+                    extension: item.type,
                     created_at: item.created_at,
-                }
-            })   
-            
+                };
+            });
+
             return result;
+        } else {
+            return [];
         }
-        else {
-            return []
-        }
-        
     }
 
-    public static async deleteFile(token: string, fileId: number): Promise<void> {
+    public static async deleteFile(
+        token: string,
+        fileId: number,
+    ): Promise<void> {
         const resp = await fetch(`${this.baseUrl}/api/v1/files/${fileId}`, {
             method: "DELETE",
             headers: this.authHeaders(token),
         });
         if (!resp.ok) throw new Error(`Failed to delete file: ${resp.status}`);
     }
-
 }
