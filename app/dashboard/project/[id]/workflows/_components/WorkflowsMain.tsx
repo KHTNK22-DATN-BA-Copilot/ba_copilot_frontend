@@ -157,7 +157,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
     }, []);
 
     return (
-        <div className=" max-w-7xl mx-auto space-y-3">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
             {/* Page Header */}
             <WorkflowHeader />
 
@@ -169,7 +169,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
 
             {/* Step Content */}
             <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                     {currentStep === 0 && (
                         <RequirementsStep
                             requirements={requirements}

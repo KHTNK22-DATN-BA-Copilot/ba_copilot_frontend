@@ -57,22 +57,22 @@ export default function PromptWithFileSelection({
                 {label}
             </label>
 
-            <div className="flex gap-4">
+            <div className="flex flex-col lg:flex-row gap-4">
                 {/* Prompt Section - 3/4 width */}
-                <div className="w-3/4 space-y-3">
+                <div className="w-full lg:w-3/4 space-y-3">
                     <Textarea
                         placeholder={placeholder}
                         value={prompt}
                         onChange={(e) => onPromptChange(e.target.value)}
-                        className="min-h-[150px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                        className="min-h-[140px] sm:min-h-[150px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
                     />
                 </div>
 
                 {/* File Selection Section - 1/4 width */}
-                <div className="w-1/4 space-y-3">
+                <div className="w-full lg:w-1/4 space-y-3">
                     <div className="space-y-3">
                         {/* Selected Files Display */}
-                        <div className="flex flex-wrap gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 max-h-[100px] min-h-[100px] overflow-y-auto">
+                        <div className="flex flex-wrap gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 max-h-[120px] min-h-[72px] sm:min-h-[100px] overflow-y-auto">
                             {selectedFiles.length > 0 ? (
                                 getSelectedFileNames().map((fileName, index) => (
                                     <Badge
@@ -81,7 +81,7 @@ export default function PromptWithFileSelection({
                                         className="flex items-center gap-1 px-2 py-1 text-xs h-fit"
                                     >
                                         <FileText className="w-3 h-3" />
-                                        <span className="truncate max-w-[80px]">{fileName}</span>
+                                        <span className="truncate max-w-[140px] sm:max-w-[80px] lg:max-w-[120px]">{fileName}</span>
                                         <button
                                             onClick={() => handleRemoveFile(selectedFiles[index])}
                                             className="ml-1 hover:text-red-600 dark:hover:text-red-400"

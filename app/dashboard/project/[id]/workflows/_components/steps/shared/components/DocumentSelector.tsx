@@ -90,12 +90,12 @@ export function DocumentSelector({
     return (
         <TooltipProvider delayDuration={200}>
             <div className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {label}
                     </label>
                     {onSelectAll && onDeselectAll && (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 self-start sm:self-auto">
                             <label
                                 htmlFor="select-all"
                                 className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
@@ -119,7 +119,7 @@ export function DocumentSelector({
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <div
-                                            className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-60 rounded-lg transition-colors"
+                                            className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-60 rounded-lg transition-colors"
                                         >
                                             <div className="flex items-center gap-2">
                                                 {doc.subItems && (
@@ -170,7 +170,7 @@ export function DocumentSelector({
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    className="gap-2 flex-shrink-0"
+                                                    className="gap-2 w-full sm:w-auto flex-shrink-0"
                                                     onClick={() => onPreview(doc.id)}
                                                 >
                                                     <Eye className="w-4 h-4" />
@@ -189,7 +189,7 @@ export function DocumentSelector({
                                 </Tooltip>
                             ) : (
                                 <div
-                                    className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 rounded-lg transition-colors"
+                                    className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 rounded-lg transition-colors"
                                 >
                                     <div className="flex items-center gap-2">
                                         {doc.subItems && (
@@ -240,7 +240,7 @@ export function DocumentSelector({
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            className="gap-2 flex-shrink-0"
+                                            className="gap-2 w-full sm:w-auto flex-shrink-0"
                                             onClick={() => onPreview(doc.id)}
                                         >
                                             <Eye className="w-4 h-4" />
@@ -253,13 +253,13 @@ export function DocumentSelector({
                             {/* Sub-items */}
                             {doc.subItems &&
                                 expandedItems.includes(doc.id) && (
-                                    <div className="ml-12 space-y-2">
+                                    <div className="ml-0 sm:ml-12 space-y-2">
                                         {doc.subItems.map((subItem) => (
                                             subItem.isDisabled && subItem.disabledReason ? (
                                                 <Tooltip key={subItem.id}>
                                                     <TooltipTrigger asChild>
                                                         <div
-                                                            className="flex items-center gap-4 p-3 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 opacity-60 rounded-lg transition-colors"
+                                                            className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4 p-3 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 opacity-60 rounded-lg transition-colors"
                                                         >
                                                             <Checkbox
                                                                 id={subItem.id}
@@ -280,7 +280,7 @@ export function DocumentSelector({
                                                             <Button
                                                                 variant="ghost"
                                                                 size="sm"
-                                                                className="gap-2 flex-shrink-0 text-xs"
+                                                                className="gap-2 w-full sm:w-auto flex-shrink-0 text-xs"
                                                                 onClick={() => onPreview(subItem.id)}
                                                             >
                                                                 <Eye className="w-3 h-3" />
@@ -299,7 +299,7 @@ export function DocumentSelector({
                                             ) : (
                                                 <div
                                                     key={subItem.id}
-                                                    className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 rounded-lg transition-colors"
+                                                    className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4 p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 rounded-lg transition-colors"
                                                 >
                                                     <Checkbox
                                                         id={subItem.id}
@@ -320,7 +320,7 @@ export function DocumentSelector({
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        className="gap-2 flex-shrink-0 text-xs"
+                                                        className="gap-2 w-full sm:w-auto flex-shrink-0 text-xs"
                                                         onClick={() => onPreview(subItem.id)}
                                                     >
                                                         <Eye className="w-3 h-3" />
