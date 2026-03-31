@@ -9,6 +9,7 @@ import {
   FileText,
   Loader2,
   Sparkles,
+  Info,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { getProjectById } from "@/actions/project.action";
 import { toast } from "sonner";
@@ -394,29 +400,45 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                             <div className="flex flex-1 items-center gap-3">
                               {getStatusIcon(displayStatus)}
                               <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                  {doc.name}
-                                </p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                    {doc.name}
+                                  </p>
+                                  {(!isGenerated && (dependencyDisplay.required.length > 0 || dependencyDisplay.recommended.length > 0 || missingRequired.length > 0)) && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-help" />
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="max-w-xs">
+                                        <div className="space-y-1.5 text-xs">
+                                          {dependencyDisplay.required.length > 0 && (
+                                            <div>
+                                              <p className="font-medium text-amber-300">Required:</p>
+                                              <p className="text-gray-100">{dependencyDisplay.required.join(", ")}</p>
+                                            </div>
+                                          )}
+                                          {dependencyDisplay.recommended.length > 0 && (
+                                            <div>
+                                              <p className="font-medium text-sky-300">Recommended:</p>
+                                              <p className="text-gray-100">{dependencyDisplay.recommended.join(", ")}</p>
+                                            </div>
+                                          )}
+                                          {missingRequired.length > 0 && (
+                                            <div>
+                                              <p className="font-medium text-red-300">Missing:</p>
+                                              <p className="text-gray-100">{missingRequired.join(", ")}</p>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                </div>
                                 {/* {doc.parentName && (
                                   <p className="text-xs text-gray-500 dark:text-gray-400">
                                     Group: {doc.parentName}
                                   </p>
                                 )} */}
-                                {!isGenerated && dependencyDisplay.required.length > 0 && (
-                                  <p className="text-xs text-amber-700 dark:text-amber-300">
-                                    Required: {dependencyDisplay.required.join(", ")}
-                                  </p>
-                                )}
-                                {!isGenerated && dependencyDisplay.recommended.length > 0 && (
-                                  <p className="text-xs text-sky-700 dark:text-sky-300">
-                                    Recommended: {dependencyDisplay.recommended.join(", ")}
-                                  </p>
-                                )}
-                                {missingRequired.length > 0 && (
-                                  <p className="text-xs text-red-600 dark:text-red-400">
-                                    Missing: {missingRequired.join(", ")}
-                                  </p>
-                                )}
                                 {matchedGeneratedDoc?.updated_at && (
                                   <p className="text-xs text-gray-500 dark:text-gray-400">
                                     Last updated: {formatLastGenerated(
