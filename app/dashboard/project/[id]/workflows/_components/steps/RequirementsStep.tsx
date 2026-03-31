@@ -54,7 +54,7 @@ export default function RequirementsStep({
             <div className="flex justify-center items-center gap-3">
                 <Button
                     onClick={onNext}
-                    className="gap-2"
+                    className="gap-2 w-full sm:w-auto"
                 >
                     Continue to Planing
                     <ArrowRight className="w-4 h-4" />

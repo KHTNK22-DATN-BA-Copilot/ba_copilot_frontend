@@ -1,9 +1,10 @@
 'use client';
 
-import {useCallback, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2 } from "lucide-react";
 import { SRSIcon, DiagramIcon, WireframeIcon, HomeIcon } from "@/components/icons/project-icons";
+import { FeedbackDialog } from "@/components/feedback";
 import WorkflowHeader from "./WorkflowHeader";
 import WorkflowStepIndicator from "./WorkflowStepIndicator";
 import RequirementsStep from "./steps/RequirementsStep";
@@ -18,13 +19,26 @@ interface WorkflowsMainProps {
     projectId: string;
 }
 
+const FEEDBACK_FORM_URL = "https://forms.gle/xXYRd1qoZHnYCr2W8";
+const WORKFLOW_FEEDBACK_DONE_KEY = "workflow-feedback-form-opened";
+
+type PendingReviewAction = "complete" | "restart" | null;
+
 export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
     const [currentStep, setCurrentStep] = useState(0);
     const [requirements, setRequirements] = useState("");
     const [generatedSRS, setGeneratedSRS] = useState("");
     const [generatedDiagrams, setGeneratedDiagrams] = useState<string[]>([]);
     const [generatedWireframes, setGeneratedWireframes] = useState<string[]>([]);
+    const [hasOpenedFeedbackForm, setHasOpenedFeedbackForm] = useState(false);
+    const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
+    const [pendingReviewAction, setPendingReviewAction] = useState<PendingReviewAction>(null);
     const { project } = useProjectData(projectId as string)
+
+    useEffect(() => {
+        const storedValue = localStorage.getItem(WORKFLOW_FEEDBACK_DONE_KEY);
+        setHasOpenedFeedbackForm(storedValue === "true");
+    }, []);
 
     const steps: WorkflowStep[] = [
         {
@@ -92,21 +106,58 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
         setGeneratedWireframes(["Login Page", "Dashboard", "User Profile"]);
     };
 
-    const handleComplete = () => {
+    const completeWorkflow = useCallback(() => {
         // Handle workflow completion
         console.log("Workflow completed!");
-    };
+    }, []);
 
-    const handleRestart = () => {
+    const restartWorkflow = useCallback(() => {
         setCurrentStep(0);
         setRequirements("");
         setGeneratedSRS("");
         setGeneratedDiagrams([]);
         setGeneratedWireframes([]);
-    };
+    }, []);
+
+    const runPendingReviewAction = useCallback((action: PendingReviewAction) => {
+        if (action === "complete") {
+            completeWorkflow();
+            return;
+        }
+
+        if (action === "restart") {
+            restartWorkflow();
+        }
+    }, [completeWorkflow, restartWorkflow]);
+
+    const requestReviewAction = useCallback((action: Exclude<PendingReviewAction, null>) => {
+        if (hasOpenedFeedbackForm) {
+            runPendingReviewAction(action);
+            return;
+        }
+
+        setPendingReviewAction(action);
+        setIsFeedbackDialogOpen(true);
+    }, [hasOpenedFeedbackForm, runPendingReviewAction]);
+
+    const handleOpenFeedbackForm = useCallback(() => {
+        window.open(FEEDBACK_FORM_URL, "_blank", "noopener,noreferrer");
+        localStorage.setItem(WORKFLOW_FEEDBACK_DONE_KEY, "true");
+        setHasOpenedFeedbackForm(true);
+        setIsFeedbackDialogOpen(false);
+        runPendingReviewAction(pendingReviewAction);
+        setPendingReviewAction(null);
+    }, [pendingReviewAction, runPendingReviewAction]);
+
+    const handleCloseFeedbackDialog = useCallback((open: boolean) => {
+        setIsFeedbackDialogOpen(open);
+        if (!open) {
+            setPendingReviewAction(null);
+        }
+    }, []);
 
     return (
-        <div className=" max-w-7xl mx-auto space-y-3">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
             {/* Page Header */}
             <WorkflowHeader />
 
@@ -118,7 +169,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
 
             {/* Step Content */}
             <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                     {currentStep === 0 && (
                         <RequirementsStep
                             requirements={requirements}
@@ -164,12 +215,21 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
                             generatedDiagrams={generatedDiagrams}
                             generatedWireframes={generatedWireframes}
                             onBack={handleBack}
-                            onComplete={handleComplete}
-                            onRestart={handleRestart}
+                            onComplete={() => requestReviewAction("complete")}
+                            onRestart={() => requestReviewAction("restart")}
                         />
                     )}
                 </CardContent>
             </Card>
+
+            <FeedbackDialog
+                isOpen={isFeedbackDialogOpen}
+                onOpenChange={handleCloseFeedbackDialog}
+                onFeedbackSubmit={handleOpenFeedbackForm}
+                title="How was your workflow experience?"
+                description="Your feedback helps us make BA Copilot better for everyone"
+                buttonText="Share Feedback"
+            />
         </div>
     );
 }

@@ -37,9 +37,7 @@ export class AuthService {
     public static async verifyEmail(email: string, code: string) {
         try {
             const respond = await fetch(
-                `${
-                    process.env.BACKEND_DOMAIN
-                }/api/v1/auth/verify-email?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`,
+                `${process.env.BACKEND_DOMAIN}/api/v1/auth/verify-email?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`,
                 {
                     method: "POST",
                     headers: {
@@ -63,7 +61,7 @@ export class AuthService {
     ): Promise<ServiceResponse<TokenResponse>> {
         try {
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/api/v1/auth/login`,
+                `${process.env.BACKEND_DOMAIN}/api/v1/auth/login`,
                 {
                     method: "POST",
                     headers: {

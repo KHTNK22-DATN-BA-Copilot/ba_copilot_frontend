@@ -11,8 +11,9 @@ interface WorkflowStepIndicatorProps {
 export default function WorkflowStepIndicator({ steps }: WorkflowStepIndicatorProps) {
     return (
         <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-            <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+            <CardContent className="p-3 sm:p-6">
+                <div className="overflow-x-auto">
+                    <div className="flex items-center min-w-max">
                     {steps.map((step, index) => {
                         const Icon = step.icon;
                         const isCompleted = step.status === "completed";
@@ -22,7 +23,7 @@ export default function WorkflowStepIndicator({ steps }: WorkflowStepIndicatorPr
                             <div key={step.id} className="flex items-center">
                                 <div className="flex flex-col items-center">
                                     <div
-                                        className={`p-3 rounded-full transition-colors ${isCompleted
+                                        className={`p-2.5 sm:p-3 rounded-full transition-colors ${isCompleted
                                                 ? "bg-green-100 dark:bg-green-900/20"
                                                 : isCurrent
                                                     ? "bg-blue-100 dark:bg-blue-900/20"
@@ -30,10 +31,10 @@ export default function WorkflowStepIndicator({ steps }: WorkflowStepIndicatorPr
                                             }`}
                                     >
                                         {isCompleted ? (
-                                            <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
                                         ) : (
                                             <Icon
-                                                className={`w-5 h-5 ${isCurrent
+                                                className={`w-4 h-4 sm:w-5 sm:h-5 ${isCurrent
                                                         ? "text-blue-600 dark:text-blue-400"
                                                         : "text-gray-500 dark:text-gray-400"
                                                     }`}
@@ -41,7 +42,7 @@ export default function WorkflowStepIndicator({ steps }: WorkflowStepIndicatorPr
                                         )}
                                     </div>
                                     <p
-                                        className={`text-xs mt-2 text-center max-w-[100px] ${isCurrent
+                                        className={`text-[11px] sm:text-xs mt-2 text-center max-w-[88px] sm:max-w-[100px] ${isCurrent
                                                 ? "text-blue-600 dark:text-blue-400 font-medium"
                                                 : "text-gray-600 dark:text-gray-400"
                                             }`}
@@ -51,7 +52,7 @@ export default function WorkflowStepIndicator({ steps }: WorkflowStepIndicatorPr
                                 </div>
                                 {index < steps.length - 1 && (
                                     <div
-                                        className={`h-0.5 w-12 mx-2 ${isCompleted
+                                        className={`h-0.5 w-8 sm:w-12 mx-1 sm:mx-2 ${isCompleted
                                                 ? "bg-green-600 dark:bg-green-400"
                                                 : "bg-gray-200 dark:bg-gray-700"
                                             }`}
@@ -60,6 +61,7 @@ export default function WorkflowStepIndicator({ steps }: WorkflowStepIndicatorPr
                             </div>
                         );
                     })}
+                    </div>
                 </div>
             </CardContent>
         </Card>
