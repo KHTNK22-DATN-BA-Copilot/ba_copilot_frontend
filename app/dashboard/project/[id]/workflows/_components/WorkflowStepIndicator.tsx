@@ -12,8 +12,8 @@ export default function WorkflowStepIndicator({ steps }: WorkflowStepIndicatorPr
     return (
         <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardContent className="p-3 sm:p-6">
-                <div className="overflow-x-auto">
-                    <div className="flex items-center min-w-max">
+                <div className="sm:overflow-visible overflow-x-auto">
+                    <div className="flex items-center sm:justify-between min-w-max sm:min-w-0">
                     {steps.map((step, index) => {
                         const Icon = step.icon;
                         const isCompleted = step.status === "completed";
