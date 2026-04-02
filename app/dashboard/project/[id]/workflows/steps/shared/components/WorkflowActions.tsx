@@ -11,6 +11,7 @@ interface WorkflowActionsProps {
     generateButtonText?: string;
     nextButtonText?: string;
     hasSelectedDocuments?: boolean;
+    hasPrompt?: boolean;
 }
 
 export const WorkflowActions = memo(function Component ({
@@ -22,6 +23,7 @@ export const WorkflowActions = memo(function Component ({
     generateButtonText = "Generate",
     nextButtonText = "Continue",
     hasSelectedDocuments = true,
+    hasPrompt = false,
 }: WorkflowActionsProps) {
     return (
         <div className="flex flex-col sm:flex-row justify-center items-stretch sm:items-center gap-3">
@@ -37,7 +39,7 @@ export const WorkflowActions = memo(function Component ({
             <Button
                 onClick={onGenerate}
                 className="gap-2 w-full sm:w-auto"
-                disabled={isGenerating || !hasSelectedDocuments}
+                disabled={isGenerating || !hasSelectedDocuments || !hasPrompt}
             >
                 <Sparkles className="w-4 h-4" />
                 {isGenerating ? "Generating..." : generateButtonText}

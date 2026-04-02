@@ -92,3 +92,22 @@ export async function deleteFileAction(fileId: number): Promise<void> {
     const token = (await cookies()).get("access_token")?.value as string;
     await FileService.deleteFile(token, fileId);
 }
+
+export async function fileExists(projectId: string): Promise<boolean> {
+    const tree = await getFileTree(projectId);
+
+    // Check if there are any files in the tree (ignoring folders)
+    const hasFiles = (nodes: FileNode[]): boolean => {
+        for (const node of nodes) {
+            if (node.type === "file") {
+                return true;
+            } else if (node.type === "folder" && hasFiles(node.children)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    return hasFiles(tree);
+
+}
