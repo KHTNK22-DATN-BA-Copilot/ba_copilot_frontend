@@ -36,6 +36,7 @@ export default function DesignStep({
     const projectId = localStorage.getItem("projectId") as string
 
     const [prompt, setPrompt] = useState("");
+    const hasPrompt = prompt.trim().length > 0;
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
 
     const {
@@ -217,6 +218,7 @@ export default function DesignStep({
                 onBack={onBack}
                 nextButtonText="Continue to Review"
                 hasSelectedDocuments={constraints.checkedDocIds.length > 0}
+                hasPrompt={hasPrompt}
             />
         </div>
     );

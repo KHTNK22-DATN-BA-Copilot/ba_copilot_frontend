@@ -39,6 +39,7 @@ export default function AnalysisStep({
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
     const [previewFetchedDoc, setPreviewFetchedDoc] = useState<DocumentListItem | null>(null);
+    const hasPrompt = prompt.trim().length > 0;
 
     const documentPreview = useDocumentPreview(analysisDocuments, documentFiles);
 
@@ -217,6 +218,7 @@ export default function AnalysisStep({
                 generateButtonText="Generate Documents"
                 nextButtonText="Continue to Design"
                 hasSelectedDocuments={constraints.checkedDocIds.length > 0}
+                hasPrompt={hasPrompt}
             />
         </div>
     );

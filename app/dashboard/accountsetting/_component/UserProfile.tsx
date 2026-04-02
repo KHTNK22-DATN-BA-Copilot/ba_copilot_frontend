@@ -23,9 +23,11 @@ import { isEqual, isValidEmail, updateUserProfile } from "./utils";
 export default function UserProfile({
     name,
     email,
+    apiKey,
 }: {
     name: string;
     email: string;
+    apiKey: string;
 }) {
     const [avatar, setAvatar] = useState(Avatar.src);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -36,6 +38,7 @@ export default function UserProfile({
     const [originalProfile, setOriginalProfile] = useState<UserProfileProps>({
         fullName: name,
         email: email,
+        apiKey: apiKey
     });
     const [EditProfile, setEditProfile] = useState(originalProfile);
 
@@ -142,6 +145,17 @@ export default function UserProfile({
                             }))
                         }
                     />
+                    <Field
+                        label="Your API Key"
+                        value={EditProfile.apiKey || ""}
+                        state={state.state}
+                        onChange={(value: string) =>
+                            setEditProfile((pre) => ({
+                                ...pre,
+                                apiKey: value,
+                            }))
+                        }
+                    />
                     {(isEditMode || isPendingMode || isErrorMode) && (
                         <div
                             className={`flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mt-3 sm:mt-4`}
@@ -151,9 +165,7 @@ export default function UserProfile({
                                 onClick={sendAlert}
                                 disabled={
                                     isEqual(originalProfile, EditProfile) ||
-                                    state.state === "pending" ||
-                                    !EditProfile.email.trim() ||
-                                    !EditProfile.fullName.trim()
+                                    state.state === "pending"
                                 }
                             >
                                 {state.state === "pending"
