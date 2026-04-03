@@ -7,11 +7,11 @@ import { SRSIcon, DiagramIcon, WireframeIcon, HomeIcon } from "@/components/icon
 import { FeedbackDialog } from "@/components/feedback";
 import WorkflowHeader from "./WorkflowHeader";
 import WorkflowStepIndicator from "./WorkflowStepIndicator";
-import RequirementsStep from "./steps/RequirementsStep";
-import PlanningStep from "./steps/planning/PlaningStep";
-import AnalysisStep from "./steps/analysis/AnalysisStep";
-import DesignStep from "./steps/design/DesignStep";
-import ReviewStep from "./steps/ReviewStep";
+import RequirementsStep from "../steps/requirments/RequirementsStep";
+import PlanningStep from "../steps/planning/PlaningStep";
+import AnalysisStep from "../steps/analysis/AnalysisStep";
+import DesignStep from "../steps/design/DesignStep";
+import ReviewStep from "../steps/review/ReviewStep";
 import { WorkflowStep } from "./types";
 import { useProjectData } from "../../_components/useProjectData";
 

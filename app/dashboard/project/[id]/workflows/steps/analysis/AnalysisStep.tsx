@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import PromptWithFileSelection from "../../PromptWithFileSelection";
+import PromptWithFileSelection from "../../_components/PromptWithFileSelection";
 import { analysisDocuments, documentFiles } from "./documents";
 import {
     DocumentSelector,
@@ -17,7 +17,7 @@ import {
 } from "../shared";
 import { useDocumentConstraints } from "../shared/hooks/useDocumentConstraints";
 import useSWR from "swr";
-import PreviewModal from "../../PreviewModal";
+import PreviewModal from "../../_components/PreviewModal";
 
 interface AnalysisStepProps {
     generatedSRS: string;

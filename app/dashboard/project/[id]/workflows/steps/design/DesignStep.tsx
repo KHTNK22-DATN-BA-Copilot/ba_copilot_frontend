@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useMemo, useCallback, memo } from "react";
-import PromptWithFileSelection from "../../PromptWithFileSelection";
-import { planningDocuments, documentFiles } from "./documents";
+import { useState, useMemo, useCallback } from "react";
+import PromptWithFileSelection from "../../_components/PromptWithFileSelection";
+import { designDocuments, documentFiles } from "./documents";
 import {
     DocumentSelector,
     FetchedDocumentsList,
@@ -11,35 +11,33 @@ import {
     useDocumentPreview,
     useWorkflowGeneration,
     GenerateWorkflowPayload,
-    DocumentListItem,
+    getDesignDocuments,
     fetchAllDocument,
-    getPlanningDocuments,
 } from "../shared";
 import { useDocumentConstraints } from "../shared/hooks/useDocumentConstraints";
 import useSWR from "swr";
-import PreviewModal from "../../PreviewModal";
+import PreviewModal from "../../_components/PreviewModal";
 
-interface PlanningStepProps {
-    generatedDiagrams: string[];
+interface DesignStepProps {
+    generatedWireframes: string[];
     onGenerate: () => void;
     onNext: () => void;
     onBack: () => void;
-    projectName?: string;
+    projectName?: string
 }
 
-function PlanningStep({
+export default function DesignStep({
+    generatedWireframes,
     onGenerate,
     onNext,
     onBack,
-    projectName,
-}: PlanningStepProps) {
-    const projectId = localStorage.getItem("projectId") as string;
+    projectName
+}: DesignStepProps) {
+    const projectId = localStorage.getItem("projectId") as string
 
     const [prompt, setPrompt] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
-    const [previewFetchedDoc, setPreviewFetchedDoc] =
-        useState<DocumentListItem | null>(null);
-    
+
     const {
         data: existingDocIds = [],
     } = useSWR(
@@ -50,46 +48,43 @@ function PlanningStep({
         }
     )
 
-    const fetchDocuments = async ([pId, step]: [string, string, string]) => {
-        console.log(`[SWR] Fetching for Project: ${pId}, Step: ${step}`);
-        const response = await getPlanningDocuments(pId);
-        console.log(`[SWR] Response for Project: ${pId}, Step: ${step}`, response);
 
-        if (response.status === "success" && response.documents) {
+    // Constraint-aware document selection
+    const constraints = useDocumentConstraints({
+        documents: designDocuments,
+        existingDocIds,
+    });
+    const documentPreview = useDocumentPreview(designDocuments, documentFiles);
+
+    const fetchDesignDocument = async ([projectId, step]: [string, string]) => {
+        const response = await getDesignDocuments(projectId);
+        if (response.documents) {
             return response.documents;
         }
-        throw new Error(response.message || "Failed to fetch documents");
+        else {
+            return []
+        }
     }
 
     const {
-        data: fetchedDocuments = [], // Default là mảng rỗng nếu chưa có data
-        isLoading: isFetchingDocs, // Tương đương loading state
-        mutate: refreshDocs // Hàm để ép gọi lại API bằng tay
+        data: fetchedDocuments = [],
+        isLoading: isFetchingDocs,
+        mutate: refreshDoc
     } = useSWR(
-        projectId ? [projectId, 'planning'] : null,
-        fetchDocuments,
+        [projectId, 'design'],
+        fetchDesignDocument,
         {
             revalidateOnFocus: false,
+            dedupingInterval: 5000
         }
-    );
-
-
-    // Constraint-aware document selection (Planning is first step — no external deps)
-    const constraints = useDocumentConstraints({
-        documents: planningDocuments,
-        existingDocIds: existingDocIds,
-    });
-    const documentPreview = useDocumentPreview(
-        planningDocuments,
-        documentFiles,
-    );
+    )
 
 
     // Workflow generation with callback to fetch documents after completion
-    const { generateDocuments, error, isGenerating, cancelGeneration, documentStatuses } = useWorkflowGeneration(
+    const designGeneration = useWorkflowGeneration(
         onGenerate,
         () => {
-            refreshDocs()
+            refreshDoc()
         }
     );
 
@@ -99,8 +94,7 @@ function PlanningStep({
         for (const doc of constraints.constrainedDocuments) {
             if (doc.subItems) {
                 for (const sub of doc.subItems) {
-                    if (sub.isChecked)
-                        items.push({ id: sub.id, name: sub.name });
+                    if (sub.isChecked) items.push({ id: sub.id, name: sub.name });
                 }
             } else if (doc.isChecked) {
                 items.push({ id: doc.id, name: doc.name });
@@ -109,47 +103,38 @@ function PlanningStep({
         return items;
     }, [constraints.constrainedDocuments]);
 
-
-    const handleRefreshDocs = useCallback(() => {
-        refreshDocs();
-    }, [refreshDocs]);
-
-    const checkedIdsString = constraints.checkedDocIds.join(',');
-
-    const handleGenerateDocuments = useCallback( async () => {
-        const currentCheckedIds = checkedIdsString ? checkedIdsString.split(',') : [];
-
-        console.log("=== PLANNING STEP - GENERATE DOCUMENTS ===");
+    const handleGenerateDocuments = async () => {
+        console.log("=== DESIGN STEP - GENERATE DOCUMENTS ===");
         console.log("Project ID:", projectId);
-        console.log("Selected Document IDs:", currentCheckedIds);
+        console.log("Selected Document IDs:", constraints.checkedDocIds);
         console.log("Prompt:", prompt);
 
-        const documents = currentCheckedIds.map((docId) => ({
-            type: docId,
+        const documents = constraints.checkedDocIds.map(docId => ({
+            type: docId
         }));
 
         const payload: GenerateWorkflowPayload = {
             project_name: projectName || "Test Project",
             description: prompt,
-            documents: documents,
+            documents: documents
         };
 
         console.log("WebSocket Payload:", JSON.stringify(payload, null, 2));
-        console.log("Step Name: planning");
+        console.log("Step Name: design");
         console.log("==========================================");
 
-        await generateDocuments(
-            payload,
-            projectId,
-            "planning",
-        );
-    }, [projectId, checkedIdsString, prompt, projectName, generateDocuments])
+        await designGeneration.generateDocuments(payload, projectId, 'design');
+    };
+
+    const handleRefreshDoc = useCallback(() => {
+        refreshDoc()
+    }, [refreshDoc])
 
     return (
         <div className="space-y-6">
             <div>
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                    Planning Step
+                    Design Step
                 </h2>
             </div>
 
@@ -173,15 +158,15 @@ function PlanningStep({
                 onPromptChange={setPrompt}
                 selectedFiles={selectedFiles}
                 onSelectedFilesChange={setSelectedFiles}
-                placeholder=""
-                label="Prompt & Reference Files for Planning Step (Optional)"
+                placeholder="Enter prompt supporting AI to generate some documents related to Design step..."
+                label="Prompt & Reference Files (Optional)"
             />
 
             {/* Error Message */}
-            {error && (
+            {designGeneration.error && (
                 <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                     <p className="text-sm text-red-600 dark:text-red-400">
-                        {error}
+                        {designGeneration.error}
                     </p>
                 </div>
             )}
@@ -196,9 +181,9 @@ function PlanningStep({
             ) : (
                 <FetchedDocumentsList
                     documents={fetchedDocuments}
-                    stepName="planning"
+                    stepName="design"
                     projectId={projectId}
-                    onRegenerateSuccess={handleRefreshDocs}
+                    onRegenerateSuccess={handleRefreshDoc}
                 />
             )}
 
@@ -217,24 +202,22 @@ function PlanningStep({
 
             {/* Generation Loading Dialog */}
             <GenerationLoadingDialog
-                isOpen={isGenerating}
+                isOpen={designGeneration.isGenerating}
                 documents={selectedDocumentsForDialog}
-                statuses={documentStatuses}
-                onCancel={cancelGeneration}
+                statuses={designGeneration.documentStatuses}
+                onCancel={designGeneration.cancelGeneration}
             />
 
             {/* Action Buttons */}
             <WorkflowActions
-                hasGeneratedDocuments={fetchedDocuments.length > 0}
-                isGenerating={isGenerating}
+                hasGeneratedDocuments={fetchedDocuments.length > 0 || generatedWireframes.length > 0}
+                isGenerating={designGeneration.isGenerating}
                 onGenerate={handleGenerateDocuments}
                 onNext={onNext}
                 onBack={onBack}
-                nextButtonText="Continue to Analysis"
+                nextButtonText="Continue to Review"
                 hasSelectedDocuments={constraints.checkedDocIds.length > 0}
             />
         </div>
     );
 }
-
-export default memo(PlanningStep)

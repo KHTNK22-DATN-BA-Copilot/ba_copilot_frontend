@@ -10,7 +10,7 @@ import {
     getPlanningDocuments,
     getAnalysisDocuments,
     getDesignDocuments,
-} from "./shared";
+} from "../shared";
 
 interface ReviewStepProps {
     requirements: string;
