@@ -8,6 +8,7 @@ import TasksOverviewSection from './_components/TasksOverviewSection';
 import DeleteProjectSection from './_components/DeleteProjectSection';
 import { QuickStat, RecentFile, TaskOverview } from './_components/types';
 import { getProjectById, getRecentUpdatedFiles } from '@/actions/project.action';
+import { getPlanningDocuments, getAnalysisDocuments, getDesignDocuments } from '@/app/dashboard/project/[id]/workflows/steps/shared/api';
 import { notFound } from 'next/navigation';
 
 const Error = ({error}: {error: string}) => {
@@ -46,10 +47,19 @@ export default async function ProjectOverviewPage({
     console.log('Project Data:', project);
     console.log('ProjectOverviewPage() - Recent Files:', recentFiles);
 
+    // Fetch document counts from each workflow phase
+    const planningResult = await getPlanningDocuments(id);
+    const analysisResult = await getAnalysisDocuments(id);
+    const designResult = await getDesignDocuments(id);
+
+    const planningDocCount = planningResult.documents?.length ?? 0;
+    const analysisDocCount = analysisResult.documents?.length ?? 0;
+    const designDocCount = designResult.documents?.length ?? 0;
+
     const quickStats: QuickStat[] = [
-        { label: "Planning", value: "0", icon: "FileText" },
-        { label: "Analysis", value: "0", icon: "Layout" },
-        { label: "Design", value: "0", icon: "BarChart3" },
+        { label: "Planning", value: planningDocCount.toString(), icon: "FileText" },
+        { label: "Analysis", value: analysisDocCount.toString(), icon: "Layout" },
+        { label: "Design", value: designDocCount.toString(), icon: "BarChart3" },
         // { label: "AI Chats", value: "0", icon: "MessageSquare" },
     ];
 
