@@ -16,8 +16,15 @@ interface SearchResult {
     entity_id: string;
     entity_type: string;
     project_id: number | null;
+    project_name?: string | null;
     title: string;
     rank: number;
+}
+
+interface SearchHistoryItem {
+    title: string;
+    route: string | null;
+    entityType: string;
 }
 
 const SEARCH_HISTORY_KEY = 'search_history';
@@ -29,7 +36,7 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
     const [isLoading, setIsLoading] = useState(false);
     const [searchError, setSearchError] = useState<string | null>(null);
     const [selectedIndex, setSelectedIndex] = useState(-1);
-    const [recentSearches, setRecentSearches] = useState<string[]>([]);
+    const [recentSearches, setRecentSearches] = useState<SearchHistoryItem[]>([]);
     const requestIdRef = useRef(0);
 
     // Load search history from localStorage on component mount
@@ -38,8 +45,48 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
             const stored = localStorage.getItem(SEARCH_HISTORY_KEY);
             if (stored) {
                 try {
-                    const history = JSON.parse(stored);
-                    setRecentSearches(Array.isArray(history) ? history : []);
+                    const history = JSON.parse(stored) as unknown;
+                    if (Array.isArray(history)) {
+                        // Backward compatibility: convert old string history to the new object shape.
+                        const normalized = history
+                            .map((item) => {
+                                if (typeof item === 'string') {
+                                    return {
+                                        title: item,
+                                        route: null,
+                                        entityType: 'history',
+                                    } satisfies SearchHistoryItem;
+                                }
+
+                                if (
+                                    item &&
+                                    typeof item === 'object' &&
+                                    'title' in item &&
+                                    typeof item.title === 'string' &&
+                                    'entityType' in item &&
+                                    typeof item.entityType === 'string'
+                                ) {
+                                    const route =
+                                        'route' in item && typeof item.route === 'string'
+                                            ? item.route
+                                            : null;
+
+                                    return {
+                                        title: item.title,
+                                        route,
+                                        entityType: item.entityType,
+                                    } satisfies SearchHistoryItem;
+                                }
+
+                                return null;
+                            })
+                            .filter((item): item is SearchHistoryItem => item !== null)
+                            .slice(0, MAX_HISTORY_ITEMS);
+
+                        setRecentSearches(normalized);
+                    } else {
+                        setRecentSearches([]);
+                    }
                 } catch (error) {
                     console.error('Failed to parse search history:', error);
                     setRecentSearches([]);
@@ -171,15 +218,24 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
     const handleResultClick = (result: SearchResult) => {
         console.log('Selected result:', result);
 
+        const route = resolveRoute(result);
+
         // Add to recent searches and save to localStorage
-        const updatedRecent = [result.title, ...recentSearches.filter(s => s !== result.title)].slice(0, MAX_HISTORY_ITEMS);
+        const historyItem: SearchHistoryItem = {
+            title: result.title,
+            route,
+            entityType: result.entity_type,
+        };
+
+        const updatedRecent = [
+            historyItem,
+            ...recentSearches.filter((item) => !(item.title === historyItem.title && item.entityType === historyItem.entityType)),
+        ].slice(0, MAX_HISTORY_ITEMS);
         setRecentSearches(updatedRecent);
-        
+
         if (typeof window !== 'undefined') {
             localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updatedRecent));
         }
-
-        const route = resolveRoute(result);
 
         if (route) {
             router.push(route);
@@ -199,6 +255,18 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
         if (typeof window !== 'undefined') {
             localStorage.removeItem(SEARCH_HISTORY_KEY);
         }
+    };
+
+    const getProjectDisplayName = (result: SearchResult): string | null => {
+        if (result.project_name && result.project_name.trim().length > 0) {
+            return result.project_name;
+        }
+
+        if (result.project_id) {
+            return `Project #${result.project_id}`;
+        }
+
+        return null;
     };
 
     const getResultIcon = (type: string) => {
@@ -247,7 +315,7 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
             case 'project':
                 return 'text-blue-600 dark:text-blue-400';
             case 'file':
-                return 'text-orange-600 dark:text-orange-400';
+                return 'text-gray-600 dark:text-gray-300';
             case 'folder':
                 return 'text-blue-600 dark:text-blue-400';
             case 'user':
@@ -305,7 +373,16 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
                                 <button
                                     key={index}
                                     onClick={() => {
-                                        setQuery(search);
+                                        if (search.route) {
+                                            router.push(search.route);
+                                            setIsOpen(false);
+                                            setQuery('');
+                                            setResults([]);
+                                            setSearchError(null);
+                                            return;
+                                        }
+
+                                        setQuery(search.title);
                                         setIsOpen(true);
                                     }}
                                     className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group flex items-center justify-between"
@@ -316,7 +393,7 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                         </div>
-                                        <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 truncate">{search}</span>
+                                        <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 truncate">{search.title}</span>
                                     </div>
                                 </button>
                             ))}
@@ -349,6 +426,11 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
                                                 Entity ID: {result.entity_id}
                                                 {typeof result.project_id === 'number' ? ` • Project: ${result.project_id}` : ''}
                                             </p> */}
+                                            {getProjectDisplayName(result) && (
+                                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1 truncate">
+                                                    Project: {getProjectDisplayName(result)}
+                                                </p>
+                                            )}
                                             <p className="text-xs text-gray-500 dark:text-gray-500">
                                                 Rank: {result.rank}
                                             </p>
