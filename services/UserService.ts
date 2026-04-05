@@ -33,6 +33,7 @@ export class UserService {
                 body: JSON.stringify({
                     name: userInfo.name,
                     email: userInfo.email ? userInfo.email : undefined,
+                    apiKey: userInfo.apiKey ? userInfo.apiKey : undefined,
                 }),
             },
         );
