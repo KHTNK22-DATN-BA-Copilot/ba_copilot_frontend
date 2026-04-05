@@ -36,7 +36,6 @@ function PlanningStep({
     const projectId = localStorage.getItem("projectId") as string;
 
     const [prompt, setPrompt] = useState("");
-    const hasPrompt = prompt.trim().length > 0;
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
     const [previewFetchedDoc, setPreviewFetchedDoc] =
         useState<DocumentListItem | null>(null);
@@ -231,7 +230,6 @@ function PlanningStep({
                 onBack={onBack}
                 nextButtonText="Continue to Analysis"
                 hasSelectedDocuments={constraints.checkedDocIds.length > 0}
-                hasPrompt={hasPrompt}
             />
         </div>
     );
