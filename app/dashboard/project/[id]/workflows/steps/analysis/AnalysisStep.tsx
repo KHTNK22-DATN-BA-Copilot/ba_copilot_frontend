@@ -17,7 +17,7 @@ import {
 } from "../shared";
 import { useDocumentConstraints } from "../shared/hooks/useDocumentConstraints";
 import useSWR from "swr";
-import PreviewModal from "../../_components/PreviewModal";
+import PreviewModal from "../shared/components/PreviewModal";
 
 interface AnalysisStepProps {
     generatedSRS: string;
