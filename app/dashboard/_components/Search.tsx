@@ -263,7 +263,7 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
         }
 
         if (result.project_id) {
-            return `Project #${result.project_id}`;
+            return `Project ${result.project_id}`;
         }
 
         return null;
@@ -428,7 +428,7 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
                                             </p> */}
                                             {getProjectDisplayName(result) && (
                                                 <p className="text-xs text-gray-600 dark:text-gray-400 mb-1 truncate">
-                                                    Project: {getProjectDisplayName(result)}
+                                                    {getProjectDisplayName(result)}
                                                 </p>
                                             )}
                                             <p className="text-xs text-gray-500 dark:text-gray-500">

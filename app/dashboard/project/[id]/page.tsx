@@ -121,14 +121,14 @@ export default async function ProjectOverviewPage({
                 {/* Main Content Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                     {/* Recent Activity */}
-                    <div className="lg:col-span-2">
+                    <div className="w-full">
                         <RecentActivitySection files={recentFiles} projectId={project.id as string} />
                     </div>
 
                     {/* Quick Actions & Tasks */}
-                    <div className="space-y-4 sm:space-y-6">
+                    {/* <div className="space-y-4 sm:space-y-6">
                         <TasksOverviewSection tasks={tasksOverview} />
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Delete Project Section - Danger Zone */}
