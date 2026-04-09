@@ -155,8 +155,6 @@ export default function AnalysisStep({
             <PromptWithFileSelection
                 prompt={prompt}
                 onPromptChange={setPrompt}
-                selectedFiles={selectedFiles}
-                onSelectedFilesChange={setSelectedFiles}
                 placeholder="Enter prompt to generate document at analysis step..."
                 label="Prompt & Reference Files (Optional)"
             />

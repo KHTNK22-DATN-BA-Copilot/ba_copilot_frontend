@@ -1,13 +1,23 @@
 import { TrendingUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Project } from './types';
 
 interface ProgressSectionProps {
-    project: Project;
+    generatedDocuments: number;
+    totalSupportedDocuments: number;
 }
 
-export default function ProgressSection({ project }: ProgressSectionProps) {
+export default function ProgressSection({
+    generatedDocuments,
+    totalSupportedDocuments,
+}: ProgressSectionProps) {
+    const progressPercentage =
+        totalSupportedDocuments > 0
+            ? Math.round((generatedDocuments / totalSupportedDocuments) * 100)
+            : 0;
+
+    const remainingDocuments = Math.max(totalSupportedDocuments - generatedDocuments, 0);
+
     return (
         <Card>
             <CardContent className="p-6">
@@ -20,13 +30,13 @@ export default function ProgressSection({ project }: ProgressSectionProps) {
                             </span>
                         </div>
                         <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                            {project.progress}%
+                            {generatedDocuments}/{totalSupportedDocuments}
                         </span>
                     </div>
-                    <Progress value={project.progress} className="h-3" />
+                    <Progress value={progressPercentage} className="h-3" />
                     <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-                        <span>{project.completedTasks} of {project.totalTasks} generated documents</span>
-                        <span>{project.totalTasks - project.completedTasks} remaining</span>
+                        <span>{generatedDocuments} of {totalSupportedDocuments} supported documents generated</span>
+                        <span>{remainingDocuments} remaining</span>
                     </div>
                 </div>
             </CardContent>

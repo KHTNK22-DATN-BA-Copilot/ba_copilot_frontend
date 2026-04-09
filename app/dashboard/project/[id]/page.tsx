@@ -63,6 +63,12 @@ export default async function ProjectOverviewPage({
         // { label: "AI Chats", value: "0", icon: "MessageSquare" },
     ];
 
+    const totalSupportedDocuments = 22;
+    const generatedDocuments = quickStats.reduce((sum, stat) => {
+        const value = Number.parseInt(stat.value, 10);
+        return Number.isNaN(value) ? sum : sum + value;
+    }, 0);
+
     const tasksOverview: TaskOverview = {
         completed: project.completedTasks || 0,
         inProgress: Math.floor((project.totalTasks - project.completedTasks) * 0.6) || 0,
@@ -100,7 +106,10 @@ export default async function ProjectOverviewPage({
                 <ProjectHeader project={project} />
 
                 {/* Progress Section */}
-                <ProgressSection project={project} />
+                <ProgressSection
+                    generatedDocuments={generatedDocuments}
+                    totalSupportedDocuments={totalSupportedDocuments}
+                />
 
                 {/* Project Info Cards */}
                 <ProjectInfoCards project={project} />

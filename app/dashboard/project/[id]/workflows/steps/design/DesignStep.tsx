@@ -156,8 +156,6 @@ export default function DesignStep({
             <PromptWithFileSelection
                 prompt={prompt}
                 onPromptChange={setPrompt}
-                selectedFiles={selectedFiles}
-                onSelectedFilesChange={setSelectedFiles}
                 placeholder="Enter prompt supporting AI to generate some documents related to Design step..."
                 label="Prompt & Reference Files (Optional)"
             />

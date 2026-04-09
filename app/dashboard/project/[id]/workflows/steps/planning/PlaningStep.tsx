@@ -171,8 +171,6 @@ function PlanningStep({
             <PromptWithFileSelection
                 prompt={prompt}
                 onPromptChange={setPrompt}
-                selectedFiles={selectedFiles}
-                onSelectedFilesChange={setSelectedFiles}
                 placeholder=""
                 label="Prompt & Reference Files for Planning Step (Optional)"
             />
