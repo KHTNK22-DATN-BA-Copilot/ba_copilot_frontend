@@ -11,6 +11,7 @@ export type TokenResponse = {
 export type UserProfile = {
     name: string;
     email: string;
+    apiKey?: string;
 };
 
 export type RegisterUser = {

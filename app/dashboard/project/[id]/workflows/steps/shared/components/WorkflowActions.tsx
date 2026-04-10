@@ -24,11 +24,11 @@ export const WorkflowActions = memo(function Component ({
     hasSelectedDocuments = true,
 }: WorkflowActionsProps) {
     return (
-        <div className="flex justify-center items-center gap-3">
+        <div className="flex flex-col sm:flex-row justify-center items-stretch sm:items-center gap-3">
             <Button
                 variant="outline"
                 onClick={onBack}
-                className="gap-2"
+                className="gap-2 w-full sm:w-auto"
                 disabled={isGenerating}
             >
                 <ArrowLeft className="w-4 h-4" />
@@ -36,7 +36,7 @@ export const WorkflowActions = memo(function Component ({
             </Button>
             <Button
                 onClick={onGenerate}
-                className="gap-2"
+                className="gap-2 w-full sm:w-auto"
                 disabled={isGenerating || !hasSelectedDocuments}
             >
                 <Sparkles className="w-4 h-4" />
@@ -46,7 +46,7 @@ export const WorkflowActions = memo(function Component ({
             {hasGeneratedDocuments && (
                 <Button
                     onClick={onNext}
-                    className="gap-2"
+                    className="gap-2 w-full sm:w-auto"
                     disabled={isGenerating}
                 >
                     {nextButtonText}

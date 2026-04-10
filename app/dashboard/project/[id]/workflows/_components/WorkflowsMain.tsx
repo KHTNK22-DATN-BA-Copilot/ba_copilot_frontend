@@ -1,16 +1,16 @@
 'use client';
 
-import {useCallback, useState} from "react";
+import { useCallback, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2 } from "lucide-react";
 import { SRSIcon, DiagramIcon, WireframeIcon, HomeIcon } from "@/components/icons/project-icons";
 import WorkflowHeader from "./WorkflowHeader";
 import WorkflowStepIndicator from "./WorkflowStepIndicator";
-import RequirementsStep from "./steps/RequirementsStep";
-import PlanningStep from "./steps/planning/PlaningStep";
-import AnalysisStep from "./steps/analysis/AnalysisStep";
-import DesignStep from "./steps/design/DesignStep";
-import ReviewStep from "./steps/ReviewStep";
+import RequirementsStep from "../steps/requirments/RequirementsStep";
+import PlanningStep from "../steps/planning/PlaningStep";
+import AnalysisStep from "../steps/analysis/AnalysisStep";
+import DesignStep from "../steps/design/DesignStep";
+import ReviewStep from "../steps/review/ReviewStep";
 import { WorkflowStep } from "./types";
 import { useProjectData } from "../../_components/useProjectData";
 
@@ -92,21 +92,21 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
         setGeneratedWireframes(["Login Page", "Dashboard", "User Profile"]);
     };
 
-    const handleComplete = () => {
+    const completeWorkflow = useCallback(() => {
         // Handle workflow completion
         console.log("Workflow completed!");
-    };
+    }, []);
 
-    const handleRestart = () => {
+    const restartWorkflow = useCallback(() => {
         setCurrentStep(0);
         setRequirements("");
         setGeneratedSRS("");
         setGeneratedDiagrams([]);
         setGeneratedWireframes([]);
-    };
+    }, []);
 
     return (
-        <div className=" max-w-7xl mx-auto space-y-3">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
             {/* Page Header */}
             <WorkflowHeader />
 
@@ -118,7 +118,7 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
 
             {/* Step Content */}
             <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                     {currentStep === 0 && (
                         <RequirementsStep
                             requirements={requirements}
@@ -164,8 +164,8 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
                             generatedDiagrams={generatedDiagrams}
                             generatedWireframes={generatedWireframes}
                             onBack={handleBack}
-                            onComplete={handleComplete}
-                            onRestart={handleRestart}
+                            onComplete={completeWorkflow}
+                            onRestart={restartWorkflow}
                         />
                     )}
                 </CardContent>

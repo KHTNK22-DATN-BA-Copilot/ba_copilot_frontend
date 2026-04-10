@@ -23,4 +23,5 @@ export interface StateProps {
 export interface UserProfileProps {
     fullName: string;
     email: string;
+    apiKey?: string;
 }

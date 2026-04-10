@@ -10,7 +10,7 @@ export async function getUserInfo() {
     return userInfo
 }
 
-export async function updateUserInfo(userInfo: { name?: string; email?: string }) {
+export async function updateUserInfo(userInfo: { name?: string; email?: string, apiKey?: string }) {
     const access_token = (await cookies()).get("access_token")?.value || ""
     const data = await UserService.updateUserInfo(access_token, userInfo)
 

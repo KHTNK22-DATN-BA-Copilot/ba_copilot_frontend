@@ -8,6 +8,7 @@ import TasksOverviewSection from './_components/TasksOverviewSection';
 import DeleteProjectSection from './_components/DeleteProjectSection';
 import { QuickStat, RecentFile, TaskOverview } from './_components/types';
 import { getProjectById, getRecentUpdatedFiles } from '@/actions/project.action';
+import { getPlanningDocuments, getAnalysisDocuments, getDesignDocuments } from '@/app/dashboard/project/[id]/workflows/steps/shared/api';
 import { notFound } from 'next/navigation';
 
 const Error = ({error}: {error: string}) => {
@@ -46,12 +47,27 @@ export default async function ProjectOverviewPage({
     console.log('Project Data:', project);
     console.log('ProjectOverviewPage() - Recent Files:', recentFiles);
 
+    // Fetch document counts from each workflow phase
+    const planningResult = await getPlanningDocuments(id);
+    const analysisResult = await getAnalysisDocuments(id);
+    const designResult = await getDesignDocuments(id);
+
+    const planningDocCount = planningResult.documents?.length ?? 0;
+    const analysisDocCount = analysisResult.documents?.length ?? 0;
+    const designDocCount = designResult.documents?.length ?? 0;
+
     const quickStats: QuickStat[] = [
-        { label: "Planning", value: "0", icon: "FileText" },
-        { label: "Analysis", value: "0", icon: "Layout" },
-        { label: "Design", value: "0", icon: "BarChart3" },
+        { label: "Planning", value: planningDocCount.toString(), icon: "FileText" },
+        { label: "Analysis", value: analysisDocCount.toString(), icon: "Layout" },
+        { label: "Design", value: designDocCount.toString(), icon: "BarChart3" },
         // { label: "AI Chats", value: "0", icon: "MessageSquare" },
     ];
+
+    const totalSupportedDocuments = 22;
+    const generatedDocuments = quickStats.reduce((sum, stat) => {
+        const value = Number.parseInt(stat.value, 10);
+        return Number.isNaN(value) ? sum : sum + value;
+    }, 0);
 
     const tasksOverview: TaskOverview = {
         completed: project.completedTasks || 0,
@@ -90,7 +106,10 @@ export default async function ProjectOverviewPage({
                 <ProjectHeader project={project} />
 
                 {/* Progress Section */}
-                <ProgressSection project={project} />
+                <ProgressSection
+                    generatedDocuments={generatedDocuments}
+                    totalSupportedDocuments={totalSupportedDocuments}
+                />
 
                 {/* Project Info Cards */}
                 <ProjectInfoCards project={project} />
@@ -100,16 +119,14 @@ export default async function ProjectOverviewPage({
 
 
                 {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div className="grid grid-cols-1 gap-4 sm:gap-6">
                     {/* Recent Activity */}
-                    <div className="lg:col-span-2">
-                        <RecentActivitySection files={recentFiles} projectId={project.id as string} />
-                    </div>
+                    <RecentActivitySection files={recentFiles} projectId={project.id as string} />
 
                     {/* Quick Actions & Tasks */}
-                    <div className="space-y-4 sm:space-y-6">
+                    {/* <div className="space-y-4 sm:space-y-6">
                         <TasksOverviewSection tasks={tasksOverview} />
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Delete Project Section - Danger Zone */}
