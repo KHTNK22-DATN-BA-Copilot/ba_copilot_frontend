@@ -43,7 +43,7 @@ export default function RecentActivitySection({ files, projectId }: RecentActivi
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                                        {file.extension ? `${file.name}.${file.extension}` : file.name}
+                                        {file.extension ? `${file.name}${file.extension}` : file.name}
                                     </p>
                                     <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                                         {formatUpdatedAt(file.updated_at)}

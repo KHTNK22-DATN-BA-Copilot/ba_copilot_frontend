@@ -1,7 +1,7 @@
-import { analysisDocuments } from "../../workflows/_components/steps/analysis/documents";
-import { designDocuments } from "../../workflows/_components/steps/design/documents";
-import { planningDocuments } from "../../workflows/_components/steps/planning/documents";
-import { WorkflowDocument } from "../../workflows/_components/steps/shared/types";
+import { analysisDocuments } from "../../workflows/steps/analysis/documents";
+import { designDocuments } from "../../workflows/steps/design/documents";
+import { planningDocuments } from "../../workflows/steps/planning/documents";
+import { WorkflowDocument } from "../../workflows/steps/shared/types";
 import {
     DocumentStatus,
     Phase,

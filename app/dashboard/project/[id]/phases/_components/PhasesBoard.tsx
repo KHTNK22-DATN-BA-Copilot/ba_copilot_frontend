@@ -31,15 +31,15 @@ import { cn } from "@/lib/utils";
 import { getProjectById } from "@/actions/project.action";
 import { toast } from "sonner";
 
-import { DocumentPreviewModal } from "../../workflows/_components/steps/shared/components/DocumentPreviewModal";
-import type { DocumentListItem, GenerateWorkflowPayload, GenerationDocumentItem, StepName } from "../../workflows/_components/steps/shared/types";
-import { useWorkflowGeneration } from "../../workflows/_components/steps/shared/hooks/useWorkflowGeneration";
-import { GenerationLoadingDialog } from "../../workflows/_components/steps/shared/components/GenerationLoadingDialog";
+import { DocumentPreviewModal } from "../../workflows/steps/shared/components/DocumentPreviewModal";
+import type { DocumentListItem, GenerateWorkflowPayload, GenerationDocumentItem, StepName } from "../../workflows/steps/shared/types";
+import { useWorkflowGeneration } from "../../workflows/steps/shared/hooks/useWorkflowGeneration";
+import { GenerationLoadingDialog } from "../../workflows/steps/shared/components/GenerationLoadingDialog";
 import {
   getDependencyDisplay,
   getDocumentDisplayName,
   getRequiredDocs,
-} from "../../workflows/_components/steps/shared/documentDependencies";
+} from "../../workflows/steps/shared/documentDependencies";
 import {
   GeneratedPhaseDocument,
   getGeneratedDocumentsByPhase,

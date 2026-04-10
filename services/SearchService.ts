@@ -6,6 +6,7 @@ export interface SearchApiResult {
     entity_id: string;
     entity_type: string;
     project_id: number | null;
+    project_name?: string | null;
     title: string;
     rank: number;
 }
