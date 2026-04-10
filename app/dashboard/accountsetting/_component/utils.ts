@@ -11,7 +11,7 @@ export const isEqual = (
     obj1: UserProfileProps,
     obj2: UserProfileProps
 ): boolean => {
-    return obj1.fullName === obj2.fullName && obj1.email === obj2.email;
+    return obj1.fullName === obj2.fullName && obj1.email === obj2.email && obj1.apiKey === obj2.apiKey;
 };
 
 // API utilities
