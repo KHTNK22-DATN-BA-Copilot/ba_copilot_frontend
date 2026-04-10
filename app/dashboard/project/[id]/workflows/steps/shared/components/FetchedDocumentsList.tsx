@@ -193,7 +193,7 @@ export function FetchedDocumentsList({
                 {documents.map((doc) => (
                     <div
                         key={doc.document_id}
-                        className="flex items-start gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+                        className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
                     >
                         <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded flex-shrink-0">
                             <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -215,12 +215,12 @@ export function FetchedDocumentsList({
                                 </p>
                             )}
 
-                            <div className="flex items-center justify-between mt-3">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mt-3">
                                 <p className="text-xs text-gray-500 dark:text-gray-400">
                                     Updated: {new Date(doc.updated_at).toLocaleString()}
                                 </p>
 
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 self-start sm:self-auto">
                                     <Button
                                         variant="outline"
                                         size="icon"

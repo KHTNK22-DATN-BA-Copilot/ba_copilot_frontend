@@ -34,6 +34,7 @@ export default async function AccountSettingPage() {
                                     <UserProfile
                                         name={userProfile.name}
                                         email={userProfile.email}
+                                        apiKey={userProfile.apiKey ?? ''}
                                     />
                                 </SettingSection>
                             </div>

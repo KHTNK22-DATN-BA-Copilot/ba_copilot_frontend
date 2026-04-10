@@ -10,7 +10,7 @@ import {
     getPlanningDocuments,
     getAnalysisDocuments,
     getDesignDocuments,
-} from "./shared";
+} from "../shared";
 
 interface ReviewStepProps {
     requirements: string;
@@ -88,7 +88,7 @@ export default function ReviewStep({
                 </h2>
             </div>
 
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                 <div>
                     <p className="text-sm text-gray-700 dark:text-gray-300">
                         Total generated documents: <span className="font-medium">{totalDocs}</span>
@@ -97,7 +97,7 @@ export default function ReviewStep({
                 <Button
                     variant="outline"
                     size="sm"
-                    className="gap-2"
+                    className="gap-2 w-full sm:w-auto"
                     onClick={fetchAllGeneratedDocuments}
                     disabled={isLoading || !projectId}
                 >
@@ -122,12 +122,12 @@ export default function ReviewStep({
 
             <div className="space-y-6">
                 <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-2 bg-blue-100 dark:bg-blue-900/30 rounded-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 p-2 bg-blue-100 dark:bg-blue-900/30 rounded-sm">
                         <div className="m-2 bg-blue-100 dark:bg-blue-900/20 rounded">
                             <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         </div>
 
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
                             Planning Step Documents
                         </h3>
                     </div>
@@ -145,12 +145,12 @@ export default function ReviewStep({
                 </div>
 
                 <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-2 bg-purple-100 dark:bg-purple-900/30 rounded-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 p-2 bg-purple-100 dark:bg-purple-900/30 rounded-sm">
                         <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded">
                             <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                         </div>
 
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
                             Analysis Step Documents
                         </h3>
                     </div>
@@ -168,12 +168,12 @@ export default function ReviewStep({
                 </div>
 
                 <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-2 bg-green-100 dark:bg-green-900/30 rounded-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 p-2 bg-green-100 dark:bg-green-900/30 rounded-sm">
                         <div className="m-2 bg-green-100 dark:bg-green-900/20 rounded">
                             <Layout className="w-5 h-5 text-green-600 dark:text-green-400" />
                         </div>
 
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
                             Design Step Documents
                         </h3>
                     </div>
@@ -191,16 +191,16 @@ export default function ReviewStep({
                 </div>
             </div>
 
-            <div className="flex justify-center items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <Button variant="outline" onClick={onBack} className="gap-2">
+            <div className="flex flex-col sm:flex-row justify-center items-stretch sm:items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <Button variant="outline" onClick={onBack} className="gap-2 w-full sm:w-auto">
                     <ArrowLeft className="w-4 h-4" />
                     Back
                 </Button>
-                <Button onClick={onComplete} className="gap-2">
+                <Button onClick={onComplete} className="gap-2 w-full sm:w-auto">
                     <CheckCircle2 className="w-4 h-4" />
                     Complete Workflow
                 </Button>
-                <Button variant="outline" onClick={onRestart}>
+                <Button variant="outline" onClick={onRestart} className="w-full sm:w-auto">
                     Start New Workflow
                 </Button>
             </div>

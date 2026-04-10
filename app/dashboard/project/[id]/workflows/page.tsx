@@ -9,7 +9,7 @@ export default async function WorkflowsPage({
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-8">
                 <WorkflowsMain projectId={id as string} />
             </div>
         </div>

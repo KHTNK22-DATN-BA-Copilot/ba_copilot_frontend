@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
+import { FloatingFeedbackButton } from "@/components/feedback";
 
 export default function DashboardLayout({
     children,
@@ -90,6 +91,14 @@ export default function DashboardLayout({
                     <Footer />
                 </>
             )}
+
+            {/* Floating Feedback Button */}
+            <FloatingFeedbackButton
+                feedbackFormUrl="https://forms.gle/xXYRd1qoZHnYCr2W8"
+                storageKey="dashboard-feedback-form-opened"
+                title="Share Your Feedback"
+                description="Help us improve BA Copilot"
+            />
         </div>
     );
 }

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { searchEntities } from '@/actions/search.action';
+import { FileIcon, Folder } from 'lucide-react';
 
 interface SearchProps {
     isOpen: boolean;
@@ -15,9 +16,19 @@ interface SearchResult {
     entity_id: string;
     entity_type: string;
     project_id: number | null;
+    project_name?: string | null;
     title: string;
     rank: number;
 }
+
+interface SearchHistoryItem {
+    title: string;
+    route: string | null;
+    entityType: string;
+}
+
+const SEARCH_HISTORY_KEY = 'search_history';
+const MAX_HISTORY_ITEMS = 10;
 
 export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchProps) {
     const router = useRouter();
@@ -25,8 +36,64 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
     const [isLoading, setIsLoading] = useState(false);
     const [searchError, setSearchError] = useState<string | null>(null);
     const [selectedIndex, setSelectedIndex] = useState(-1);
-    const [recentSearches, setRecentSearches] = useState<string[]>(['Dashboard', 'AI Conversations', 'Diagrams']);
+    const [recentSearches, setRecentSearches] = useState<SearchHistoryItem[]>([]);
     const requestIdRef = useRef(0);
+
+    // Load search history from localStorage on component mount
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem(SEARCH_HISTORY_KEY);
+            if (stored) {
+                try {
+                    const history = JSON.parse(stored) as unknown;
+                    if (Array.isArray(history)) {
+                        // Backward compatibility: convert old string history to the new object shape.
+                        const normalized = history
+                            .map((item) => {
+                                if (typeof item === 'string') {
+                                    return {
+                                        title: item,
+                                        route: null,
+                                        entityType: 'history',
+                                    } satisfies SearchHistoryItem;
+                                }
+
+                                if (
+                                    item &&
+                                    typeof item === 'object' &&
+                                    'title' in item &&
+                                    typeof item.title === 'string' &&
+                                    'entityType' in item &&
+                                    typeof item.entityType === 'string'
+                                ) {
+                                    const route =
+                                        'route' in item && typeof item.route === 'string'
+                                            ? item.route
+                                            : null;
+
+                                    return {
+                                        title: item.title,
+                                        route,
+                                        entityType: item.entityType,
+                                    } satisfies SearchHistoryItem;
+                                }
+
+                                return null;
+                            })
+                            .filter((item): item is SearchHistoryItem => item !== null)
+                            .slice(0, MAX_HISTORY_ITEMS);
+
+                        setRecentSearches(normalized);
+                    } else {
+                        setRecentSearches([]);
+                    }
+                } catch (error) {
+                    console.error('Failed to parse search history:', error);
+                    setRecentSearches([]);
+                }
+            }
+        }
+    }, []);
 
     // Handle keyboard navigation
     useEffect(() => {
@@ -129,6 +196,14 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
             return `/dashboard/project/${result.project_id}`;
         }
 
+        if (type === 'file' && result.project_id) {
+            return `/dashboard/project/${result.project_id}/files`;
+        }
+
+        if (type === 'folder' && result.project_id) {
+            return `/dashboard/project/${result.project_id}/files`;
+        }
+
         if (type === 'page') {
             const byEntityId = pageRouteByEntityId[result.entity_id.toLowerCase()];
             if (byEntityId) return byEntityId;
@@ -143,11 +218,24 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
     const handleResultClick = (result: SearchResult) => {
         console.log('Selected result:', result);
 
-        // Add to recent searches
-        const updatedRecent = [result.title, ...recentSearches.filter(s => s !== result.title)].slice(0, 3);
+        const route = resolveRoute(result);
+
+        // Add to recent searches and save to localStorage
+        const historyItem: SearchHistoryItem = {
+            title: result.title,
+            route,
+            entityType: result.entity_type,
+        };
+
+        const updatedRecent = [
+            historyItem,
+            ...recentSearches.filter((item) => !(item.title === historyItem.title && item.entityType === historyItem.entityType)),
+        ].slice(0, MAX_HISTORY_ITEMS);
         setRecentSearches(updatedRecent);
 
-        const route = resolveRoute(result);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updatedRecent));
+        }
 
         if (route) {
             router.push(route);
@@ -160,6 +248,25 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
         setQuery('');
         setResults([]);
         setSearchError(null);
+    };
+
+    const clearSearchHistory = () => {
+        setRecentSearches([]);
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem(SEARCH_HISTORY_KEY);
+        }
+    };
+
+    const getProjectDisplayName = (result: SearchResult): string | null => {
+        if (result.project_name && result.project_name.trim().length > 0) {
+            return result.project_name;
+        }
+
+        if (result.project_id) {
+            return `Project ${result.project_id}`;
+        }
+
+        return null;
     };
 
     const getResultIcon = (type: string) => {
@@ -175,6 +282,14 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
+                );
+            case 'file':
+                return (
+                    <FileIcon className="w-4 h-4" />
+                );
+            case 'folder':
+                return (
+                    <Folder className="w-4 h-4" />
                 );
             case 'user':
                 return (
@@ -198,6 +313,10 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
             case 'page':
                 return 'text-indigo-600 dark:text-indigo-400';
             case 'project':
+                return 'text-blue-600 dark:text-blue-400';
+            case 'file':
+                return 'text-gray-600 dark:text-gray-300';
+            case 'folder':
                 return 'text-blue-600 dark:text-blue-400';
             case 'user':
                 return 'text-green-600 dark:text-green-400';
@@ -239,25 +358,42 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
                         </div>
                     ) : !query && recentSearches.length > 0 ? (
                         <div className="py-2">
-                            <div className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700">
-                                Recent Searches
+                            <div className="px-4 py-3 flex items-center justify-between">
+                                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Search History
+                                </div>
+                                <button
+                                    onClick={clearSearchHistory}
+                                    className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+                                >
+                                    Clear
+                                </button>
                             </div>
                             {recentSearches.map((search, index) => (
                                 <button
                                     key={index}
                                     onClick={() => {
-                                        setQuery(search);
+                                        if (search.route) {
+                                            router.push(search.route);
+                                            setIsOpen(false);
+                                            setQuery('');
+                                            setResults([]);
+                                            setSearchError(null);
+                                            return;
+                                        }
+
+                                        setQuery(search.title);
                                         setIsOpen(true);
                                     }}
-                                    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
+                                    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group flex items-center justify-between"
                                 >
-                                    <div className="flex items-center space-x-3">
-                                        <div className="text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-400">
+                                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                                        <div className="text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-400 flex-shrink-0">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                         </div>
-                                        <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">{search}</span>
+                                        <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 truncate">{search.title}</span>
                                     </div>
                                 </button>
                             ))}
@@ -290,6 +426,11 @@ export default function Search({ isOpen, setIsOpen, query, setQuery }: SearchPro
                                                 Entity ID: {result.entity_id}
                                                 {typeof result.project_id === 'number' ? ` • Project: ${result.project_id}` : ''}
                                             </p> */}
+                                            {getProjectDisplayName(result) && (
+                                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1 truncate">
+                                                    {getProjectDisplayName(result)}
+                                                </p>
+                                            )}
                                             <p className="text-xs text-gray-500 dark:text-gray-500">
                                                 Rank: {result.rank}
                                             </p>

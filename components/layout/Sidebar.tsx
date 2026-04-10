@@ -119,13 +119,8 @@ export default function Sidebar({ isDarkMode = false, isOpen = false, onClose, i
             `}>
                 {/* Sidebar Header */}
                 <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} flex items-center justify-between`}>
-                    <button className={`p-1 rounded ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}>
-                        <ChevronLeft className="w-4 h-4" />
-                    </button>
-                </div>
-
-                {/* Back to Dashboard Button */}
-                <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                
+                    {/* Back to dashboard button */}
                     <button
                         onClick={handleBackToDashboard}
                         className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors ${isDarkMode
