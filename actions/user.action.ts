@@ -1,18 +1,15 @@
 'use server'
 
-import { cookies } from "next/headers"
 import { UserService } from "@/services/UserService"
 import { revalidatePath } from 'next/cache'
+import { withAccessToken } from "@/lib/auth-action"
 
 export async function getUserInfo() {
-    const access_token = (await cookies()).get("access_token")?.value || ""
-    const userInfo = await UserService.getUserInfo(access_token)
-    return userInfo
+    return withAccessToken((access_token) => UserService.getUserInfo(access_token))
 }
 
 export async function updateUserInfo(userInfo: { name?: string; email?: string, apiKey?: string }) {
-    const access_token = (await cookies()).get("access_token")?.value || ""
-    const data = await UserService.updateUserInfo(access_token, userInfo)
+    const data = await withAccessToken((access_token) => UserService.updateUserInfo(access_token, userInfo))
 
     revalidatePath("/dashboard/accountsetting")
 
@@ -21,8 +18,7 @@ export async function updateUserInfo(userInfo: { name?: string; email?: string, 
 }
 
 export async function deleteAccount() {
-    const access_token = (await cookies()).get("access_token")?.value || ""
-    const response = await UserService.deleteAccount(access_token)
+    const response = await withAccessToken((access_token) => UserService.deleteAccount(access_token))
 
     if (response.status === 200) {
         // Clear the access token and refresh token cookies

@@ -1,6 +1,5 @@
 'use server'
 
-import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import {
     AIProvider,
@@ -12,24 +11,22 @@ import {
     TestAPIKeyPayload,
 } from "@/type/types";
 import { ApiKeyService } from "@/services/ApiKeyService";
+import { withAccessToken } from "@/lib/auth-action";
 
 export async function listApiKeysAction(): Promise<ServiceResponse<APIKeysResponse>> {
-    const accessToken = (await cookies()).get("access_token")?.value || "";
-    return ApiKeyService.listApiKeys(accessToken);
+    return withAccessToken((accessToken) => ApiKeyService.listApiKeys(accessToken));
 }
 
 export async function testApiKeyAction(
     payload: TestAPIKeyPayload,
 ): Promise<ServiceResponse<APIKeyTestResult>> {
-    const accessToken = (await cookies()).get("access_token")?.value || "";
-    return ApiKeyService.testApiKey(accessToken, payload);
+    return withAccessToken((accessToken) => ApiKeyService.testApiKey(accessToken, payload));
 }
 
 export async function saveApiKeyAction(
     payload: SaveAPIKeyPayload,
 ): Promise<ServiceResponse<APIKeyItem>> {
-    const accessToken = (await cookies()).get("access_token")?.value || "";
-    const result = await ApiKeyService.saveApiKey(accessToken, payload);
+    const result = await withAccessToken((accessToken) => ApiKeyService.saveApiKey(accessToken, payload));
 
     if (result.success) {
         revalidatePath("/dashboard/accountsetting");
@@ -42,8 +39,7 @@ export async function changeApiModelAction(
     provider: AIProvider,
     model: string,
 ): Promise<ServiceResponse<APIKeyItem>> {
-    const accessToken = (await cookies()).get("access_token")?.value || "";
-    const result = await ApiKeyService.changeModel(accessToken, provider, model);
+    const result = await withAccessToken((accessToken) => ApiKeyService.changeModel(accessToken, provider, model));
 
     if (result.success) {
         revalidatePath("/dashboard/accountsetting");
@@ -55,8 +51,7 @@ export async function changeApiModelAction(
 export async function deleteApiKeyAction(
     provider: AIProvider,
 ): Promise<ServiceResponse<null>> {
-    const accessToken = (await cookies()).get("access_token")?.value || "";
-    const result = await ApiKeyService.deleteApiKey(accessToken, provider);
+    const result = await withAccessToken((accessToken) => ApiKeyService.deleteApiKey(accessToken, provider));
 
     if (result.success) {
         revalidatePath("/dashboard/accountsetting");

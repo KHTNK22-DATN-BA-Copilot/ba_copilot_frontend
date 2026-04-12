@@ -7,6 +7,7 @@ import {
 } from "@/app/dashboard/project/[id]/workflows/_components/steps/shared/types";
 import { getAccessToken } from "./projects";
 import { WorkFlowService } from "@/services/WorkflowService";
+import { HttpError } from "./auth-session";
 
 const API_CONFIG = {
     headers: {
@@ -39,7 +40,8 @@ export async function getDocumentsList(
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(
+            throw new HttpError(
+                response.status,
                 errorData.message ||
                     `Failed to fetch ${stepName} documents: ${response.status}`,
             );
