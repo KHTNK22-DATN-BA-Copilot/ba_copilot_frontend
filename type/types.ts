@@ -45,3 +45,48 @@ export type ServiceResponse<T = any> = {
     statusCode: number;
     message: string
 }
+
+export type AIProvider = "openai" | "anthropic" | "gemini";
+
+export type APIKeyStatus = "active" | "needs_revalidation" | "invalid";
+
+export type ProviderModelMap = Record<AIProvider, string[]>;
+
+export type APIKeyItem = {
+    id: string;
+    provider: AIProvider;
+    model: string;
+    maskedKey: string;
+    rawKey: string;
+    status: APIKeyStatus;
+    testedAt: string | null;
+    updatedAt: string;
+};
+
+export type SaveAPIKeyPayload = {
+    provider: AIProvider;
+    model: string;
+    apiKey: string;
+    forceReplace?: boolean;
+};
+
+export type ChangeModelPayload = {
+    model: string;
+};
+
+export type TestAPIKeyPayload = {
+    provider: AIProvider;
+    model: string;
+    apiKey: string;
+};
+
+export type APIKeyTestResult = {
+    valid: boolean;
+    status: APIKeyStatus;
+    message: string;
+};
+
+export type APIKeysResponse = {
+    keys: APIKeyItem[];
+    providers: ProviderModelMap;
+};

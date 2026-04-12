@@ -34,16 +34,15 @@ export default async function AccountSettingPage() {
                                     <UserProfile
                                         name={userProfile.name}
                                         email={userProfile.email}
-                                        apiKey={userProfile.apiKey ?? ''}
                                     />
                                 </SettingSection>
                             </div>
 
-                            {/* Visibility Settings */}
+                            {/* API Key Settings */}
                             <div className="col-span-1 md:col-span-12 lg:col-span-6">
                                 <SettingSection
-                                    title="Who can see this information?"
-                                    description="Control who can see your profile information and activity."
+                                    title="Your Configured API Keys"
+                                    description="Assign your own provider keys so each account can run AI features independently."
                                 >
                                     <VisibilitySettings />
                                 </SettingSection>
