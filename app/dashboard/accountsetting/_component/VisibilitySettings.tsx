@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  Eye,
-  EyeOff,
-  Loader2,
-  Plus,
-  RefreshCcw,
-  Trash2,
-} from "lucide-react";
+import { Eye, EyeOff, Loader2, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,35 +23,25 @@ import {
 } from "@/components/ui/dialog";
 import { APIKeyItem, AIProvider, ProviderModelMap } from "@/type/types";
 import {
+  changeAPIModel,
   deleteAPIKey,
   fetchAPIKeys,
   getProviderDisplay,
-  providerList,
   providerMeta,
   saveAPIKey,
   statusMeta,
-  testAPIConnection,
 } from "./utils";
 
-export default function VisibilitySettings() {
+export default function VisibilitySettings({ providers }: { providers: ProviderModelMap }) {
   const [keys, setKeys] = useState<APIKeyItem[]>([]);
-  const [providers, setProviders] = useState<ProviderModelMap>({
-    openai: [],
-    anthropic: [],
-    gemini: [],
-  });
+  const [availableProviders, setAvailableProviders] = useState<ProviderModelMap>(providers);
+
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRevealKey, setIsRevealKey] = useState(false);
-  const [isTesting, setIsTesting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [testResult, setTestResult] = useState<{
-    valid: boolean;
-    message: string;
-    signature: string;
-  } | null>(null);
   const [deletingProvider, setDeletingProvider] = useState<AIProvider | null>(null);
 
   const [formData, setFormData] = useState<{
@@ -66,25 +49,32 @@ export default function VisibilitySettings() {
     model: string;
     apiKey: string;
   }>({
-    provider: "openai",
+    provider: Object.keys(providers)[0] as AIProvider,
     model: "",
     apiKey: "",
   });
 
   const modelOptions = useMemo(() => {
-    return providers[formData.provider] ?? [];
-  }, [formData.provider, providers]);
+    return availableProviders[formData.provider] ?? [];
+  }, [availableProviders, formData.provider]);
 
-  const formSignature = `${formData.provider}|${formData.model}|${formData.apiKey}`;
-  const canSave = !!testResult?.valid && testResult.signature === formSignature;
+  useEffect(() => {
+    setAvailableProviders(providers);
+  }, [providers]);
+
+  const existingKey = useMemo(
+    () => keys.find((item) => item.provider === formData.provider),
+    [formData.provider, keys],
+  );
+
 
   const loadKeys = async () => {
     setIsLoading(true);
     setErrorMessage("");
     const result = await fetchAPIKeys();
+    console.log(result)
     if (result.success && result.data) {
       setKeys(result.data.keys);
-      setProviders(result.data.providers);
 
       if (!formData.model) {
         const firstModel = result.data.providers[formData.provider]?.[0] ?? "";
@@ -118,13 +108,12 @@ export default function VisibilitySettings() {
 
   const openModalForProvider = (provider: AIProvider) => {
     const existing = keys.find((item) => item.provider === provider);
-    const firstModel = providers[provider]?.[0] ?? "";
+    const firstModel = availableProviders[provider]?.[0] ?? "";
     setFormData({
       provider,
       model: existing?.model ?? firstModel,
-      apiKey: existing?.rawKey ?? "",
+      apiKey: "",
     });
-    setTestResult(null);
     setIsRevealKey(false);
     setIsModalOpen(true);
   };
@@ -139,55 +128,49 @@ export default function VisibilitySettings() {
     setDeletingProvider(null);
   };
 
-  const handleTestConnection = async () => {
-    setIsTesting(true);
-    setErrorMessage("");
-    const result = await testAPIConnection(formData);
-    if (result.success && result.data) {
-      setTestResult({
-        valid: result.data.valid,
-        message: result.data.message,
-        signature: formSignature,
-      });
-    } else {
-      setTestResult({
-        valid: false,
-        message: result.message || "Connection test failed.",
-        signature: formSignature,
-      });
-    }
-    setIsTesting(false);
-  };
 
   const handleSave = async () => {
     setIsSaving(true);
     setErrorMessage("");
-    const result = await saveAPIKey({
-      provider: formData.provider,
-      model: formData.model,
-      apiKey: formData.apiKey,
-    });
 
-    if (!result.success) {
-      setErrorMessage(result.message || "Failed to save API key.");
-      setIsSaving(false);
-      return;
+    const existing = keys.find((item) => item.provider === formData.provider);
+    const trimmedApiKey = formData.apiKey.trim();
+
+    if (!trimmedApiKey && existing) {
+      if (existing.model !== formData.model) {
+        const result = await changeAPIModel(formData.provider, { model: formData.model });
+        if (!result.success) {
+          setErrorMessage(result.message || "Failed to change model.");
+          setIsSaving(false);
+          return;
+        }
+      }
+    } else {
+      const result = await saveAPIKey({
+        provider: formData.provider,
+        model: formData.model,
+        apiKey: formData.apiKey,
+      });
+
+      if (!result.success) {
+        setErrorMessage(result.message || "Failed to save API key.");
+        setIsSaving(false);
+        return;
+      }
     }
 
     setIsSaving(false);
     setIsModalOpen(false);
-    setTestResult(null);
     await loadKeys();
   };
 
   const handleProviderChange = (provider: AIProvider) => {
-    const firstModel = providers[provider]?.[0] ?? "";
+    const firstModel = availableProviders[provider]?.[0] ?? "";
     setFormData({
       provider,
       model: firstModel,
       apiKey: "",
     });
-    setTestResult(null);
   };
 
   const handleModelChange = (model: string) => {
@@ -195,7 +178,6 @@ export default function VisibilitySettings() {
       ...previous,
       model,
     }));
-    setTestResult(null);
   };
 
   const handleKeyChange = (value: string) => {
@@ -203,7 +185,6 @@ export default function VisibilitySettings() {
       ...previous,
       apiKey: value,
     }));
-    setTestResult(null);
   };
 
   return (
@@ -241,6 +222,7 @@ export default function VisibilitySettings() {
             const meta = providerMeta[item.provider];
             const badge = statusMeta[item.status];
             const deleting = deletingProvider === item.provider;
+            const providerLabel = item.provider
 
             return (
               <div
@@ -253,7 +235,7 @@ export default function VisibilitySettings() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                      {meta.label} - {item.model}
+                      {providerLabel} - {item.model}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                       {item.maskedKey}
@@ -297,7 +279,7 @@ export default function VisibilitySettings() {
 
       <div className="flex justify-end">
         <Button size="sm" variant="outline" onClick={loadKeys} disabled={isLoading}>
-          Save Changes
+          Refresh
         </Button>
       </div>
 
@@ -321,16 +303,19 @@ export default function VisibilitySettings() {
                   <SelectValue placeholder="Select provider" />
                 </SelectTrigger>
                 <SelectContent>
-                  {providerList.map((provider) => (
-                    <SelectItem key={provider} value={provider}>
-                      <span className="inline-flex items-center gap-2">
-                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-sm bg-gray-100 text-[10px] font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                          {providerMeta[provider].logo}
+                  {Object.keys(availableProviders).map((provider) => {
+
+                    return (
+                      <SelectItem key={provider} value={provider}>
+                        <span className="inline-flex items-center gap-2">
+                          {provider}
+                          {/* <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                            {models?.length} models
+                          </span> */}
                         </span>
-                        {providerMeta[provider].label}
-                      </span>
-                    </SelectItem>
-                  ))}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -373,58 +358,30 @@ export default function VisibilitySettings() {
                   )}
                 </button>
               </div>
-              <a
+              {/* <a
                 href={providerMeta[formData.provider].keyHelpUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="text-xs text-gray-600 underline underline-offset-2 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
               >
                 Need to get an API key?
-              </a>
+              </a> */}
             </div>
           </div>
-
-          {testResult ? (
-            <p
-              className={`text-sm ${
-                testResult.valid
-                  ? "text-green-600 dark:text-green-400"
-                  : "text-red-600 dark:text-red-400"
-              }`}
-            >
-              {testResult.message}
-            </p>
-          ) : null}
 
           <DialogFooter>
             <Button
               type="button"
-              variant="secondary"
-              onClick={handleTestConnection}
-              disabled={isTesting || !formData.apiKey || !formData.model}
-            >
-              {isTesting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                  Testing...
-                </>
-              ) : (
-                <>
-                  <RefreshCcw className="h-4 w-4 mr-1" />
-                  Test Connection
-                </>
-              )}
-            </Button>
-            <Button
-              type="button"
               onClick={handleSave}
-              disabled={isSaving || !canSave}
+              disabled={isSaving || !formData.model || (!formData.apiKey.trim() && !existingKey)}
             >
               {isSaving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                   Saving...
                 </>
+              ) : existingKey && !formData.apiKey.trim() ? (
+                "Update Model"
               ) : (
                 "Save Key"
               )}

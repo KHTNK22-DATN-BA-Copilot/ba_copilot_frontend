@@ -59,3 +59,7 @@ export async function deleteApiKeyAction(
 
     return result;
 }
+
+export async function getAllProvidersAndModelsAction() {
+    return withAccessToken(() => ApiKeyService.getAllProvidersAndModels());
+}

@@ -36,21 +36,23 @@ export type ActionResponse<T = any> = {
     statusCode?: number;
 };
 
-export type ServiceResponse<T = any> = {
-    success: true;
-    data: T;
-    statusCode: number;
-} | {
-    success: false;
-    statusCode: number;
-    message: string
-}
+export type ServiceResponse<T = any> =
+    | {
+          success: true;
+          data: T;
+          statusCode: number;
+      }
+    | {
+          success: false;
+          statusCode: number;
+          message: string;
+      };
 
-export type AIProvider = "openai" | "anthropic" | "gemini";
+export type AIProvider = string;
 
 export type APIKeyStatus = "active" | "needs_revalidation" | "invalid";
 
-export type ProviderModelMap = Record<AIProvider, string[]>;
+export type ProviderModelMap = Record<string, string[]>;
 
 export type APIKeyItem = {
     id: string;
@@ -58,7 +60,7 @@ export type APIKeyItem = {
     model: string;
     maskedKey: string;
     rawKey: string;
-    status: APIKeyStatus;
+    status: APIKeyStatus | string;
     testedAt: string | null;
     updatedAt: string;
 };
@@ -89,4 +91,26 @@ export type APIKeyTestResult = {
 export type APIKeysResponse = {
     keys: APIKeyItem[];
     providers: ProviderModelMap;
+};
+
+export type ProviderModelResponse = {
+    items: {
+        provider: string;
+        models: string[];
+        default_model: string;
+    }[];
+};
+
+export type ApiKeyResponse = {
+    id: number;
+    provider: string;
+    status: string;
+    current_model: string;
+    models_json: string[];
+    masked_api_key: string;
+    updated_at: string;
+};
+
+export type ListApiKeysResponse = {
+    items: ApiKeyResponse[];
 };

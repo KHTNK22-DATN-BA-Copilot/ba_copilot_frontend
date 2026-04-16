@@ -9,7 +9,13 @@ import {
     SaveAPIKeyPayload,
     ServiceResponse,
     TestAPIKeyPayload,
+    ProviderModelResponse,
+    ListApiKeysResponse,
+    APIKeyStatus,
+    ApiKeyResponse,
 } from "@/type/types";
+import { withAccessToken } from "@/lib/auth-action";
+import { cookies } from "next/headers";
 
 const PROVIDER_MODELS: ProviderModelMap = {
     openai: ["gpt-4o", "gpt-4.1-mini", "gpt-3.5-turbo"],
@@ -67,13 +73,73 @@ function evaluateKeyStatus(key: string): APIKeyItem["status"] {
 }
 
 export class ApiKeyService {
-    public static async listApiKeys(_token: string): Promise<ServiceResponse<APIKeysResponse>> {
+    public static async getAllProvidersAndModels() {
+        return withAccessToken(async () => {
+            const accessToken =
+                (await cookies()).get("access_token")?.value || "";
+
+            const res = await fetch(
+                `${process.env.BACKEND_DOMAIN}/api/v1/ai-credentials/models`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                },
+            );
+
+            const responseData: ProviderModelResponse = await res.json();
+
+            const providerModelMap: ProviderModelMap = {} as ProviderModelMap;
+            responseData.items.forEach((item) => {
+                providerModelMap[item.provider as AIProvider] = item.models;
+            });
+
+            return providerModelMap;
+        });
+    }
+
+    public static async getAllApiKeys() {
+        return withAccessToken(async () => {
+            const accessToken =
+                (await cookies()).get("access_token")?.value || "";
+
+            const res = await fetch(
+                `${process.env.BACKEND_DOMAIN}/api/v1/ai-credentials/api-keys`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                },
+            );
+
+            const responseData: ListApiKeysResponse = await res.json();
+
+            const keys: APIKeyItem[] = responseData.items.map((item) => ({
+                id: item.id as unknown as string,
+                provider: item.provider as AIProvider,
+                model: item.current_model,
+                maskedKey: item.masked_api_key,
+                rawKey: "",
+                status: item.status as APIKeyStatus,
+                testedAt: null,
+                updatedAt: new Date().toISOString(),
+            }));
+
+            return keys;
+        });
+    }
+
+    public static async listApiKeys(
+        _token: string,
+    ): Promise<ServiceResponse<APIKeysResponse>> {
         return {
             success: true,
             statusCode: 200,
             data: {
-                keys: [...keysDb].sort((a, b) => a.provider.localeCompare(b.provider)),
-                providers: PROVIDER_MODELS,
+                keys: [...(await ApiKeyService.getAllApiKeys())].sort((a, b) =>
+                    a.provider.localeCompare(b.provider),
+                ),
+                providers: await ApiKeyService.getAllProvidersAndModels(),
             },
         };
     }
@@ -82,13 +148,6 @@ export class ApiKeyService {
         _token: string,
         payload: SaveAPIKeyPayload,
     ): Promise<ServiceResponse<APIKeyItem>> {
-        if (!isProvider(payload.provider)) {
-            return {
-                success: false,
-                statusCode: 400,
-                message: "Provider is not supported.",
-            };
-        }
 
         if (!payload.apiKey?.trim()) {
             return {
@@ -98,27 +157,46 @@ export class ApiKeyService {
             };
         }
 
-        if (!PROVIDER_MODELS[payload.provider]?.includes(payload.model)) {
-            return {
-                success: false,
-                statusCode: 400,
-                message: "Model is not supported for selected provider.",
-            };
-        }
 
         const status = evaluateKeyStatus(payload.apiKey);
         const now = new Date().toISOString();
-        const existing = keysDb.find((item) => item.provider === payload.provider);
+        const existing = keysDb.find(
+            (item) => item.provider === payload.provider,
+        );
+
+        
+
+        const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/ai-credentials/api-key`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${_token}`,
+            },
+            body: JSON.stringify({
+                "provider": payload.provider,
+                "api_key": payload.apiKey,
+            })
+        })
+
+        if (!res.ok) {
+            return {
+                success: false,
+                statusCode: res.status,
+                message: "Failed to save API key to backend.",
+            };
+        }
+
+        const data = (await res.json()).data as ApiKeyResponse;
 
         const keyItem: APIKeyItem = {
-            id: existing?.id ?? `key-${payload.provider}`,
-            provider: payload.provider,
-            model: payload.model,
-            maskedKey: maskApiKey(payload.apiKey),
-            rawKey: payload.apiKey,
-            status,
+            id: data.id as unknown as string,
+            provider: data.provider as AIProvider,
+            model: data.current_model,
+            maskedKey: data.masked_api_key,
+            rawKey: "",
+            status: data.status as APIKeyStatus,
             testedAt: status === "active" ? now : null,
-            updatedAt: now,
+            updatedAt: data.updated_at,
         };
 
         keysDb = keysDb.filter((item) => item.provider !== payload.provider);
@@ -144,7 +222,9 @@ export class ApiKeyService {
             };
         }
 
-        if (!PROVIDER_MODELS[provider]?.includes(model)) {
+        const providerModels = await ApiKeyService.getAllProvidersAndModels();
+
+        if (!providerModels[provider]?.includes(model)) {
             return {
                 success: false,
                 statusCode: 400,
@@ -168,7 +248,9 @@ export class ApiKeyService {
             updatedAt: new Date().toISOString(),
         };
 
-        keysDb = keysDb.map((item) => (item.provider === provider ? updated : item));
+        keysDb = keysDb.map((item) =>
+            item.provider === provider ? updated : item,
+        );
 
         return {
             success: true,
@@ -231,7 +313,8 @@ export class ApiKeyService {
             };
         }
 
-        if (!PROVIDER_MODELS[payload.provider]?.includes(payload.model)) {
+        const providerModels = await ApiKeyService.getAllProvidersAndModels();
+        if (!providerModels[payload.provider]?.includes(payload.model)) {
             return {
                 success: true,
                 statusCode: 200,
@@ -263,7 +346,8 @@ export class ApiKeyService {
                 data: {
                     valid: false,
                     status,
-                    message: "Connection unstable. Please re-validate this key.",
+                    message:
+                        "Connection unstable. Please re-validate this key.",
                 },
             };
         }
@@ -273,7 +357,7 @@ export class ApiKeyService {
             statusCode: 200,
             data: {
                 valid: false,
-                status,
+                status: status as APIKeyStatus,
                 message: "Invalid API key. Please check your credentials.",
             },
         };

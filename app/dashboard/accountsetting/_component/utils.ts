@@ -100,6 +100,11 @@ export const providerMeta: Record<
         logo: "G",
         keyHelpUrl: "https://aistudio.google.com/app/apikey",
     },
+    openrouter: {
+        label: "OpenRouter",
+        logo: "OR",
+        keyHelpUrl: "https://openrouter.ai/account/api-keys",
+    },
 };
 
 export const statusMeta: Record<
@@ -107,7 +112,7 @@ export const statusMeta: Record<
     { label: string; className: string }
 > = {
     active: {
-        label: "Active",
+        label: "active",
         className:
             "border-transparent bg-green-100 hover:bg-green-200 text-green-800 dark:bg-green-900/40 dark:text-green-200",
     },
@@ -116,8 +121,8 @@ export const statusMeta: Record<
         className:
             "border-transparent bg-yellow-100 hover:bg-yellow-200 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200",
     },
-    invalid: {
-        label: "Invalid",
+    inactive: {
+        label: "inactive",
         className:
             "border-transparent bg-red-100 hover:bg-red-200 text-red-800 dark:bg-red-900/40 dark:text-red-200",
     },
