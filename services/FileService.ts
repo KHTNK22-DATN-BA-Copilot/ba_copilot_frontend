@@ -24,6 +24,7 @@ export interface ApiFileRaw {
     created_at?: string;
     updated_at?: string;
     file_size?: number;
+    status?: string;
 }
 
 interface FileUploadResponse {
@@ -35,6 +36,7 @@ interface FileUploadResponse {
         type: string;
         content: string;
         created_at: string;
+        status?: string;
     }[];
 }
 
@@ -140,6 +142,7 @@ export class FileService {
                     file_size: item.size_kb,
                     extension: item.type,
                     created_at: item.created_at,
+                    status: item.status,
                 };
             });
 

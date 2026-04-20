@@ -29,6 +29,7 @@ function transformApiTree(tree: ApiTreeRaw): FileNode[] {
             uploadedDate: formatDate(file.created_at ?? file.updated_at ?? ""),
             fileType: file.extension ?? file.file_type ?? "",
             file: null as unknown as File,
+            status: file.status ?? "ok",
         });
     }
 
@@ -45,6 +46,7 @@ function buildUploadedFiles(data: ApiFileRaw | ApiFileRaw[]): FileNode[] {
         uploadedDate: formatDate(fi.created_at ?? fi.updated_at ?? ""),
         fileType: fi.extension ?? fi.file_type ?? "",
         file: null as unknown as File,
+        status: fi.status ?? "ok",
     }));
 }
 

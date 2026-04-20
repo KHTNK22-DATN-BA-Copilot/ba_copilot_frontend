@@ -230,9 +230,7 @@ export default function VisibilitySettings({ providers }: { providers: ProviderM
                 className="flex flex-col gap-3 rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gray-100 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                    {meta.logo}
-                  </div>
+            
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                       {providerLabel} - {item.model}
