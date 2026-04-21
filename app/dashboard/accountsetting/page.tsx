@@ -7,6 +7,7 @@ import {
     SettingSection,
 } from "./_component";
 import { getUserInfo } from "@/actions/user.action";
+import { getAllProvidersAndModelsAction } from "@/actions/api-key.action";
 
 export const metadata: Metadata = {
     title: "Account Settings - BA Copilot",
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
 
 export default async function AccountSettingPage() {
     const userProfile = await getUserInfo();
+    const providers = await getAllProvidersAndModelsAction();
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
@@ -34,18 +36,17 @@ export default async function AccountSettingPage() {
                                     <UserProfile
                                         name={userProfile.name}
                                         email={userProfile.email}
-                                        apiKey={userProfile.apiKey ?? ''}
                                     />
                                 </SettingSection>
                             </div>
 
-                            {/* Visibility Settings */}
+                            {/* API Key Settings */}
                             <div className="col-span-1 md:col-span-12 lg:col-span-6">
                                 <SettingSection
-                                    title="Who can see this information?"
-                                    description="Control who can see your profile information and activity."
+                                    title="Your Configured API Keys"
+                                    description="Assign your own provider keys so each account can run AI features independently."
                                 >
-                                    <VisibilitySettings />
+                                    <VisibilitySettings providers={providers} />
                                 </SettingSection>
                             </div>
 

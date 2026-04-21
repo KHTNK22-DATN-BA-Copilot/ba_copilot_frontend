@@ -1,9 +1,9 @@
 'use server'
 
-import { cookies } from "next/headers";
 import { FileService, ApiFileRaw, ApiTreeRaw } from "@/services/FileService";
 import { FileNode } from "@/components/file-management/type";
 import { formatFileSize, formatDate } from "@/components/file-management/utils";
+import { withAccessToken } from "@/lib/auth-action";
 
 // ── Helpers: transform raw API shapes → FileNode ───────────────
 
@@ -29,6 +29,7 @@ function transformApiTree(tree: ApiTreeRaw): FileNode[] {
             uploadedDate: formatDate(file.created_at ?? file.updated_at ?? ""),
             fileType: file.extension ?? file.file_type ?? "",
             file: null as unknown as File,
+            status: file.status ?? "ok",
         });
     }
 
@@ -45,15 +46,17 @@ function buildUploadedFiles(data: ApiFileRaw | ApiFileRaw[]): FileNode[] {
         uploadedDate: formatDate(fi.created_at ?? fi.updated_at ?? ""),
         fileType: fi.extension ?? fi.file_type ?? "",
         file: null as unknown as File,
+        status: fi.status ?? "ok",
     }));
 }
 
 // ── Server Actions ─────────────────────────────────────────────
 
 export async function getFileTree(projectId: string): Promise<FileNode[]> {
-    const token = (await cookies()).get("access_token")?.value as string;
-    const tree = await FileService.getTreeStructure(token, projectId);
-    return transformApiTree(tree);
+    return withAccessToken(async (token) => {
+        const tree = await FileService.getTreeStructure(token, projectId);
+        return transformApiTree(tree);
+    });
 }
 
 export async function createFolderAction(
@@ -61,21 +64,18 @@ export async function createFolderAction(
     name: string,
     parentId: number | null,
 ): Promise<{ id: number; name: string }> {
-    const token = (await cookies()).get("access_token")?.value as string;
-    return FileService.createFolder(token, projectId, name, parentId);
+    return withAccessToken((token) => FileService.createFolder(token, projectId, name, parentId));
 }
 
 export async function deleteFolderAction(folderId: number): Promise<void> {
-    const token = (await cookies()).get("access_token")?.value as string;
-    await FileService.deleteFolder(token, folderId);
+    await withAccessToken((token) => FileService.deleteFolder(token, folderId));
 }
 
 export async function renameFolderAction(
     folderId: number,
     newName: string,
 ): Promise<void> {
-    const token = (await cookies()).get("access_token")?.value as string;
-    await FileService.renameFolder(token, folderId, newName);
+    await withAccessToken((token) => FileService.renameFolder(token, folderId, newName));
 }
 
 export async function uploadFileAction(
@@ -83,14 +83,14 @@ export async function uploadFileAction(
     folderId: number,
     formData: FormData,
 ): Promise<FileNode[]> {
-    const token = (await cookies()).get("access_token")?.value as string;
-    const result = await FileService.uploadFile(token, projectId, folderId, formData);
-    return buildUploadedFiles(result);
+    return withAccessToken(async (token) => {
+        const result = await FileService.uploadFile(token, projectId, folderId, formData);
+        return buildUploadedFiles(result);
+    });
 }
 
 export async function deleteFileAction(fileId: number): Promise<void> {
-    const token = (await cookies()).get("access_token")?.value as string;
-    await FileService.deleteFile(token, fileId);
+    await withAccessToken((token) => FileService.deleteFile(token, fileId));
 }
 
 export async function fileExists(projectId: string): Promise<boolean> {

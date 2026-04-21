@@ -1,8 +1,8 @@
 'use server';
 
-import { cookies } from "next/headers";
 import { ActionResponse } from "@/type/types";
 import { SearchApiResponse, SearchService } from "@/services/SearchService";
+import { withAccessToken } from "@/lib/auth-action";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
@@ -28,34 +28,27 @@ export async function searchEntities(
         ? Math.min(MAX_LIMIT, Math.max(1, Math.floor(limit)))
         : DEFAULT_LIMIT;
 
-    const accessToken = (await cookies()).get("access_token")?.value;
-    if (!accessToken) {
+    return withAccessToken(async (accessToken) => {
+        const response = await SearchService.search(
+            accessToken,
+            normalizedKeyword,
+            normalizedPage,
+            normalizedLimit,
+        );
+
+        if (response.success) {
+            return {
+                success: true,
+                statusCode: response.statusCode,
+                message: "Search completed",
+                data: response.data,
+            };
+        }
+
         return {
             success: false,
-            statusCode: 401,
-            message: "Unauthorized",
-        };
-    }
-
-    const response = await SearchService.search(
-        accessToken,
-        normalizedKeyword,
-        normalizedPage,
-        normalizedLimit,
-    );
-
-    if (response.success) {
-        return {
-            success: true,
             statusCode: response.statusCode,
-            message: "Search completed",
-            data: response.data,
+            message: response.message,
         };
-    }
-
-    return {
-        success: false,
-        statusCode: response.statusCode,
-        message: response.message,
-    };
+    });
 }

@@ -23,11 +23,9 @@ import { isEqual, isValidEmail, updateUserProfile } from "./utils";
 export default function UserProfile({
     name,
     email,
-    apiKey,
 }: {
     name: string;
     email: string;
-    apiKey: string;
 }) {
     const [avatar, setAvatar] = useState(Avatar.src);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,8 +35,7 @@ export default function UserProfile({
     });
     const [originalProfile, setOriginalProfile] = useState<UserProfileProps>({
         fullName: name,
-        email: email,
-        apiKey: apiKey
+        email: email
     });
     const [EditProfile, setEditProfile] = useState(originalProfile);
 

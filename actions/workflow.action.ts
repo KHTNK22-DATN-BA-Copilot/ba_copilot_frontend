@@ -1,8 +1,8 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { WorkflowService } from "@/services/WorkflowService";
 import { ActionResponse } from "@/type/types";
+import { withAccessToken } from "@/lib/auth-action";
 
 /**
  * Generate workflow documents (planning/analysis/design)
@@ -22,38 +22,30 @@ export async function generateWorkflowDocument(
             };
         }
 
-        const accessToken = (await cookies()).get("access_token")?.value as string;
+        return withAccessToken(async (accessToken) => {
+            const response = await WorkflowService.generateDocument(
+                accessToken,
+                prompt,
+                selectedFiles,
+                selectedDocIds,
+                projectId,
+            );
 
-        if (!accessToken) {
+            if (response.success) {
+                return {
+                    success: true,
+                    message: "Document generation started successfully",
+                    data: response.data,
+                    statusCode: response.statusCode,
+                };
+            }
+
             return {
                 success: false,
-                message: "Unauthorized",
-                statusCode: 401,
-            };
-        }
-
-        const response = await WorkflowService.generateDocument(
-            accessToken,
-            prompt,
-            selectedFiles,
-            selectedDocIds,
-            projectId,
-        );
-
-        if (response.success) {
-            return {
-                success: true,
-                message: "Document generation started successfully",
-                data: response.data,
+                message: response.message || "Failed to generate document",
                 statusCode: response.statusCode,
             };
-        }
-
-        return {
-            success: false,
-            message: response.message || "Failed to generate document",
-            statusCode: response.statusCode,
-        };
+        });
     } catch (error) {
         console.error("Error generating document:", error);
         return {
@@ -69,32 +61,24 @@ export async function generateWorkflowDocument(
  */
 export async function getWorkflowJobStatus(jobId: string): Promise<ActionResponse> {
     try {
-        const accessToken = (await cookies()).get("access_token")?.value as string;
+        return withAccessToken(async (accessToken) => {
+            const response = await WorkflowService.getJobStatus(accessToken, jobId);
 
-        if (!accessToken) {
+            if (response.success) {
+                return {
+                    success: true,
+                    message: "Job status retrieved successfully",
+                    data: response.data,
+                    statusCode: response.statusCode,
+                };
+            }
+
             return {
                 success: false,
-                message: "Unauthorized",
-                statusCode: 401,
-            };
-        }
-
-        const response = await WorkflowService.getJobStatus(accessToken, jobId);
-
-        if (response.success) {
-            return {
-                success: true,
-                message: "Job status retrieved successfully",
-                data: response.data,
+                message: response.message || "Failed to get job status",
                 statusCode: response.statusCode,
             };
-        }
-
-        return {
-            success: false,
-            message: response.message || "Failed to get job status",
-            statusCode: response.statusCode,
-        };
+        });
     } catch (error) {
         console.error("Error getting job status:", error);
         return {
@@ -113,36 +97,28 @@ export async function getWorkflowDocumentsByStep(
     projectId: string,
 ): Promise<ActionResponse> {
     try {
-        const accessToken = (await cookies()).get("access_token")?.value as string;
+        return withAccessToken(async (accessToken) => {
+            const response = await WorkflowService.getDocumentsByStep(
+                accessToken,
+                stepName,
+                projectId,
+            );
 
-        if (!accessToken) {
+            if (response.success) {
+                return {
+                    success: true,
+                    message: "Documents retrieved successfully",
+                    data: response.data,
+                    statusCode: response.statusCode,
+                };
+            }
+
             return {
                 success: false,
-                message: "Unauthorized",
-                statusCode: 401,
-            };
-        }
-
-        const response = await WorkflowService.getDocumentsByStep(
-            accessToken,
-            stepName,
-            projectId,
-        );
-
-        if (response.success) {
-            return {
-                success: true,
-                message: "Documents retrieved successfully",
-                data: response.data,
+                message: response.message || "Failed to get documents",
                 statusCode: response.statusCode,
             };
-        }
-
-        return {
-            success: false,
-            message: response.message || "Failed to get documents",
-            statusCode: response.statusCode,
-        };
+        });
     } catch (error) {
         console.error("Error getting workflow documents:", error);
         return {
@@ -163,38 +139,30 @@ export async function regenerateWorkflowDocument(
     description?: string,
 ): Promise<ActionResponse> {
     try {
-        const accessToken = (await cookies()).get("access_token")?.value as string;
+        return withAccessToken(async (accessToken) => {
+            const response = await WorkflowService.regenerateDocument(
+                accessToken,
+                stepName,
+                projectId,
+                documentId,
+                description,
+            );
 
-        if (!accessToken) {
+            if (response.success) {
+                return {
+                    success: true,
+                    message: "Document regeneration started successfully",
+                    data: response.data,
+                    statusCode: response.statusCode,
+                };
+            }
+
             return {
                 success: false,
-                message: "Unauthorized",
-                statusCode: 401,
-            };
-        }
-
-        const response = await WorkflowService.regenerateDocument(
-            accessToken,
-            stepName,
-            projectId,
-            documentId,
-            description,
-        );
-
-        if (response.success) {
-            return {
-                success: true,
-                message: "Document regeneration started successfully",
-                data: response.data,
+                message: response.message || "Failed to regenerate document",
                 statusCode: response.statusCode,
             };
-        }
-
-        return {
-            success: false,
-            message: response.message || "Failed to regenerate document",
-            statusCode: response.statusCode,
-        };
+        });
     } catch (error) {
         console.error("Error regenerating document:", error);
         return {
@@ -215,38 +183,30 @@ export async function updateWorkflowDocument(
     content: string,
 ): Promise<ActionResponse> {
     try {
-        const accessToken = (await cookies()).get("access_token")?.value as string;
+        return withAccessToken(async (accessToken) => {
+            const response = await WorkflowService.updateDocument(
+                accessToken,
+                stepName,
+                projectId,
+                documentId,
+                content,
+            );
 
-        if (!accessToken) {
+            if (response.success) {
+                return {
+                    success: true,
+                    message: "Document updated successfully",
+                    data: response.data,
+                    statusCode: response.statusCode,
+                };
+            }
+
             return {
                 success: false,
-                message: "Unauthorized",
-                statusCode: 401,
-            };
-        }
-
-        const response = await WorkflowService.updateDocument(
-            accessToken,
-            stepName,
-            projectId,
-            documentId,
-            content,
-        );
-
-        if (response.success) {
-            return {
-                success: true,
-                message: "Document updated successfully",
-                data: response.data,
+                message: response.message || "Failed to update document",
                 statusCode: response.statusCode,
             };
-        }
-
-        return {
-            success: false,
-            message: response.message || "Failed to update document",
-            statusCode: response.statusCode,
-        };
+        });
     } catch (error) {
         console.error("Error updating document:", error);
         return {
@@ -264,32 +224,24 @@ export async function exportWorkflowDocument(
     documentId: string,
 ): Promise<ActionResponse<{ filename: string; contentType: string; base64: string }>> {
     try {
-        const accessToken = (await cookies()).get("access_token")?.value as string;
+        return withAccessToken(async (accessToken) => {
+            const response = await WorkflowService.exportDocument(accessToken, documentId);
 
-        if (!accessToken) {
+            if (response.success) {
+                return {
+                    success: true,
+                    message: "Document exported successfully",
+                    data: response.data,
+                    statusCode: response.statusCode,
+                };
+            }
+
             return {
                 success: false,
-                message: "Unauthorized",
-                statusCode: 401,
-            };
-        }
-
-        const response = await WorkflowService.exportDocument(accessToken, documentId);
-
-        if (response.success) {
-            return {
-                success: true,
-                message: "Document exported successfully",
-                data: response.data,
+                message: response.message || "Failed to export document",
                 statusCode: response.statusCode,
             };
-        }
-
-        return {
-            success: false,
-            message: response.message || "Failed to export document",
-            statusCode: response.statusCode,
-        };
+        });
     } catch (error) {
         console.error("Error exporting workflow document:", error);
         return {
@@ -307,32 +259,24 @@ export async function getWorkflowSessionHistory(
     contentId: string,
 ): Promise<ActionResponse<{ Sessions: Array<{ role: string; message: string; summary: string; create_at: string }> }>> {
     try {
-        const accessToken = (await cookies()).get("access_token")?.value as string;
+        return withAccessToken(async (accessToken) => {
+            const response = await WorkflowService.getSessionHistory(accessToken, contentId);
 
-        if (!accessToken) {
+            if (response.success) {
+                return {
+                    success: true,
+                    message: "Session history retrieved successfully",
+                    data: response.data,
+                    statusCode: response.statusCode,
+                };
+            }
+
             return {
                 success: false,
-                message: "Unauthorized",
-                statusCode: 401,
-            };
-        }
-
-        const response = await WorkflowService.getSessionHistory(accessToken, contentId);
-
-        if (response.success) {
-            return {
-                success: true,
-                message: "Session history retrieved successfully",
-                data: response.data,
+                message: response.message || "Failed to fetch session history",
                 statusCode: response.statusCode,
             };
-        }
-
-        return {
-            success: false,
-            message: response.message || "Failed to fetch session history",
-            statusCode: response.statusCode,
-        };
+        });
     } catch (error) {
         console.error("Error fetching workflow session history:", error);
         return {
