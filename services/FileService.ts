@@ -1,4 +1,5 @@
 import "server-only";
+import { HttpError } from "@/lib/auth-session";
 
 // ── Raw API response types ─────────────────────────────────────
 
@@ -23,6 +24,7 @@ export interface ApiFileRaw {
     created_at?: string;
     updated_at?: string;
     file_size?: number;
+    status?: string;
 }
 
 interface FileUploadResponse {
@@ -34,6 +36,7 @@ interface FileUploadResponse {
         type: string;
         content: string;
         created_at: string;
+        status?: string;
     }[];
 }
 
@@ -62,7 +65,7 @@ export class FileService {
             `${this.baseUrl}/api/v1/projects/${projectId}/tree`,
             { headers: this.authHeaders(token) },
         );
-        if (!resp.ok) throw new Error(`Failed to fetch tree: ${resp.status}`);
+        if (!resp.ok) throw new HttpError(resp.status, `Failed to fetch tree: ${resp.status}`);
         const data = await resp.json();
         return data?.tree ?? { folders: [], files: [] };
     }
@@ -82,7 +85,7 @@ export class FileService {
             },
         );
         if (!resp.ok)
-            throw new Error(`Failed to create folder: ${resp.status}`);
+            throw new HttpError(resp.status, `Failed to create folder: ${resp.status}`);
         return resp.json();
     }
 
@@ -95,7 +98,7 @@ export class FileService {
             headers: this.authHeaders(token),
         });
         if (!resp.ok)
-            throw new Error(`Failed to delete folder: ${resp.status}`);
+            throw new HttpError(resp.status, `Failed to delete folder: ${resp.status}`);
     }
 
     public static async renameFolder(
@@ -109,7 +112,7 @@ export class FileService {
             body: JSON.stringify({ name: newName }),
         });
         if (!resp.ok)
-            throw new Error(`Failed to rename folder: ${resp.status}`);
+            throw new HttpError(resp.status, `Failed to rename folder: ${resp.status}`);
     }
 
     public static async uploadFile(
@@ -127,7 +130,7 @@ export class FileService {
             },
         );
 
-        if (!resp.ok) throw new Error(`Failed to upload file: ${resp.status}`);
+        if (!resp.ok) throw new HttpError(resp.status, `Failed to upload file: ${resp.status}`);
         const response = (await resp.json()) as FileUploadResponse;
 
         if (response.status === "ok") {
@@ -139,6 +142,7 @@ export class FileService {
                     file_size: item.size_kb,
                     extension: item.type,
                     created_at: item.created_at,
+                    status: item.status,
                 };
             });
 
@@ -156,6 +160,6 @@ export class FileService {
             method: "DELETE",
             headers: this.authHeaders(token),
         });
-        if (!resp.ok) throw new Error(`Failed to delete file: ${resp.status}`);
+        if (!resp.ok) throw new HttpError(resp.status, `Failed to delete file: ${resp.status}`);
     }
 }

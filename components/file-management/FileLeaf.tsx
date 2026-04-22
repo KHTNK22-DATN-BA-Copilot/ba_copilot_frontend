@@ -1,6 +1,7 @@
 import { DownloadIcon, FileIcon, Trash2 } from "lucide-react";
 import { FileNode } from "./type";
 import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 
 type FileLeafProps = {
     file: FileNode;
@@ -52,6 +53,13 @@ export const FileLeaf: React.FC<FileLeafProps> = ({ file, isUploading, onDelete,
             </div>
 
             <div className="flex items-center gap-2">
+                {file.type === "file" && (
+                    <Badge variant={file.type === "file" ? (file.status === "error" ? "destructive" : "default") : "default"} 
+                    className={`${file.status === "error" ? "bg-red-100 text-red-800" : (file.status === "pending" ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800") } uppercase text-xs font-medium`}>
+                        {file.status}
+                    </Badge>
+                )}
+                
                 <Button
                     variant="ghost"
                     size="sm"

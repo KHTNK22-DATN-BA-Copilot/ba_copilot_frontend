@@ -1,5 +1,6 @@
 import { Project } from "@/app/dashboard/project/[id]/_components/types";
 import {ErrorType, ServiceResponse} from "@/type/types";
+import { HttpError } from "@/lib/auth-session";
 
 export interface RecentUpdatedFile {
     id: string;
@@ -24,7 +25,7 @@ export class ProjectService {
         if (!res.ok) {
             const errorData: ErrorType = await res.json();
             console.error("Failed to fetch projects:", errorData.message);
-            throw new Error(errorData.message);
+            throw new HttpError(res.status, errorData.message || "Failed to fetch projects");
         }
         const data = await res.json();
         return data.projects;
@@ -84,7 +85,7 @@ export class ProjectService {
         if (!treeRes.ok) {
             const errorData: ErrorType = await treeRes.json();
             console.error("Failed to fetch project tree:", errorData.message);
-            throw new Error(errorData.message);
+            throw new HttpError(treeRes.status, errorData.message || "Failed to fetch project tree");
         }
 
         const treeData = await treeRes.json();

@@ -7,6 +7,7 @@ export interface FileNodeFile {
     uploadedDate: string;
     fileType: string;
     file: File;
+    status?: string
 }
 
 /** A folder node containing children (files or sub-folders). */
