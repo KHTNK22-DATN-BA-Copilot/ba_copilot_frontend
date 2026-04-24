@@ -1,7 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { SignUp } from "@/actions/auth.action";
+import { getGoogleAuthUrl } from "@/actions/auth.action";
 
 export function useRegisterForm() {
     const router = useRouter();
@@ -182,8 +183,8 @@ export function useRegisterForm() {
 
     const handleGoogleLogin = async () => {
         setIsLoginLoading(true);
-
-        // Simulate Google login process
+        const googleAuthUrl = await getGoogleAuthUrl();
+        redirect(googleAuthUrl);
     }
 
     return {
