@@ -29,6 +29,7 @@ jobs:
           docker build \
             --build-arg NEXT_PUBLIC_WS_DOMAIN=${{ secrets.NEXT_PUBLIC_WS_DOMAIN }} \
             --build-arg NEXT_PUBLIC_BACKEND_DOMAIN=${{ secrets.NEXT_PUBLIC_BACKEND_DOMAIN }} \
+            --build-arg NEXT_PUBLIC_AI_DOMAIN=${{ secrets.NEXT_PUBLIC_AI_DOMAIN }} \
             -t $IMAGE_NAME .
 
       - name: Push Docker image
@@ -51,7 +52,7 @@ jobs:
         run: |
           docker compose pull frontend
           docker compose up -d --force-recreate frontend
-        working-directory: /home/bacopilot/bacopilot
+        working-directory: /home/bacopilotteam/bacopilot
 
       - name: Cleanup old images
         run: docker image prune -f
