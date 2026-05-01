@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import FirebaseAnalyticsProvider from "@/components/FirebaseAnalyticsProvider";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
                     <div className="absolute bottom-0 right-1/5 w-114 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 dark:opacity-30 animate-blob animation-delay-4000"></div>
                 </div>
                 <Toaster position="top-right" richColors />
+                <FirebaseAnalyticsProvider />
                 {children}
             </body>
         </html>
