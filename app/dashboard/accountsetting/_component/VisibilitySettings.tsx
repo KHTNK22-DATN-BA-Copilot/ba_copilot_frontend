@@ -243,7 +243,7 @@ export default function VisibilitySettings({ providers }: { providers: ProviderM
 
                 <div className="flex items-center gap-2 flex-wrap sm:justify-end">
                   <Badge className={badge.className}>{badge.label}</Badge>
-                  <Button
+                  {/* <Button
                     variant="ghost"
                     size="sm"
                     className="h-8 px-2 text-xs"
@@ -263,7 +263,7 @@ export default function VisibilitySettings({ providers }: { providers: ProviderM
                     ) : (
                       <Trash2 className="h-4 w-4" />
                     )}
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             );
