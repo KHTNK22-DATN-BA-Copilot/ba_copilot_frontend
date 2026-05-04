@@ -11,7 +11,7 @@ function FirebaseAnalyticsInner() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      isSupported().then((supported) => {
+      isSupported().then((supported: any) => {
         if (supported && app) {
           const analytics = getAnalytics(app);
           const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
