@@ -25,6 +25,7 @@ import {
     deleteFileAction
 } from "@/actions/file.action";
 import { getAccessToken } from "@/lib/projects";
+import { Analytics } from "@/lib/analytics";
 
 export default function FileManagement({ projectId }: { projectId: string }) {
     const [fileNode, setFileNode] = useState<FileNode[]>([]);
@@ -115,7 +116,8 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                     return next;
                 });
                 const uploadedFiles = await uploadFileAction(projectId, folderId, formData);
-                
+                Analytics.uploadFile(projectId, files.length);
+
 
                 // Replace optimistic temp node with real server data
                 setFileNode((prev) => {
@@ -146,7 +148,9 @@ export default function FileManagement({ projectId }: { projectId: string }) {
     };
 
     const handleDeleteFile = (folderId: number, fileId: number) => {
-        deleteFileAction(fileId).catch((err) => {
+        deleteFileAction(fileId).then(() => {
+            Analytics.deleteFile(fileId);
+        }).catch((err) => {
             console.error("Failed to delete file:", err);
             alert("Failed to delete file. Please try again.");
         })
@@ -164,6 +168,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                     systemFileType: false,
                     children: [],
                 };
+                Analytics.createFolder(projectId, name);
                 setFileNode((prev) => addChildToNode(prev, parentId, newFolder));
 
                 setExpandedFolders((prev) => {
@@ -183,6 +188,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
     const handleRemoveFolder = async (folderId: number) => {
         try {
             await deleteFolderAction(folderId);
+            Analytics.deleteFolder(folderId);
             setFileNode((prev) => removeNodeById(prev, folderId));
 
             setExpandedFolders((prev) => {
@@ -199,6 +205,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
         async (folderId: number, newName: string) => {
             try {
                 await renameFolderAction(folderId, newName);
+                Analytics.renameFolder(folderId);
                 setFileNode((prev) => renameNodeById(prev, folderId, newName));
             } catch (err) {
                 console.error("Failed to rename folder:", err);
@@ -234,6 +241,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
         try {
             const token = await getAccessToken();
             await exportFileFromClient(file.id as number | string, token ?? "");
+            Analytics.downloadFile(file.id as string | number);
         } catch (err) {
             console.error("Failed to download file:", err);
             alert("Failed to download file. Please try again.");
