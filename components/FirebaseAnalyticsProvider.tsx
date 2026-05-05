@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { isSupported, getAnalytics, logEvent } from 'firebase/analytics';
 import { app } from '@/lib/firebase';
 
-export default function FirebaseAnalyticsProvider() {
+function FirebaseAnalyticsInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -25,4 +25,12 @@ export default function FirebaseAnalyticsProvider() {
   }, [pathname, searchParams]);
 
   return null;
+}
+
+export default function FirebaseAnalyticsProvider() {
+  return (
+    <Suspense fallback={null}>
+      <FirebaseAnalyticsInner />
+    </Suspense>
+  );
 }
