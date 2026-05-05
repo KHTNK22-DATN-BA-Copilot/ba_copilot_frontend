@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 import { FloatingFeedbackButton } from "@/components/feedback";
+import { Analytics } from "@/lib/analytics";
 
 export default function DashboardLayout({
     children,
@@ -28,6 +29,7 @@ export default function DashboardLayout({
             } else {
                 document.documentElement.classList.remove("dark");
             }
+            Analytics.toggleTheme(newMode ? "dark" : "light");
             return newMode;
         });
     };

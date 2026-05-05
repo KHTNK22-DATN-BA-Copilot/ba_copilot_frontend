@@ -4,6 +4,7 @@ import { useState } from "react";
 import ProjectMoreMenu from "./ProjectMoreMenu";
 import { redirect } from "next/navigation";
 import { getDay } from "@/lib/utils";
+import { Analytics } from "@/lib/analytics";
 
 type ProjectsSectionProps = {
     isOpenFilter: boolean;
@@ -45,6 +46,7 @@ export default function ProjectsSection({
     const handleFilterSelect = (filterName: string) => {
         setSelectedFilter(filterName);
         setIsOpenFilter(false);
+        Analytics.filterProjects(filterName);
         console.log(`${filterName} selected`);
         switch (filterName) {
             case "Most Recent":
@@ -83,16 +85,19 @@ export default function ProjectsSection({
 
             if (response.ok) {
                 // Success - project has been soft deleted (status changed to "deleted")
+                Analytics.deleteProject(projectId, 'success');
                 console.log("Project deleted successfully:", data.message);
                 // Refresh the page to update the project list (soft deleted projects won't appear)
 
             } else {
                 // Error from API
+                Analytics.deleteProject(projectId, 'error', data.error);
                 setDeleteError(data.error || "Failed to delete project");
                 console.error("Error deleting project:", data.error);
             }
-        } catch (error) {
+        } catch (error: any) {
             // Network or other error
+            Analytics.deleteProject(projectId, 'error', error.message || 'Unknown error');
             setDeleteError(
                 "An unexpected error occurred while deleting the project"
             );
@@ -181,6 +186,7 @@ export default function ProjectsSection({
                     <>
                         {/* Create New Project Button */}
                         <Link
+                            onClick={() => Analytics.clickCreateProject()}
                             className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-dashed border-blue-300 dark:border-blue-600 hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-blue-500/20 transition-all duration-200 cursor-pointer rounded-3xl group"
                             href="/new-project"
                         >
@@ -243,6 +249,7 @@ export default function ProjectsSection({
                         {sortedProjects.map((item) => (
                             <div
                                 onClick={(e) => {
+                                    Analytics.viewProject(item.id);
                                     redirect(`/dashboard/project/${item.id}`)
                                 }}
                                 key={item.id}
