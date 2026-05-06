@@ -67,7 +67,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
 
             ws.onopen = () => {
                 setWsStatus("connected");
-                toast.success("Đã kết nối hệ thống thông báo");
+                toast.success("Connected to Notification system!");
 
                 // Heartbeat ping mỗi 10s[cite: 1]
                 heartbeatRef.current = setInterval(() => {
@@ -84,12 +84,12 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
                     // Xử lý logic push notification dựa trên status[cite: 1]
                     if (data.type === "file_status") { //[cite: 1]
                         if (data.status === "completed") { //[cite: 1]
-                            toast.success(`Xử lý AI thành công file: ${data.file_id}`);
+                            toast.success(`AI processing completed for file: ${data.file_id}`);
                         } else if (data.status === "failed") { //[cite: 1]
-                            toast.error(`Lỗi xử lý file: ${data.file_id}`);
+                            toast.error(`AI processing failed for file: ${data.file_id}`);
                         } else if (data.status === "processing") { //[cite: 1]
                             // Tùy chọn: Hiện toast nhỏ nhắn hoặc bỏ qua để tránh spam
-                            toast(`Đang phân tích AI file ${data.file_id}...`, { icon: '⏳' }); 
+                            toast(`AI processing file ${data.file_id}...`, { icon: '⏳' }); 
                         }
                     }
                 } catch (e) {
