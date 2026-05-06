@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { DM_Serif_Display, DM_Sans } from "next/font/google";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 // Dữ liệu cho các section lặp lại
 const features = [
@@ -83,7 +85,12 @@ const techStack = [
     { name: "AI", logo: "/tech/ai.svg" },
 ];
 
-export default function Home() {
+export default async function Home() {
+    const refreshToken = (await cookies()).get("refresh_token")?.value;
+    if(refreshToken) {
+        redirect("/dashboard");
+    }
+
     return (
         <div className={`font-sans text-[#475569] bg-white`}>
             {/* ═ HEADER ═ */}
