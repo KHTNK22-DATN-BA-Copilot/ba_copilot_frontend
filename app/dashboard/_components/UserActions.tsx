@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Analytics } from "@/lib/analytics";
 
 interface UserActionsProps {
     isDarkMode: boolean;
@@ -19,7 +20,7 @@ export default function UserActions({
 
     const handleLogout = async () => {
         try {
-
+            Analytics.logout();
             // Call backend logout API
             const res = await fetch(`/api/logout`, {
                 method: "GET",
@@ -129,6 +130,7 @@ export default function UserActions({
                         <div className="py-1">
                             <button
                                 onClick={() => {
+                                    Analytics.clickAccountSettings();
                                     setIsAvatarDropdownOpen(false);
                                     router.push("/dashboard/accountsetting");
                                 }}

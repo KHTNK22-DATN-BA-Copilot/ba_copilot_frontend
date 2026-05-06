@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Analytics } from "@/lib/analytics";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -40,10 +41,12 @@ export default function DeleteProjectSection({
                 throw new Error("Failed to delete project");
             }
 
+            Analytics.deleteProject(Number(projectId), 'success');
             // Redirect to dashboard after successful deletion
             router.push("/dashboard");
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error deleting project:", error);
+            Analytics.deleteProject(Number(projectId), 'error', error.message || 'Unknown error');
             alert("Failed to delete project. Please try again.");
             setIsDeleting(false);
             setIsOpen(false);

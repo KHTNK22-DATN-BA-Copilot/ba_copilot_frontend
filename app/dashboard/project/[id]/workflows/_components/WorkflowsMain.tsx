@@ -13,6 +13,7 @@ import DesignStep from "../steps/design/DesignStep";
 import ReviewStep from "../steps/review/ReviewStep";
 import { WorkflowStep } from "./types";
 import { useProjectData } from "../../_components/useProjectData";
+import { Analytics } from "@/lib/analytics";
 
 interface WorkflowsMainProps {
     projectId: string;
@@ -67,43 +68,50 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
 
     const handleNext = useCallback(() => {
         if (currentStep < steps.length - 1) {
+            Analytics.workflowStep(projectId, steps[currentStep].title, 'next');
             setCurrentStep(currentStep + 1);
         }
-    }, [currentStep, steps.length]);
+    }, [currentStep, steps, projectId]);
 
     const handleBack = useCallback(() => {
         if (currentStep > 0) {
+            Analytics.workflowStep(projectId, steps[currentStep].title, 'back');
             setCurrentStep(currentStep - 1);
         }
-    }, [currentStep]);
+    }, [currentStep, steps, projectId]);
 
     const handleGenerateDiagrams = useCallback(() => {
         // Simulate diagram generation
+        Analytics.generateArtifact(projectId, 'diagrams');
         setGeneratedDiagrams(["Usecase Diagram", "Class Diagram", "Activity Diagram"]);
-    }, []);
+    }, [projectId]);
 
     const handleGenerateSRS = useCallback(() => {
         // Simulate SRS generation
+        Analytics.generateArtifact(projectId, 'srs');
         setGeneratedSRS("Software Requirements Specification document has been generated based on your input.");
-    }, []);
+    }, [projectId]);
 
     const handleGenerateWireframes = () => {
         // Simulate wireframe generation
+        Analytics.generateArtifact(projectId, 'wireframes');
         setGeneratedWireframes(["Login Page", "Dashboard", "User Profile"]);
     };
 
     const completeWorkflow = useCallback(() => {
         // Handle workflow completion
+        Analytics.completeWorkflow(projectId);
         console.log("Workflow completed!");
-    }, []);
+    }, [projectId]);
 
     const restartWorkflow = useCallback(() => {
+        Analytics.restartWorkflow(projectId);
         setCurrentStep(0);
         setRequirements("");
         setGeneratedSRS("");
         setGeneratedDiagrams([]);
         setGeneratedWireframes([]);
-    }, []);
+    }, [projectId]);
 
     return (
         <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">

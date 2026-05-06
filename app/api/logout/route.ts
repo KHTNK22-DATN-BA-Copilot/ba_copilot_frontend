@@ -15,5 +15,6 @@ export async function GET(request: NextRequest) {
     console.log("Logout response:", response);
 
     (await cookies()).delete("access_token");
+    (await cookies()).delete("refresh_token");
     return NextResponse.json({ message: "Logged out successfully" }, { status: 200 });
 }
