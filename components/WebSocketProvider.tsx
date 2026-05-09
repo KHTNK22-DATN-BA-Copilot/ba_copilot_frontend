@@ -31,6 +31,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
 
     const params = useParams();
     const urlProjectId = params?.id as string;
+    const pathName = usePathname();
 
     const wsRef = useRef<WebSocket | null>(null);
     const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
@@ -38,13 +39,19 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     const WS_URL = process.env.NEXT_PUBLIC_WS_DOMAIN; 
 
     useEffect(() => {
+        const publicPaths = ["/", "/login", "/register"];
+        if (publicPaths.includes(pathName)) {
+            setToken("");
+            return;
+        }
+
         console.log("WebSocketProvider mounted, loading token and projectId from storage");
 
         (async () => {
             const accessToken = await getAccessToken();
             setToken(accessToken ?? accessToken);
         })()
-    }, []);
+    }, [pathName]);
 
     useEffect(() => {
         if (urlProjectId && urlProjectId !== "undefined") {
