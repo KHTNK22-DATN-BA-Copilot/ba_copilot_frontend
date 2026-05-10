@@ -85,11 +85,7 @@ const techStack = [
     { name: "AI", logo: "/tech/ai.svg" },
 ];
 
-export default async function Home() {
-    const refreshToken = (await cookies()).get("refresh_token")?.value;
-    if(refreshToken) {
-        redirect("/dashboard");
-    }
+export default function Home() {
 
     return (
         <div className={`font-sans text-[#475569] bg-white`}>
@@ -129,7 +125,7 @@ export default async function Home() {
                             BA Copilot
                         </span>
                     </Link>
-                    <div className="flex items-center gap-8 text-[15px] font-medium text-[#0F1B3C]">
+                    <div className="flex items-center text-[15px] font-medium text-[#0F1B3C]">
                         {/* <Link
                             href="#workflows"
                             className="hover:text-[#2A4DD4] transition-colors"
@@ -144,15 +140,15 @@ export default async function Home() {
                         </Link> */}
                         <Link
                             href="/login"
-                            className="text-[#2A4DD4] font-semibold hover:text-[#1D3AA1] transition-colors"
+                            className="text-[#2A4DD4] rounded-full overflow-hidden py-3 px-6 hover:rounded-full hover:bg-gray-400 font-semibold hover:text-[#1D3AA1] transition-colors"
                         >
                             Sign In
                         </Link>
                         <Link
-                            href="/register"
-                            className="px-6 py-2.5 rounded-full bg-[#0F1B3C] text-white text-[15px] font-semibold hover:bg-[#16244A] transition-all no-underline"
+                            href="/dashboard"
+                            className="px-6 hover:bg-[#1f2d53] py-2.5 rounded-full bg-[#0F1B3C] text-white text-[15px] font-semibold transition-all no-underline"
                         >
-                            Get Started Free
+                            My dashboard
                         </Link>
                     </div>
                 </nav>
