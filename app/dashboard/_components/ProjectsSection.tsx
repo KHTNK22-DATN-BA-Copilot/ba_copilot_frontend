@@ -186,6 +186,7 @@ export default function ProjectsSection({
                     <>
                         {/* Create New Project Button */}
                         <Link
+                            data-tour="create-project"
                             onClick={() => Analytics.clickCreateProject()}
                             className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-dashed border-blue-300 dark:border-blue-600 hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-blue-500/20 transition-all duration-200 cursor-pointer rounded-3xl group"
                             href="/new-project"
