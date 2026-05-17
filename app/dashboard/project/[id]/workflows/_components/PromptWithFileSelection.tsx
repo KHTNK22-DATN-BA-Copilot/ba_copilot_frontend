@@ -7,13 +7,15 @@ interface PromptWithFileSelectionProps {
     onPromptChange: (value: string) => void;
     placeholder?: string;
     label?: string;
+    textAreaDataTour?: string;
 }
 
 export default function PromptWithFileSelection({
     prompt,
     onPromptChange,
     placeholder = "Describe what you want to generate...",
-    label = "Generation Prompt & Reference Files (Optional)"
+    label = "Generation Prompt & Reference Files (Optional)",
+    textAreaDataTour,
 }: PromptWithFileSelectionProps) {
 
     return (
@@ -30,6 +32,7 @@ export default function PromptWithFileSelection({
                         value={prompt}
                         onChange={(e) => onPromptChange(e.target.value)}
                         className="min-h-[140px] sm:min-h-[150px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                        data-tour={textAreaDataTour}
                     />
                 </div>
             </div>

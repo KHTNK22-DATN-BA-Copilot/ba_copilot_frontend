@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, memo } from "react";
+import { useState, useMemo, useCallback, useEffect, memo } from "react";
 import PromptWithFileSelection from "../../_components/PromptWithFileSelection";
 import { planningDocuments, documentFiles } from "./documents";
 import {
@@ -25,6 +25,10 @@ interface PlanningStepProps {
     onNext: () => void;
     onBack: () => void;
     projectName?: string;
+    onTourPromptChange?: (prompt: string) => void;
+    onTourSelectionChange?: (selectedCount: number) => void;
+    onTourGenerationStart?: () => void;
+    onTourGenerationComplete?: (generatedDocumentCount: number) => void;
 }
 
 function PlanningStep({
@@ -32,6 +36,10 @@ function PlanningStep({
     onNext,
     onBack,
     projectName,
+    onTourPromptChange,
+    onTourSelectionChange,
+    onTourGenerationStart,
+    onTourGenerationComplete,
 }: PlanningStepProps) {
     const projectId = localStorage.getItem("projectId") as string;
 
@@ -39,7 +47,7 @@ function PlanningStep({
     const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
     const [previewFetchedDoc, setPreviewFetchedDoc] =
         useState<DocumentListItem | null>(null);
-    
+
     const {
         data: existingDocIds = [],
     } = useSWR(
@@ -89,7 +97,11 @@ function PlanningStep({
     const { generateDocuments, error, isGenerating, cancelGeneration, documentStatuses } = useWorkflowGeneration(
         onGenerate,
         () => {
-            refreshDocs()
+            Promise.resolve(refreshDocs()).then((documents) => {
+                onTourGenerationComplete?.(
+                    Array.isArray(documents) ? documents.length : 1,
+                );
+            });
         }
     );
 
@@ -116,8 +128,19 @@ function PlanningStep({
 
     const checkedIdsString = constraints.checkedDocIds.join(',');
 
-    const handleGenerateDocuments = useCallback( async () => {
+    useEffect(() => {
+        onTourPromptChange?.(prompt);
+    }, [prompt, onTourPromptChange]);
+
+    useEffect(() => {
+        onTourSelectionChange?.(constraints.checkedDocIds.length);
+    }, [constraints.checkedDocIds.length, onTourSelectionChange]);
+
+
+    const handleGenerateDocuments = useCallback(async () => {
         const currentCheckedIds = checkedIdsString ? checkedIdsString.split(',') : [];
+
+        onTourGenerationStart?.();
 
         console.log("=== PLANNING STEP - GENERATE DOCUMENTS ===");
         console.log("Project ID:", projectId);
@@ -154,18 +177,20 @@ function PlanningStep({
             </div>
 
             {/* Document Selection with Constraints */}
-            <DocumentSelector
-                documents={constraints.constrainedDocuments}
-                expandedItems={constraints.expandedItems}
-                onToggle={constraints.toggleDocument}
-                onToggleParent={constraints.toggleParent}
-                onToggleExpand={constraints.toggleExpand}
-                onPreview={documentPreview.handlePreviewDocument}
-                label="Select type of Documents to Generate"
-                onSelectAll={constraints.selectAll}
-                onDeselectAll={constraints.deselectAll}
-                isAllSelected={constraints.isAllSelected}
-            />
+            <div data-tour="workflow-planning-doc-selector">
+                <DocumentSelector
+                    documents={constraints.constrainedDocuments}
+                    expandedItems={constraints.expandedItems}
+                    onToggle={constraints.toggleDocument}
+                    onToggleParent={constraints.toggleParent}
+                    onToggleExpand={constraints.toggleExpand}
+                    onPreview={documentPreview.handlePreviewDocument}
+                    label="Select type of Documents to Generate"
+                    onSelectAll={constraints.selectAll}
+                    onDeselectAll={constraints.deselectAll}
+                    isAllSelected={constraints.isAllSelected}
+                />
+            </div>
 
             {/* Prompt and File Selection */}
             <PromptWithFileSelection
@@ -173,6 +198,7 @@ function PlanningStep({
                 onPromptChange={setPrompt}
                 placeholder=""
                 label="Prompt & Reference Files for Planning Step (Optional)"
+                textAreaDataTour="workflow-planning-prompt"
             />
 
             {/* Error Message */}
@@ -192,12 +218,14 @@ function PlanningStep({
                     </p>
                 </div>
             ) : (
-                <FetchedDocumentsList
-                    documents={fetchedDocuments}
-                    stepName="planning"
-                    projectId={projectId}
-                    onRegenerateSuccess={handleRefreshDocs}
-                />
+                <div data-tour="workflow-planning-results">
+                    <FetchedDocumentsList
+                        documents={fetchedDocuments}
+                        stepName="planning"
+                        projectId={projectId}
+                        onRegenerateSuccess={handleRefreshDocs}
+                    />
+                </div>
             )}
 
             {/* Preview Modal for Template Documents */}
@@ -230,6 +258,7 @@ function PlanningStep({
                 onBack={onBack}
                 nextButtonText="Continue to Analysis"
                 hasSelectedDocuments={constraints.checkedDocIds.length > 0}
+                generateButtonDataTour="workflow-planning-generate"
             />
         </div>
     );

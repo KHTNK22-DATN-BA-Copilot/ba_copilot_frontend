@@ -87,6 +87,7 @@ export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDa
                         {/* Mobile sidebar toggle button - only visible inside project pages */}
                         {isInsideProject && (
                             <button
+                                data-tour="sidebar"
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                                 className="xl:hidden p-2 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors mr-2"
                                 aria-label="Toggle sidebar"

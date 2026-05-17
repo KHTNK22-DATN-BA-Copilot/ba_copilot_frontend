@@ -43,8 +43,6 @@ export default async function ProjectOverviewPage({
         updated_at: file.updated_at,
     }));
 
-    console.log('Project Data:', project);
-    console.log('ProjectOverviewPage() - Recent Files:', recentFiles);
 
     // Fetch document counts from each workflow phase
     const planningResult = await getPlanningDocuments(id);

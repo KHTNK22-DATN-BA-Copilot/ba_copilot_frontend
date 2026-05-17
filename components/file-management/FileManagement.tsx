@@ -258,6 +258,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                             {countFiles(fileNode)} Files
                         </Badge>
                         <Button
+                            data-tour="create-folder"
                             onClick={() => {
                                 // show inline input at root
                                 setCreating(true);

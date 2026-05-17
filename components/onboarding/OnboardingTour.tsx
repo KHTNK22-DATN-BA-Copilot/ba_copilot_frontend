@@ -1,90 +1,101 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import Joyride, { CallBackProps, STATUS, Step, ACTIONS, EVENTS } from 'react-joyride';
-import { usePathname } from 'next/navigation';
+import { useState, useEffect, useCallback } from "react";
+import {
+    Joyride,
+    EventData,
+    STATUS,
+    Step,
+    ACTIONS,
+    EVENTS,
+} from "react-joyride";
+import { usePathname } from "next/navigation";
+import { ShadcnTooltip } from "./OnboardingButton";
 
 // ─── Onboarding Steps cho trang Dashboard (/dashboard) ─────────────────
 const dashboardSteps: Step[] = [
     {
-        target: 'body',
+        target: "body",
         content: (
             <div className="text-center">
                 <div className="text-3xl mb-3">🎉</div>
-                <h2 className="text-lg font-bold mb-2">Chào mừng đến với BA Copilot!</h2>
+                <h2 className="text-lg font-bold mb-2">
+                    Welcome to BA Copilot
+                </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                    BA Copilot giúp bạn tự động hóa quy trình phân tích nghiệp vụ với sự hỗ trợ của AI.
-                    Hãy cùng khám phá các tính năng chính nhé!
+                    BA Copilot help you automate the business analysis process
+                    with AI assistance. Let's explore the main features
+                    together!
                 </p>
             </div>
         ),
-        placement: 'center',
-        disableBeacon: true,
-
+        placement: "center",
+        skipBeacon: true,
     },
     {
         target: '[data-tour="search-bar"]',
         content: (
             <div>
-                <h3 className="font-semibold mb-1">🔍 Tìm kiếm nhanh</h3>
+                <h3 className="font-semibold mb-1">🔍 Quick Search</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Sử dụng thanh tìm kiếm hoặc phím tắt <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">Ctrl+K</kbd> để
-                    tìm dự án, tài liệu, hoặc người dùng nhanh chóng.
+                    Use the search bar or the shortcut{" "}
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">
+                        Ctrl+K
+                    </kbd>{" "}
+                    to quickly find projects, documents, or users.
                 </p>
             </div>
         ),
-        placement: 'bottom',
-        disableBeacon: true,
-
+        placement: "bottom",
+        skipBeacon: true,
     },
     {
         target: '[data-tour="overview-section"]',
         content: (
             <div>
-                <h3 className="font-semibold mb-1">📊 Tổng quan dự án</h3>
+                <h3 className="font-semibold mb-1">📊 Project Overview</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Đây là bảng tổng quan giúp bạn theo dõi tổng số dự án và các thống kê quan trọng.
+                    This is the overview table that helps you track the total
+                    number of projects and important statistics.
                 </p>
             </div>
         ),
-        placement: 'bottom',
-        disableBeacon: true,
-
+        placement: "bottom",
+        skipBeacon: true,
     },
     {
         target: '[data-tour="create-project"]',
         content: (
             <div>
-                <h3 className="font-semibold mb-1">➕ Tạo dự án mới</h3>
+                <h3 className="font-semibold mb-1">➕ Create New Project</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Nhấn vào đây để tạo dự án BA đầu tiên. Mỗi dự án sẽ chứa toàn bộ tài liệu
-                    Planning, Analysis và Design của bạn.
+                    Click here to create your first BA project. Each project
+                    will contain all your Planning, Analysis, and Design
+                    documents.
                 </p>
             </div>
         ),
-        placement: 'bottom',
-        disableBeacon: true,
-
+        placement: "bottom",
+        skipBeacon: true,
     },
 ];
 
 // ─── Onboarding Steps cho trang Project Detail (/dashboard/project/[id]) ──
 const projectSteps: Step[] = [
     {
-        target: 'body',
+        target: "body",
         content: (
             <div className="text-center">
                 <div className="text-3xl mb-3">📁</div>
-                <h2 className="text-lg font-bold mb-2">Khám phá dự án của bạn</h2>
+                <h2 className="text-lg font-bold mb-2">Explore Your Project</h2>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Đây là trang quản lý dự án. Hãy cùng tìm hiểu cách điều hướng
-                    và sử dụng các công cụ AI tại đây.
+                    This is the project management page. Let's explore how to
+                    navigate and use the AI tools here.
                 </p>
             </div>
         ),
-        placement: 'center',
-        disableBeacon: true,
-
+        placement: "center",
+        skipBeacon: true,
     },
     // {
     //     target: '[data-tour="sidebar-overview"]',
@@ -103,118 +114,123 @@ const projectSteps: Step[] = [
         target: '[data-tour="project-header"]',
         content: (
             <div>
-                <h3 className="font-semibold mb-1">📌 Tiêu đề dự án</h3>
+                <h3 className="font-semibold mb-1">📌 Project Title</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Nơi hiển thị tên và mô tả ngắn gọn về dự án hiện tại của bạn.
+                    This is where the project name and a brief description are
+                    displayed.
                 </p>
             </div>
         ),
-        placement: 'bottom',
-        disableBeacon: true,
-
+        placement: "bottom",
+        skipBeacon: true,
     },
     {
         target: '[data-tour="project-progress"]',
         content: (
             <div>
-                <h3 className="font-semibold mb-1">📈 Tiến độ tổng quan</h3>
+                <h3 className="font-semibold mb-1">📈 Project Progress</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Theo dõi xem bạn đã tạo được bao nhiêu tài liệu trên tổng số tài liệu mà hệ thống hỗ trợ.
+                    Track how many documents you've created out of the total
+                    number of documents supported by the system.
                 </p>
             </div>
         ),
-        placement: 'bottom',
-        disableBeacon: true,
-
+        placement: "bottom",
+        skipBeacon: true,
     },
     {
         target: '[data-tour="project-info"]',
         content: (
             <div>
-                <h3 className="font-semibold mb-1">ℹ️ Thông tin chi tiết</h3>
+                <h3 className="font-semibold mb-1">ℹ️ Project Information</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Các thông tin cơ bản về khách hàng, domain, loại dự án và thời gian khởi tạo.
+                    Basic information about the client, domain, project type,
+                    and creation date.
                 </p>
             </div>
         ),
-        placement: 'bottom',
-        disableBeacon: true,
-
+        placement: "bottom",
+        skipBeacon: true,
     },
     {
         target: '[data-tour="project-stats"]',
         content: (
             <div>
-                <h3 className="font-semibold mb-1">📊 Thống kê tài liệu</h3>
+                <h3 className="font-semibold mb-1">📊 Document Statistics</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Số lượng tài liệu đã được tạo trong từng giai đoạn (Planning, Analysis, Design).
+                    The number of documents created in each phase (Planning,
+                    Analysis, Design).
                 </p>
             </div>
         ),
-        placement: 'bottom',
-        disableBeacon: true,
-
+        placement: "bottom",
+        skipBeacon: true,
     },
     {
         target: '[data-tour="project-recent-activity"]',
         content: (
             <div>
-                <h3 className="font-semibold mb-1">🕒 Hoạt động gần đây</h3>
+                <h3 className="font-semibold mb-1">🕒 Recent Activity</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Danh sách các tài liệu bạn vừa thao tác hoặc cập nhật gần đây nhất.
+                    A list of documents you've recently interacted with or
+                    updated.
                 </p>
             </div>
         ),
-        placement: 'top',
-        disableBeacon: true,
-
+        placement: "top",
+        skipBeacon: true,
     },
-    // {
-    //     target: '[data-tour="sidebar-workflow"]',
-    //     content: (
-    //         <div>
-    //             <h3 className="font-semibold mb-1">⚡ Project Workflow</h3>
-    //             <p className="text-sm text-gray-600 dark:text-gray-300">
-    //                 Đây là tính năng cốt lõi! Workflow giúp bạn tạo toàn bộ tài liệu BA
-    //                 một cách tự động qua quy trình hướng dẫn từng bước.
-    //             </p>
-    //         </div>
-    //     ),
-    //     placement: 'right',
-    //     disableBeacon: true,
-    // },
-    // {
-    //     target: '[data-tour="sidebar-files"]',
-    //     content: (
-    //         <div>
-    //             <h3 className="font-semibold mb-1">📂 Quản lý tệp</h3>
-    //             <p className="text-sm text-gray-600 dark:text-gray-300">
-    //                 Upload, tạo thư mục và quản lý tất cả tệp tài liệu liên quan đến dự án.
-    //             </p>
-    //         </div>
-    //     ),
-    //     placement: 'right',
-    //     disableBeacon: true,
-    // },
-    // {
-    //     target: '[data-tour="sidebar-phases"]',
-    //     content: (
-    //         <div>
-    //             <h3 className="font-semibold mb-1">🔄 Phases (Planning / Analysis / Design)</h3>
-    //             <p className="text-sm text-gray-600 dark:text-gray-300">
-    //                 Tạo tài liệu theo từng giai đoạn riêng biệt: Planning → Analysis → Design.
-    //                 Mỗi phase chứa các loại tài liệu chuyên biệt do AI sinh ra.
-    //             </p>
-    //         </div>
-    //     ),
-    //     placement: 'right',
-    //     disableBeacon: true,
-    // },
+    {
+        target: '[data-tour="sidebar"]',
+        content: (
+            <div>
+                <h3 className="font-semibold mb-1">Sidebar</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                    This is the main navigation area for your project. You can
+                    access different sections like Overview, Files, and Phases
+                    (Planning, Analysis, Design) here.
+                </p>
+            </div>
+        ),
+        placement: "bottom",
+        skipBeacon: true,
+    },
+];
+
+const fileManagerSteps: Step[] = [
+    {
+        target: "body",
+        content: (
+            <div className="text-center">
+                <h3 className="font-semibold mb-1">📂 File Manager</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Upload, create folders, and manage all project-related
+                    documents here.
+                </p>
+            </div>
+        ),
+        placement: "center",
+        skipBeacon: true,
+    },
+    {
+        target: '[data-tour="create-folder"]',
+        content: (
+            <div>
+                <h3 className="font-semibold mb-1">📁 Create Folder</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Easily create new folders to organize your project files.
+                </p>
+            </div>
+        ),
+        placement: "bottom",
+        skipBeacon: true,
+    },
 ];
 
 // ─── localStorage Keys ─────────────────────────────────────────────────
-const ONBOARDING_DASHBOARD_KEY = 'hasCompletedOnboarding_dashboard';
-const ONBOARDING_PROJECT_KEY = 'hasCompletedOnboarding_project';
+const ONBOARDING_DASHBOARD_KEY = "hasCompletedOnboarding_dashboard";
+const ONBOARDING_PROJECT_KEY = "hasCompletedOnboarding_project";
+const ONBOARDING_FILE_MANAGER_KEY = "hasCompletedOnboarding_fileManager";
 
 export default function OnboardingTour() {
     const [run, setRun] = useState(false);
@@ -225,49 +241,126 @@ export default function OnboardingTour() {
     useEffect(() => {
         // Delay nhẹ để chờ DOM render hoàn toàn trước khi khởi chạy tour
         const timer = setTimeout(() => {
-            if (pathname === '/dashboard') {
-                const hasCompleted = localStorage.getItem(ONBOARDING_DASHBOARD_KEY);
-                if (hasCompleted !== 'true') {
+            if (pathname === "/dashboard") {
+                const hasCompleted = localStorage.getItem(
+                    ONBOARDING_DASHBOARD_KEY,
+                );
+                if (hasCompleted !== "true") {
                     setSteps(dashboardSteps);
                     setStepIndex(0);
                     setRun(true);
                 }
             } else if (pathname?.match(/^\/dashboard\/project\/[^/]+$/)) {
                 // Chỉ kích hoạt trên trang Project Overview (không phải sub-routes như /workflows)
-                const hasCompleted = localStorage.getItem(ONBOARDING_PROJECT_KEY);
-                if (hasCompleted !== 'true') {
+                const hasCompleted = localStorage.getItem(
+                    ONBOARDING_PROJECT_KEY,
+                );
+                if (hasCompleted !== "true") {
                     setSteps(projectSteps);
                     setStepIndex(0);
                     setRun(true);
                 }
-            } else {
-                setRun(false);
+            } else if (
+                pathname?.match(/^\/dashboard\/project\/[^/]+\/files$/)
+            ) {
+                const hasCompleted = localStorage.getItem(
+                    ONBOARDING_FILE_MANAGER_KEY,
+                );
+                if (hasCompleted !== "true") {
+                    setSteps(fileManagerSteps);
+                    setStepIndex(0);
+                    setRun(true);
+                }
             }
         }, 500);
 
-        return () => clearTimeout(timer);
+        return () => clearTimeout(timer); 
     }, [pathname]);
 
+    useEffect(() => {
+        if (!run || steps.length === 0) return;
 
-    const handleJoyrideCallback = useCallback((data: CallBackProps) => {
-        const { status, action, index, type } = data;
-        const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
+        const currentStep = steps[stepIndex];
 
-        // Cập nhật stepIndex khi chuyển step
-        if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
-            setStepIndex(index + (action === ACTIONS.PREV ? -1 : 1));
+        // 1. CHỐT CHẶN AN TOÀN: Tránh lỗi undefined khi stepIndex out of bounds
+        if (!currentStep) return;
+
+        if (currentStep.target === "body") {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            return;
         }
 
-        if (finishedStatuses.includes(status)) {
-            setRun(false);
-            // Lưu trạng thái hoàn thành vào localStorage theo từng tour
-            if (pathname === '/dashboard') {
-                localStorage.setItem(ONBOARDING_DASHBOARD_KEY, 'true');
-            } else if (pathname?.includes('/dashboard/project/')) {
-                localStorage.setItem(ONBOARDING_PROJECT_KEY, 'true');
+        // 2. DÙNG setTimeout ĐỂ CHỜ UI RENDER
+        // Bọc logic tìm element vào một setTimeout nhỏ để đảm bảo
+        // ô nhập liệu (input) của bạn đã được React vẽ xong trên UI
+        const timer = setTimeout(() => {
+            const targetElement = document.querySelector(
+                currentStep.target as string,
+            );
+
+            if (targetElement) {
+                targetElement.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                    inline: "nearest",
+                });
+
+                if (currentStep.data?.waitOnTargetClick) {
+                    const handleTargetClick = () => {
+                        // Khi người dùng click nút "Create Folder"
+                        // Delay 200ms trước khi chuyển step để UI kịp hiển thị ô input mới
+                        setTimeout(() => {
+                            setStepIndex((prev) => prev + 1);
+                        }, 200);
+                    };
+
+                    targetElement.addEventListener("click", handleTargetClick);
+
+                    return () => {
+                        targetElement.removeEventListener(
+                            "click",
+                            handleTargetClick,
+                        );
+                    };
+                }
             }
-        }
-    }, [pathname]);
+        }, 100); // 100ms chờ DOM ổn định trước khi Joyride tìm thẻ
+
+        return () => clearTimeout(timer);
+    }, [stepIndex, run, steps]);
+
+    const handleJoyrideCallback = useCallback(
+        (data: EventData) => {
+            const { status, action, index, type } = data;
+            const finishedStatuses: string[] = [
+                STATUS.FINISHED,
+                STATUS.SKIPPED,
+            ];
+
+            // Cập nhật stepIndex khi chuyển step
+            if (
+                type === EVENTS.STEP_AFTER ||
+                type === EVENTS.TARGET_NOT_FOUND
+            ) {
+                setStepIndex(index + (action === ACTIONS.PREV ? -1 : 1));
+            }
+
+            if (finishedStatuses.includes(status)) {
+                setRun(false);
+                // Lưu trạng thái hoàn thành vào localStorage theo từng tour
+                if (pathname === "/dashboard") {
+                    localStorage.setItem(ONBOARDING_DASHBOARD_KEY, "true");
+                } else if (pathname?.match(/^\/dashboard\/project\/[^/]+$/)) {
+                    localStorage.setItem(ONBOARDING_PROJECT_KEY, "true");
+                } else if (
+                    pathname?.match(/^\/dashboard\/project\/[^/]+\/files$/)
+                ) {
+                    localStorage.setItem(ONBOARDING_FILE_MANAGER_KEY, "true");
+                }
+            }
+        },
+        [pathname],
+    );
 
     if (!run || steps.length === 0) return null;
 
@@ -277,52 +370,51 @@ export default function OnboardingTour() {
             run={run}
             stepIndex={stepIndex}
             continuous
-            showProgress
-            showSkipButton
-            disableOverlayClose
-            callback={handleJoyrideCallback}
+            options={{
+                primaryColor: "#2563eb",
+                zIndex: 10000,
+                arrowColor: "#fff",
+                backgroundColor: "#fff",
+                textColor: "#1f2937",
+                overlayColor: "rgba(0, 0, 0, 0.5)",
+                overlayClickAction: false,
+                spotlightRadius: 12,
+                showProgress: true,
+                buttons: ["back", "close", "primary", "skip"],
+            }}
+            tooltipComponent={ShadcnTooltip}
+            onEvent={handleJoyrideCallback}
             locale={{
-                back: 'Quay lại',
-                close: 'Đóng',
-                last: 'Hoàn thành',
-                next: 'Tiếp theo',
-                skip: 'Bỏ qua',
+                back: "Quay lại",
+                close: "Đóng",
+                last: "Hoàn thành",
+                next: "Tiếp theo",
+                skip: "Bỏ qua",
             }}
             styles={{
-                options: {
-                    primaryColor: '#2563eb',
-                    zIndex: 10000,
-                    arrowColor: '#fff',
-                    backgroundColor: '#fff',
-                    textColor: '#1f2937',
-                    overlayColor: 'rgba(0, 0, 0, 0.5)',
-                },
                 tooltip: {
-                    borderRadius: '12px',
-                    padding: '20px',
-                    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+                    borderRadius: "12px",
+                    padding: "20px",
+                    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.15)",
                 },
                 tooltipContent: {
-                    padding: '8px 0',
+                    padding: "8px 0",
                 },
-                buttonNext: {
-                    borderRadius: '8px',
-                    padding: '8px 16px',
-                    fontSize: '14px',
+                buttonPrimary: {
+                    borderRadius: "8px",
+                    padding: "8px 16px",
+                    fontSize: "14px",
                     fontWeight: 600,
                 },
                 buttonBack: {
-                    borderRadius: '8px',
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    color: '#6b7280',
+                    borderRadius: "8px",
+                    padding: "8px 16px",
+                    fontSize: "14px",
+                    color: "#6b7280",
                 },
                 buttonSkip: {
-                    fontSize: '13px',
-                    color: '#9ca3af',
-                },
-                spotlight: {
-                    borderRadius: '12px',
+                    fontSize: "13px",
+                    color: "#9ca3af",
                 },
             }}
         />

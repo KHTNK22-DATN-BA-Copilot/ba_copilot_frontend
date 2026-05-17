@@ -72,7 +72,7 @@ export default function RequirementsStep({
                 </div>
             </div>
 
-            <div className="flex justify-center items-center gap-3">
+            <div className="flex justify-center items-center gap-3" data-tour="workflow-requirements-continue">
                 {isFileUpload ? (
                     <Button onClick={onNext} className="gap-2 w-full sm:w-auto">
                         Continue to
