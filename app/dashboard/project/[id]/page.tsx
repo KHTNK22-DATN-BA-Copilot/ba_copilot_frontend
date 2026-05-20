@@ -11,7 +11,7 @@ import { getProjectById, getRecentUpdatedFiles } from '@/actions/project.action'
 import { getPlanningDocuments, getAnalysisDocuments, getDesignDocuments } from '@/app/dashboard/project/[id]/workflows/steps/shared/api';
 import { notFound } from 'next/navigation';
 
-const Error = ({error}: {error: string}) => {
+const Error = ({ error }: { error: string }) => {
     return (
         <main className="min-h-screen overflow-y-auto bg-gray-50 dark:bg-gray-900">
             <div className="p-6 max-w-7xl mx-auto">
@@ -31,11 +31,10 @@ export default async function ProjectOverviewPage({
     const { id } = await params;
 
     const project = await getProjectById(id);
-    console.log("Fetched project:", project);
     if (project.detail === "Project not found") {
         notFound();
     }
-    
+
     const recentFilesFromApi = await getRecentUpdatedFiles(id, 6);
     const recentFiles: RecentFile[] = recentFilesFromApi.map((file) => ({
         id: file.id,
@@ -44,8 +43,6 @@ export default async function ProjectOverviewPage({
         updated_at: file.updated_at,
     }));
 
-    console.log('Project Data:', project);
-    console.log('ProjectOverviewPage() - Recent Files:', recentFiles);
 
     // Fetch document counts from each workflow phase
     const planningResult = await getPlanningDocuments(id);
@@ -103,25 +100,35 @@ export default async function ProjectOverviewPage({
                 </div>
 
                 {/* Project Header */}
-                <ProjectHeader project={project} />
+                <div data-tour="project-header">
+                    <ProjectHeader project={project} />
+                </div>
 
                 {/* Progress Section */}
-                <ProgressSection
-                    generatedDocuments={generatedDocuments}
-                    totalSupportedDocuments={totalSupportedDocuments}
-                />
+                <div data-tour="project-progress">
+                    <ProgressSection
+                        generatedDocuments={generatedDocuments}
+                        totalSupportedDocuments={totalSupportedDocuments}
+                    />
+                </div>
 
                 {/* Project Info Cards */}
-                <ProjectInfoCards project={project} />
+                <div data-tour="project-info">
+                    <ProjectInfoCards project={project} />
+                </div>
 
                 {/* Quick Stats */}
-                <QuickStatsSection stats={quickStats} />
+                <div data-tour="project-stats">
+                    <QuickStatsSection stats={quickStats} />
+                </div>
 
 
                 {/* Main Content Grid */}
                 <div className="grid grid-cols-1 gap-4 sm:gap-6">
                     {/* Recent Activity */}
-                    <RecentActivitySection files={recentFiles} projectId={project.id as string} />
+                    <div data-tour="project-recent-activity">
+                        <RecentActivitySection files={recentFiles} projectId={project.id as string} />
+                    </div>
 
                     {/* Quick Actions & Tasks */}
                     {/* <div className="space-y-4 sm:space-y-6">

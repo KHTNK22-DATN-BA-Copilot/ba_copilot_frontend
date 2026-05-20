@@ -10,7 +10,7 @@ interface WorkflowStepIndicatorProps {
 
 export default function WorkflowStepIndicator({ steps }: WorkflowStepIndicatorProps) {
     return (
-        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700" data-tour="workflow-step-indicator">
             <CardContent className="p-3 sm:p-6">
                 <div className="sm:overflow-visible overflow-x-auto">
                     <div className="flex items-center sm:justify-between min-w-max sm:min-w-0">

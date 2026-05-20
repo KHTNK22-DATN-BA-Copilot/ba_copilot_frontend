@@ -25,16 +25,12 @@ export class UserService {
         const res = await fetch(
             `${process.env.BACKEND_DOMAIN}/api/v1/user/me`,
             {
-                method: "PUT",
+                method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({
-                    name: userInfo.name,
-                    email: userInfo.email ? userInfo.email : undefined,
-                    apiKey: userInfo.apiKey ? userInfo.apiKey : undefined,
-                }),
+                body: JSON.stringify(userInfo),
             },
         );
         const result = await res.json();

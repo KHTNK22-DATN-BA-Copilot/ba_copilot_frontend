@@ -6,6 +6,7 @@ import { CheckCircle2 } from "lucide-react";
 import { SRSIcon, DiagramIcon, WireframeIcon, HomeIcon } from "@/components/icons/project-icons";
 import WorkflowHeader from "./WorkflowHeader";
 import WorkflowStepIndicator from "./WorkflowStepIndicator";
+import WorkflowOnboardingTour from "./WorkflowOnboardingTour";
 import RequirementsStep from "../steps/requirments/RequirementsStep";
 import PlanningStep from "../steps/planning/PlaningStep";
 import AnalysisStep from "../steps/analysis/AnalysisStep";
@@ -25,6 +26,13 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
     const [generatedSRS, setGeneratedSRS] = useState("");
     const [generatedDiagrams, setGeneratedDiagrams] = useState<string[]>([]);
     const [generatedWireframes, setGeneratedWireframes] = useState<string[]>([]);
+    const [planningTourState, setPlanningTourState] = useState({
+        selectedDocumentsCount: 0,
+        prompt: "",
+        isGenerating: false,
+        generationComplete: false,
+        generatedDocumentCount: 0,
+    });
     const { project } = useProjectData(projectId as string)
 
     const steps: WorkflowStep[] = [
@@ -113,10 +121,50 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
         setGeneratedWireframes([]);
     }, [projectId]);
 
+    const handleTourPromptChange = useCallback((value: string) => {
+        setPlanningTourState((prev) => ({
+            ...prev,
+            prompt: value,
+        }));
+    }, []);
+
+    const handleTourSelectionChange = useCallback((selectedDocumentsCount: number) => {
+        setPlanningTourState((prev) => ({
+            ...prev,
+            selectedDocumentsCount,
+        }));
+    }, []);
+
+    const handleTourGenerationStart = useCallback(() => {
+        setPlanningTourState((prev) => ({
+            ...prev,
+            isGenerating: true,
+            generationComplete: false,
+        }));
+    }, []);
+
+    const handleTourGenerationComplete = useCallback((generatedDocumentCount: number) => {
+        setPlanningTourState((prev) => ({
+            ...prev,
+            isGenerating: false,
+            generationComplete: true,
+            generatedDocumentCount,
+        }));
+    }, []);
+
     return (
         <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
             {/* Page Header */}
             <WorkflowHeader />
+
+            <WorkflowOnboardingTour
+                currentStep={currentStep}
+                selectedDocumentsCount={planningTourState.selectedDocumentsCount}
+                prompt={planningTourState.prompt}
+                isGenerating={planningTourState.isGenerating}
+                generationComplete={planningTourState.generationComplete}
+                generatedDocumentCount={planningTourState.generatedDocumentCount}
+            />
 
             {/* Progress Bar */}
             {/* <WorkflowProgressBar currentStep={currentStep} totalSteps={steps.length} /> */}
@@ -142,6 +190,10 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
                             onNext={handleNext}
                             onBack={handleBack}
                             projectName={project.name}
+                            onTourPromptChange={handleTourPromptChange}
+                            onTourSelectionChange={handleTourSelectionChange}
+                            onTourGenerationStart={handleTourGenerationStart}
+                            onTourGenerationComplete={handleTourGenerationComplete}
                         />
                     )}
 
