@@ -10,6 +10,7 @@ import {
     Step,
 } from "react-joyride";
 import { ShadcnTooltip } from "@/components/onboarding/OnboardingButton";
+import { getUserInfo, updateUserInfo } from "@/actions/user.action";
 
 interface WorkflowOnboardingTourProps {
     currentStep: number;
@@ -139,7 +140,14 @@ export default function WorkflowOnboardingTour({
     const prevConditionsRef = useRef({ currentStep: -1, selectedCount: 0, promptLength: 0, isGenerating: false, complete: false });
 
     const completeTour = useCallback(() => {
-        localStorage.setItem(WORKFLOW_ONBOARDING_KEY, "true");
+        const updateOnboardingStatus = async () => {
+            try {
+                await updateUserInfo({ onboard_workflow: true });
+            } catch (error) {
+                console.error("Failed to update workflow onboarding status:", error);
+            }
+        };
+        updateOnboardingStatus();
         setRun(false);
     }, []);
 
@@ -150,14 +158,19 @@ export default function WorkflowOnboardingTour({
     const currentTourStepId = workflowSteps[stepIndex]?.id;
 
     useEffect(() => {
-        const timer = window.setTimeout(() => {
-            if (localStorage.getItem(WORKFLOW_ONBOARDING_KEY) !== "true") {
-                setStepIndex(0);
-                setRun(true);
+        const timer = setTimeout(async () => {
+            try {
+                const user = await getUserInfo();
+                if (!user.onboard_workflow) {
+                    setStepIndex(0);
+                    setRun(true);
+                }
+            } catch (error) {
+                console.error("Failed to fetch workflow onboarding status:", error);
             }
         }, 400);
 
-        return () => window.clearTimeout(timer);
+        return () => clearTimeout(timer);
     }, []);
 
     useEffect(() => {

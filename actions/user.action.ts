@@ -8,7 +8,7 @@ export async function getUserInfo() {
     return withAccessToken((access_token) => UserService.getUserInfo(access_token))
 }
 
-export async function updateUserInfo(userInfo: { name?: string; email?: string, apiKey?: string }) {
+export async function updateUserInfo(userInfo: { name?: string; email?: string; apiKey?: string; onboard_dashboard?: boolean; onboard_project?: boolean; onboard_file?: boolean; onboard_workflow?: boolean; }) {
     const data = await withAccessToken((access_token) => UserService.updateUserInfo(access_token, userInfo))
 
     revalidatePath("/dashboard/accountsetting")

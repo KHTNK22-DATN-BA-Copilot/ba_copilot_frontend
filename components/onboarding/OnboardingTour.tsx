@@ -11,6 +11,7 @@ import {
 } from "react-joyride";
 import { usePathname } from "next/navigation";
 import { ShadcnTooltip } from "./OnboardingButton";
+import { getUserInfo, updateUserInfo } from "@/actions/user.action";
 
 // ─── Onboarding Steps cho trang Dashboard (/dashboard) ─────────────────
 const dashboardSteps: Step[] = [
@@ -240,37 +241,36 @@ export default function OnboardingTour() {
 
     useEffect(() => {
         // Delay nhẹ để chờ DOM render hoàn toàn trước khi khởi chạy tour
-        const timer = setTimeout(() => {
-            if (pathname === "/dashboard") {
-                const hasCompleted = localStorage.getItem(
-                    ONBOARDING_DASHBOARD_KEY,
-                );
-                if (hasCompleted !== "true") {
-                    setSteps(dashboardSteps);
-                    setStepIndex(0);
-                    setRun(true);
+        const timer = setTimeout(async () => {
+            try {
+                const user = await getUserInfo();
+                if (pathname === "/dashboard") {
+                    const hasCompleted = user.onboard_dashboard;
+                    if (!hasCompleted) {
+                        setSteps(dashboardSteps);
+                        setStepIndex(0);
+                        setRun(true);
+                    }
+                } else if (pathname?.match(/^\/dashboard\/project\/[^/]+$/)) {
+                    // Chỉ kích hoạt trên trang Project Overview (không phải sub-routes như /workflows)
+                    const hasCompleted = user.onboard_project;
+                    if (!hasCompleted) {
+                        setSteps(projectSteps);
+                        setStepIndex(0);
+                        setRun(true);
+                    }
+                } else if (
+                    pathname?.match(/^\/dashboard\/project\/[^/]+\/files$/)
+                ) {
+                    const hasCompleted = user.onboard_file;
+                    if (!hasCompleted) {
+                        setSteps(fileManagerSteps);
+                        setStepIndex(0);
+                        setRun(true);
+                    }
                 }
-            } else if (pathname?.match(/^\/dashboard\/project\/[^/]+$/)) {
-                // Chỉ kích hoạt trên trang Project Overview (không phải sub-routes như /workflows)
-                const hasCompleted = localStorage.getItem(
-                    ONBOARDING_PROJECT_KEY,
-                );
-                if (hasCompleted !== "true") {
-                    setSteps(projectSteps);
-                    setStepIndex(0);
-                    setRun(true);
-                }
-            } else if (
-                pathname?.match(/^\/dashboard\/project\/[^/]+\/files$/)
-            ) {
-                const hasCompleted = localStorage.getItem(
-                    ONBOARDING_FILE_MANAGER_KEY,
-                );
-                if (hasCompleted !== "true") {
-                    setSteps(fileManagerSteps);
-                    setStepIndex(0);
-                    setRun(true);
-                }
+            } catch (error) {
+                console.error("Failed to fetch user info for onboarding:", error);
             }
         }, 500);
 
@@ -347,16 +347,23 @@ export default function OnboardingTour() {
 
             if (finishedStatuses.includes(status)) {
                 setRun(false);
-                // Lưu trạng thái hoàn thành vào localStorage theo từng tour
-                if (pathname === "/dashboard") {
-                    localStorage.setItem(ONBOARDING_DASHBOARD_KEY, "true");
-                } else if (pathname?.match(/^\/dashboard\/project\/[^/]+$/)) {
-                    localStorage.setItem(ONBOARDING_PROJECT_KEY, "true");
-                } else if (
-                    pathname?.match(/^\/dashboard\/project\/[^/]+\/files$/)
-                ) {
-                    localStorage.setItem(ONBOARDING_FILE_MANAGER_KEY, "true");
-                }
+                // Lưu trạng thái hoàn thành vào API theo từng tour
+                const updateOnboardingStatus = async () => {
+                    try {
+                        if (pathname === "/dashboard") {
+                            await updateUserInfo({ onboard_dashboard: true });
+                        } else if (pathname?.match(/^\/dashboard\/project\/[^/]+$/)) {
+                            await updateUserInfo({ onboard_project: true });
+                        } else if (
+                            pathname?.match(/^\/dashboard\/project\/[^/]+\/files$/)
+                        ) {
+                            await updateUserInfo({ onboard_file: true });
+                        }
+                    } catch (error) {
+                        console.error("Failed to update onboarding status:", error);
+                    }
+                };
+                updateOnboardingStatus();
             }
         },
         [pathname],
