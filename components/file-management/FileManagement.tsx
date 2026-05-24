@@ -117,7 +117,8 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                 });
                 const uploadedFiles = await uploadFileAction(projectId, folderId, formData);
                 Analytics.uploadFile(projectId, files.length);
-
+                
+                window.dispatchEvent(new Event("file-uploaded"));
 
                 // Replace optimistic temp node with real server data
                 setFileNode((prev) => {
@@ -227,6 +228,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
         setCreating(false);
         setCreatingParent(null);
         setNewName("");
+        window.dispatchEvent(new Event("folder-created"));
     };
 
     const handleCreateCancel = () => {
@@ -274,6 +276,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                             {creating && creatingParent === null && (
                                 <div className="p-2 rounded border bg-muted/5">
                                     <input
+                                        data-tour="folder-input"
                                         ref={inputRef}
                                         value={newName}
                                         onChange={(e) =>

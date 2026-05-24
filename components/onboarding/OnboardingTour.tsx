@@ -203,10 +203,10 @@ const fileManagerSteps: Step[] = [
         target: "body",
         content: (
             <div className="text-center">
-                <h3 className="font-semibold mb-1">📂 File Manager</h3>
+                <div className="text-3xl mb-3">📂</div>
+                <h3 className="font-semibold mb-1">File Manager</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Upload, create folders, and manage all project-related
-                    documents here.
+                    Upload, create folders, and manage all project-related documents here.
                 </p>
             </div>
         ),
@@ -219,13 +219,59 @@ const fileManagerSteps: Step[] = [
             <div>
                 <h3 className="font-semibold mb-1">📁 Create Folder</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Easily create new folders to organize your project files.
+                    Click here to start creating a new folder.
                 </p>
             </div>
         ),
         placement: "bottom",
         skipBeacon: true,
+        styles: { tooltipFooter: { display: "none" } },
+        data: { waitOnTargetClick: true },
     },
+    {
+        target: '[data-tour="folder-input"]',
+        content: (
+            <div>
+                <h3 className="font-semibold mb-1">⌨️ Name your folder</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Type a name for your folder and press Enter to save.
+                </p>
+            </div>
+        ),
+        placement: "bottom",
+        skipBeacon: true,
+        styles: { tooltipFooter: { display: "none" } },
+        data: { waitOnEvent: "folder-created", pauseTour: true },
+    },
+    {
+        target: '[data-tour="upload-file"]',
+        content: (
+            <div>
+                <h3 className="font-semibold mb-1">☁️ Upload File</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Click here to upload your first file into the folder.
+                </p>
+            </div>
+        ),
+        placement: "bottom",
+        skipBeacon: true,
+        styles: { tooltipFooter: { display: "none" } },
+        data: { waitOnEvent: "file-uploaded" },
+    },
+    {
+        target: "body",
+        content: (
+            <div className="text-center">
+                <div className="text-3xl mb-3">🎉</div>
+                <h3 className="font-semibold mb-1">Congratulations!</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                    You have successfully created a folder and uploaded a file.
+                </p>
+            </div>
+        ),
+        placement: "center",
+        skipBeacon: true,
+    }
 ];
 
 // ─── localStorage Keys ─────────────────────────────────────────────────
@@ -282,51 +328,63 @@ export default function OnboardingTour() {
 
         const currentStep = steps[stepIndex];
 
-        // 1. CHỐT CHẶN AN TOÀN: Tránh lỗi undefined khi stepIndex out of bounds
         if (!currentStep) return;
 
         if (currentStep.target === "body") {
             window.scrollTo({ top: 0, behavior: "smooth" });
-            return;
         }
 
-        // 2. DÙNG setTimeout ĐỂ CHỜ UI RENDER
-        // Bọc logic tìm element vào một setTimeout nhỏ để đảm bảo
-        // ô nhập liệu (input) của bạn đã được React vẽ xong trên UI
+        const handleCustomEvent = () => {
+            setTimeout(() => {
+                setStepIndex((prev) => prev + 1);
+            }, 300);
+        };
+
+        if (currentStep.data?.waitOnEvent) {
+            window.addEventListener(currentStep.data.waitOnEvent, handleCustomEvent);
+        }
+
+        let clickCleanup: (() => void) | null = null;
+
         const timer = setTimeout(() => {
-            const targetElement = document.querySelector(
-                currentStep.target as string,
-            );
+            if (currentStep.target !== "body") {
+                const targetElement = document.querySelector(
+                    currentStep.target as string,
+                );
 
-            if (targetElement) {
-                targetElement.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center",
-                    inline: "nearest",
-                });
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                        inline: "nearest",
+                    });
 
-                if (currentStep.data?.waitOnTargetClick) {
-                    const handleTargetClick = () => {
-                        // Khi người dùng click nút "Create Folder"
-                        // Delay 200ms trước khi chuyển step để UI kịp hiển thị ô input mới
-                        setTimeout(() => {
-                            setStepIndex((prev) => prev + 1);
-                        }, 200);
-                    };
+                    if (currentStep.data?.waitOnTargetClick) {
+                        const handleTargetClick = () => {
+                            setTimeout(() => {
+                                setStepIndex((prev) => prev + 1);
+                            }, 200);
+                        };
 
-                    targetElement.addEventListener("click", handleTargetClick);
+                        targetElement.addEventListener("click", handleTargetClick);
 
-                    return () => {
-                        targetElement.removeEventListener(
-                            "click",
-                            handleTargetClick,
-                        );
-                    };
+                        clickCleanup = () => {
+                            targetElement.removeEventListener("click", handleTargetClick);
+                        };
+                    }
                 }
             }
-        }, 100); // 100ms chờ DOM ổn định trước khi Joyride tìm thẻ
+        }, 100);
 
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+            if (currentStep.data?.waitOnEvent) {
+                window.removeEventListener(currentStep.data.waitOnEvent, handleCustomEvent);
+            }
+            if (clickCleanup) {
+                clickCleanup();
+            }
+        };
     }, [stepIndex, run, steps]);
 
     const handleJoyrideCallback = useCallback(
@@ -369,12 +427,14 @@ export default function OnboardingTour() {
         [pathname],
     );
 
+    const isPaused = steps[stepIndex]?.data?.pauseTour === true;
+
     if (!run || steps.length === 0) return null;
 
     return (
         <Joyride
             steps={steps}
-            run={run}
+            run={run && !isPaused}
             stepIndex={stepIndex}
             continuous
             options={{

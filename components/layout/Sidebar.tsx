@@ -43,18 +43,18 @@ export default function Sidebar({ isDarkMode = false, isOpen = false, onClose, i
             href: `/dashboard/project/${id}`,
         },
         {
-            id: 'workflow',
-            label: 'Project Workflow',
-            description: 'Generate all in one flow',
-            icon: SparkleIcon,
-            href: `/dashboard/project/${id}/workflows`,
-        },
-        {
             id: 'files',
             label: 'Files',
             description: 'Manage project files',
             icon: Folder,
             href: `/dashboard/project/${id}/files`,
+        },
+        {
+            id: 'workflow',
+            label: 'Project Workflow',
+            description: 'Generate all in one flow',
+            icon: SparkleIcon,
+            href: `/dashboard/project/${id}/workflows`,
         },
     ];
 
