@@ -225,8 +225,7 @@ const fileManagerSteps: Step[] = [
         ),
         placement: "bottom",
         skipBeacon: true,
-        styles: { tooltipFooter: { display: "none" } },
-        data: { waitOnTargetClick: true },
+        data: { waitOnTargetClick: true, hideFooter: true },
     },
     {
         target: '[data-tour="folder-input"]',
@@ -255,8 +254,7 @@ const fileManagerSteps: Step[] = [
         ),
         placement: "bottom",
         skipBeacon: true,
-        styles: { tooltipFooter: { display: "none" } },
-        data: { waitOnEvent: "file-uploaded" },
+        data: { waitOnEvent: "file-uploaded", hideFooter: true },
     },
     {
         target: "body",
