@@ -11,6 +11,8 @@ import {
 } from "react-joyride";
 import { ShadcnTooltip } from "@/components/onboarding/OnboardingButton";
 import { getUserInfo, updateUserInfo } from "@/actions/user.action";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 interface WorkflowOnboardingTourProps {
     currentStep: number;
@@ -31,101 +33,6 @@ type WorkflowTourStepId =
     | "planning-generate"
     | "planning-results";
 
-const workflowSteps: Array<Step & { id: WorkflowTourStepId }> = [
-    {
-        id: "intro",
-        target: "body",
-        content: (
-            <div className="text-center">
-                <div className="text-3xl mb-3">🔄</div>
-                <h2 className="text-lg font-bold mb-2">Workflow Onboarding</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                    We will guide you through Requirements and Planning only.
-                    Later phases follow the same pattern, so the tour will stop
-                    once Planning returns its generated results.
-                </p>
-            </div>
-        ),
-        placement: "center",
-        skipBeacon: true,
-    },
-    {
-        id: "requirements-continue",
-        target: '[data-tour="workflow-requirements-continue"]',
-        content: (
-            <div>
-                <h3 className="font-semibold mb-1">Continue to Planning</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Review the requirements summary, then click the button to
-                    enter Planning.
-                </p>
-            </div>
-        ),
-        placement: "top",
-        skipBeacon: true,
-        data: { hideFooter: true },
-    },
-    {
-        id: "planning-docs",
-        target: '[data-tour="workflow-planning-doc-selector"]',
-        content: (
-            <div>
-                <h3 className="font-semibold mb-1">Choose Documents</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Pick the Planning documents you want to generate.
-                </p>
-            </div>
-        ),
-        placement: "top",
-        skipBeacon: true,
-    },
-    {
-        id: "planning-prompt",
-        target: '[data-tour="workflow-planning-prompt"]',
-        content: (
-            <div>
-                <h3 className="font-semibold mb-1">Enter Prompt</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Type the prompt for Planning. When the field has content,
-                    the tour continues automatically.
-                </p>
-            </div>
-        ),
-        placement: "top",
-        skipBeacon: true,
-    },
-    {
-        id: "planning-generate",
-        target: '[data-tour="workflow-planning-generate"]',
-        content: (
-            <div>
-                <h3 className="font-semibold mb-1">Generate button</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Click on the generate button to start the workflow.
-                </p>
-            </div>
-        ),
-        placement: "top",
-        skipBeacon: true,
-    },
-
-    {
-        id: "planning-results",
-        target: '[data-tour="workflow-planning-results"]',
-        content: (
-            <div>
-                <h3 className="font-semibold mb-1">Planning Results</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Your Planning documents are ready. The onboarding stops
-                    here, and later phases are ready to use without guidance.
-                </p>
-            </div>
-        ),
-        placement: "top",
-        skipBeacon: true,
-    },
-];
-
 export default function WorkflowOnboardingTour({
     currentStep,
     selectedDocumentsCount,
@@ -134,17 +41,142 @@ export default function WorkflowOnboardingTour({
     generationComplete,
     generatedDocumentCount,
 }: WorkflowOnboardingTourProps) {
+    const params = useParams();
+    const projectId = params?.id ?? "";
     const [run, setRun] = useState(false);
     const [stepIndex, setStepIndex] = useState(0);
     const prevStepIdRef = useRef<string | undefined>(undefined);
-    const prevConditionsRef = useRef({ currentStep: -1, selectedCount: 0, promptLength: 0, isGenerating: false, complete: false });
+    const prevConditionsRef = useRef({
+        currentStep: -1,
+        selectedCount: 0,
+        promptLength: 0,
+        isGenerating: false,
+        complete: false,
+    });
+
+    const workflowSteps: Array<Step & { id: WorkflowTourStepId }> = [
+        {
+            id: "intro",
+            target: "body",
+            content: (
+                <div className="text-center">
+                    <div className="text-3xl mb-3">🔄</div>
+                    <h2 className="text-lg font-bold mb-2">
+                        Workflow Onboarding
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                        This is an amazing feature that will help you get
+                        started with the workflow. Click the button below to
+                        continue.
+                    </p>
+                </div>
+            ),
+            placement: "center",
+            skipBeacon: true,
+        },
+        {
+            id: "requirements-continue",
+            target: '[data-tour="workflow-requirements-continue"]',
+            content: (
+                <div>
+                    <h3 className="font-semibold mb-1">Continue to Planning</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                        Review the requirements summary, then click the button
+                        to enter Planning. If you see the button is disabled,
+                        make sure you have at least one document selected and
+                        the requirements summary is generated. You can click
+                        outside to navigate to file section 
+                        <span>
+                            <Link
+                                href={`/dashboard/project/${projectId}/files`}
+                                onClick={(e) => {
+                                    setRun(false);
+                                }}
+                                className="text-blue-600 hover:underline px-1"
+                            >
+                                (Click here)
+                            </Link>
+                        </span>
+                        then back and we will continue the tour once the
+                        conditions are met.
+                    </p>
+                </div>
+            ),
+            placement: "top",
+            skipBeacon: true,
+            data: { hideFooter: true },
+        },
+        {
+            id: "planning-docs",
+            target: '[data-tour="workflow-planning-doc-selector"]',
+            content: (
+                <div>
+                    <h3 className="font-semibold mb-1">Choose Documents</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                        Pick the Planning documents you want to generate.
+                    </p>
+                </div>
+            ),
+            placement: "top",
+            skipBeacon: true,
+        },
+        {
+            id: "planning-prompt",
+            target: '[data-tour="workflow-planning-prompt"]',
+            content: (
+                <div>
+                    <h3 className="font-semibold mb-1">Enter Prompt</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                        Type the prompt for Planning. When the field has
+                        content, the tour continues automatically.
+                    </p>
+                </div>
+            ),
+            placement: "top",
+            skipBeacon: true,
+        },
+        {
+            id: "planning-generate",
+            target: '[data-tour="workflow-planning-generate"]',
+            content: (
+                <div>
+                    <h3 className="font-semibold mb-1">Generate button</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                        Click on the generate button to start the workflow.
+                    </p>
+                </div>
+            ),
+            placement: "top",
+            skipBeacon: true,
+        },
+
+        {
+            id: "planning-results",
+            target: '[data-tour="workflow-planning-results"]',
+            content: (
+                <div>
+                    <h3 className="font-semibold mb-1">Planning Results</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                        Your Planning documents are ready. The onboarding stops
+                        here, and later phases are ready to use without
+                        guidance.
+                    </p>
+                </div>
+            ),
+            placement: "top",
+            skipBeacon: true,
+        },
+    ];
 
     const completeTour = useCallback(() => {
         const updateOnboardingStatus = async () => {
             try {
                 await updateUserInfo({ onboard_workflow: true });
             } catch (error) {
-                console.error("Failed to update workflow onboarding status:", error);
+                console.error(
+                    "Failed to update workflow onboarding status:",
+                    error,
+                );
             }
         };
         updateOnboardingStatus();
@@ -152,7 +184,9 @@ export default function WorkflowOnboardingTour({
     }, []);
 
     const advanceStep = useCallback(() => {
-        setStepIndex((previous) => Math.min(previous + 1, workflowSteps.length - 1));
+        setStepIndex((previous) =>
+            Math.min(previous + 1, workflowSteps.length - 1),
+        );
     }, []);
 
     const currentTourStepId = workflowSteps[stepIndex]?.id;
@@ -166,7 +200,10 @@ export default function WorkflowOnboardingTour({
                     setRun(true);
                 }
             } catch (error) {
-                console.error("Failed to fetch workflow onboarding status:", error);
+                console.error(
+                    "Failed to fetch workflow onboarding status:",
+                    error,
+                );
             }
         }, 400);
 
@@ -187,7 +224,8 @@ export default function WorkflowOnboardingTour({
         // If step ID hasn't changed, don't re-evaluate
         if (
             prevStepIdRef.current === currentTourStepId &&
-            JSON.stringify(prevConditionsRef.current) === JSON.stringify(currentConditions)
+            JSON.stringify(prevConditionsRef.current) ===
+                JSON.stringify(currentConditions)
         ) {
             return;
         }
@@ -214,10 +252,7 @@ export default function WorkflowOnboardingTour({
 
         // Move to the next step when generation starts.
         // Joyride will be hidden during generation via the `run` prop.
-        if (
-            currentTourStepId === "planning-generate" &&
-            isGenerating
-        ) {
+        if (currentTourStepId === "planning-generate" && isGenerating) {
             advanceStep();
             return;
         }
@@ -245,10 +280,18 @@ export default function WorkflowOnboardingTour({
     const handleJoyrideCallback = useCallback(
         (data: EventData) => {
             const { status, action, index, type } = data;
-            const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
+            const finishedStatuses: string[] = [
+                STATUS.FINISHED,
+                STATUS.SKIPPED,
+            ];
 
             if (finishedStatuses.includes(status)) {
                 completeTour();
+                return;
+            }
+
+            if (action === ACTIONS.CLOSE) {
+                setRun(false);
                 return;
             }
 
@@ -290,7 +333,7 @@ export default function WorkflowOnboardingTour({
                 backgroundColor: "#fff",
                 textColor: "#1f2937",
                 overlayColor: "rgba(0, 0, 0, 0.5)",
-                overlayClickAction: false,
+                overlayClickAction: "close",
                 spotlightRadius: 12,
                 showProgress: true,
                 buttons: ["back", "close", "primary", "skip"],
