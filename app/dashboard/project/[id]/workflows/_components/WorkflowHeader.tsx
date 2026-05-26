@@ -4,7 +4,7 @@ import { Sparkles } from "lucide-react";
 
 export default function WorkflowHeader() {
     return (
-        <div className="space-y-2">
+        <div className="space-y-2" data-tour="workflow-header">
             <div className="flex items-start sm:items-center gap-3">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg shrink-0">
                     <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />

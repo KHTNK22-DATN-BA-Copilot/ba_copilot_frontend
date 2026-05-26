@@ -12,6 +12,10 @@ export type UserProfile = {
     name: string;
     email: string;
     apiKey?: string;
+    onboard_dashboard?: boolean;
+    onboard_project?: boolean;
+    onboard_file?: boolean;
+    onboard_workflow?: boolean;
 };
 
 export type RegisterUser = {

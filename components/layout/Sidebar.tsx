@@ -43,18 +43,18 @@ export default function Sidebar({ isDarkMode = false, isOpen = false, onClose, i
             href: `/dashboard/project/${id}`,
         },
         {
-            id: 'workflow',
-            label: 'Project Workflow',
-            description: 'Generate all in one flow',
-            icon: SparkleIcon,
-            href: `/dashboard/project/${id}/workflows`,
-        },
-        {
             id: 'files',
             label: 'Files',
             description: 'Manage project files',
             icon: Folder,
             href: `/dashboard/project/${id}/files`,
+        },
+        {
+            id: 'workflow',
+            label: 'Project Workflow',
+            description: 'Generate all in one flow',
+            icon: SparkleIcon,
+            href: `/dashboard/project/${id}/workflows`,
         },
     ];
 
@@ -143,6 +143,7 @@ export default function Sidebar({ isDarkMode = false, isOpen = false, onClose, i
                             return (
                                 <button
                                     key={item.id}
+                                    data-tour={`sidebar-${item.id === 'project-details' ? 'overview' : item.id}`}
                                     onClick={() => handleNavigation(item.href)}
                                     className={cn(
                                         'w-full flex items-start gap-3 p-3 rounded-lg text-left transition-colors',
@@ -167,7 +168,7 @@ export default function Sidebar({ isDarkMode = false, isOpen = false, onClose, i
                         })}
 
                         {/* Phases with Sub-items */}
-                        <div>
+                        <div data-tour="sidebar-phases">
                             <button
                                 onClick={() => setPhasesExpanded(!phasesExpanded)}
                                 className={cn(

@@ -12,7 +12,7 @@ export default function OverviewSection({totalProjects}: {totalProjects?: number
   ]
 
   return (
-    <div className="col-span-12">
+    <div className="col-span-12" data-tour="overview-section">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Overview</h1>
 
       {/* Overview Cards Grid */}

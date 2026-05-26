@@ -168,6 +168,7 @@ export const FolderComposite = ({
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
+                                data-tour="upload-file"
                                 variant="ghost"
                                 size="sm"
                                 onClick={(e) => {

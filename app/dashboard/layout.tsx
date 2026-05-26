@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 import { FloatingFeedbackButton } from "@/components/feedback";
+import OnboardingTour from "@/components/onboarding/OnboardingTour";
 import { Analytics } from "@/lib/analytics";
 
 export default function DashboardLayout({
@@ -50,6 +51,9 @@ export default function DashboardLayout({
             className={`min-h-screen transition-colors duration-300 ${isDarkMode ? "dark bg-gray-900" : "bg-gray-50"
                 }`}
         >
+            {/* Onboarding Tour */}
+            <OnboardingTour />
+
             <Header
                 isMenuOpen={isMenuOpen}
                 setIsMenuOpen={setIsMenuOpen}
