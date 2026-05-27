@@ -171,89 +171,85 @@ export const FolderComposite = ({
                 </div>
 
                 <div className="flex items-baseline gap-2">
-                    {canWriteFile && (
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    data-tour="upload-file"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onUpload(folder.id as number);
-                                    }}
-                                >
-                                    <FilePlus className="w-4 h-4" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Add New file</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    )}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                data-tour="upload-file"
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onUpload(folder.id as number);
+                                }}
+                                disabled={!canWriteFile}
+                            >
+                                <FilePlus className="w-4 h-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{canWriteFile ? "Add New file" : "You do not have permission to upload files (Viewer)"}</p>
+                        </TooltipContent>
+                    </Tooltip>
 
-                    {canWriteFolder && (
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setCreating(true);
-                                    }}
-                                >
-                                    <FolderPlus className="w-5 h-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Add New folder</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    )}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCreating(true);
+                                }}
+                                disabled={!canWriteFolder}
+                            >
+                                <FolderPlus className="w-5 h-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{canWriteFolder ? "Add New folder" : "You do not have permission to add folders (Viewer)"}</p>
+                        </TooltipContent>
+                    </Tooltip>
 
                     {folder.type === "folder" && !folder.systemFileType && (
                         <>
-                            {canWriteFolder && (
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setRenaming(true);
-                                                setRenameName(folder.name);
-                                            }}
-                                        >
-                                            <Edit2 className="w-4 h-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Rename folder</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            )}
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setRenaming(true);
+                                            setRenameName(folder.name);
+                                        }}
+                                        disabled={!canWriteFolder}
+                                    >
+                                        <Edit2 className="w-4 h-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{canWriteFolder ? "Rename folder" : "You do not have permission to rename folders"}</p>
+                                </TooltipContent>
+                            </Tooltip>
 
-                            {canDeleteFolder && (
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleRemoveClick(e);
-                                            }}
-                                        >
-                                            <FolderMinus className="w-4 h-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Remove folder</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            )}
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleRemoveClick(e);
+                                        }}
+                                        disabled={!canDeleteFolder}
+                                    >
+                                        <FolderMinus className="w-4 h-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{canDeleteFolder ? "Remove folder" : "You do not have permission to delete folders"}</p>
+                                </TooltipContent>
+                            </Tooltip>
                         </>
                     )}
                 </div>

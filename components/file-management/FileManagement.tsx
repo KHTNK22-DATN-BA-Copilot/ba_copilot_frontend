@@ -262,18 +262,17 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                         <Badge variant="secondary">
                             {countFiles(fileNode)} Files
                         </Badge>
-                        {canWriteFolder && (
-                            <Button
-                                data-tour="create-folder"
-                                onClick={() => {
-                                    // show inline input at root
-                                    setCreating(true);
-                                    setCreatingParent(null);
-                                }}
-                            >
-                                Create folder
-                            </Button>
-                        )}
+                        <Button
+                            data-tour="create-folder"
+                            disabled={!canWriteFolder}
+                            onClick={() => {
+                                // show inline input at root
+                                setCreating(true);
+                                setCreatingParent(null);
+                            }}
+                        >
+                            Create folder
+                        </Button>
                     </div>
 
                     <div className="w-full">
