@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useEffect, useRef, useState } from "react";
 import { countFiles } from "./utils";
+import { useProjectMembership } from "@/context/ProjectMembershipContext";
 
 type FolderCompositeProps = {
     folder: FileNode;
@@ -46,6 +47,11 @@ export const FolderComposite = ({
     onRenameFolder,
     isUploading,
 }: FolderCompositeProps) => {
+    const { hasPermission } = useProjectMembership();
+    const canWriteFolder = hasPermission("folder", "write");
+    const canDeleteFolder = hasPermission("folder", "delete");
+    const canWriteFile = hasPermission("file", "write");
+
     const [creating, setCreating] = useState(false);
     const [renaming, setRenaming] = useState(false);
     const [newName, setNewName] = useState("");
@@ -165,81 +171,89 @@ export const FolderComposite = ({
                 </div>
 
                 <div className="flex items-baseline gap-2">
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                data-tour="upload-file"
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onUpload(folder.id as number);
-                                }}
-                            >
-                                <FilePlus className="w-4 h-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Add New file</p>
-                        </TooltipContent>
-                    </Tooltip>
+                    {canWriteFile && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    data-tour="upload-file"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onUpload(folder.id as number);
+                                    }}
+                                >
+                                    <FilePlus className="w-4 h-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Add New file</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    )}
 
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setCreating(true);
-                                }}
-                            >
-                                <FolderPlus className="w-5 h-5" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Add New folder</p>
-                        </TooltipContent>
-                    </Tooltip>
+                    {canWriteFolder && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setCreating(true);
+                                    }}
+                                >
+                                    <FolderPlus className="w-5 h-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Add New folder</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    )}
 
                     {folder.type === "folder" && !folder.systemFileType && (
                         <>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setRenaming(true);
-                                            setRenameName(folder.name);
-                                        }}
-                                    >
-                                        <Edit2 className="w-4 h-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Rename folder</p>
-                                </TooltipContent>
-                            </Tooltip>
+                            {canWriteFolder && (
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setRenaming(true);
+                                                setRenameName(folder.name);
+                                            }}
+                                        >
+                                            <Edit2 className="w-4 h-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Rename folder</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            )}
 
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleRemoveClick(e);
-                                        }}
-                                    >
-                                        <FolderMinus className="w-4 h-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Remove folder</p>
-                                </TooltipContent>
-                            </Tooltip>
+                            {canDeleteFolder && (
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRemoveClick(e);
+                                            }}
+                                        >
+                                            <FolderMinus className="w-4 h-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Remove folder</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            )}
                         </>
                     )}
                 </div>
@@ -253,14 +267,16 @@ export const FolderComposite = ({
                         <div className="text-center py-8 text-muted-foreground">
                             <Folder className="w-12 h-12 mx-auto mb-2 opacity-50" />
                             <p>No files in this folder</p>
-                            <Button
-                                variant="link"
-                                size="sm"
-                                onClick={() => onUpload(folder.id as number)}
-                                className="mt-2"
-                            >
-                                Upload your first file
-                            </Button>
+                            {canWriteFile && (
+                                <Button
+                                    variant="link"
+                                    size="sm"
+                                    onClick={() => onUpload(folder.id as number)}
+                                    className="mt-2"
+                                >
+                                    Upload your first file
+                                </Button>
+                            )}
                         </div>
                     ) : (
                         <div className="space-y-2">

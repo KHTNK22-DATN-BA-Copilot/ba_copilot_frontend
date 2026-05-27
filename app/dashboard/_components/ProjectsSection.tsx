@@ -1,10 +1,11 @@
 import { FolderOpen } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProjectMoreMenu from "./ProjectMoreMenu";
 import { redirect } from "next/navigation";
 import { getDay } from "@/lib/utils";
 import { Analytics } from "@/lib/analytics";
+import { Badge } from "@/components/ui/badge";
 
 type ProjectsSectionProps = {
     isOpenFilter: boolean;
@@ -41,7 +42,13 @@ export default function ProjectsSection({
         null
     );
     const [deleteError, setDeleteError] = useState<string | null>(null);
-    const [sortedProjects, setSortedProjects] = useState<any[]>(projects);
+    const [sortedProjects, setSortedProjects] = useState<any[]>(
+        Array.isArray(projects) ? projects : []
+    );
+
+    useEffect(() => {
+        setSortedProjects(Array.isArray(projects) ? projects : []);
+    }, [projects]);
 
     const handleFilterSelect = (filterName: string) => {
         setSelectedFilter(filterName);
@@ -266,9 +273,16 @@ export default function ProjectsSection({
                                             <p className="text-sm truncate text-gray-900 dark:text-gray-100">
                                                 {item.name}
                                             </p>
-                                            <p className="text-xs text-muted-foreground dark:text-gray-400">
-                                                {getDay(item.created_at)}
-                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-xs text-muted-foreground dark:text-gray-400">
+                                                    {getDay(item.created_at)}
+                                                </p>
+                                                {item.my_role && (
+                                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">
+                                                        {item.my_role}
+                                                    </Badge>
+                                                )}
+                                            </div>
                                         </div>
                                         <ProjectMoreMenu
                                             projectId={item.id}
@@ -288,12 +302,19 @@ export default function ProjectsSection({
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <div className="flex-1 space-y-1">
-                                            <p className="text-sm truncate text-gray-900 dark:text-gray-100">
+                                            <p className="text-sm truncate text-gray-900 dark:text-gray-100 font-medium">
                                                 {item.name}
                                             </p>
-                                            <p className="text-xs text-muted-foreground dark:text-gray-400">
-                                                {getDay(item.created_at)}
-                                            </p>
+                                            <div className="flex items-center justify-between gap-2 mt-1">
+                                                <p className="text-xs text-muted-foreground dark:text-gray-400">
+                                                    {getDay(item.created_at)}
+                                                </p>
+                                                {item.my_role && (
+                                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 capitalize font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+                                                        {item.my_role}
+                                                    </Badge>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

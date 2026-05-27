@@ -26,8 +26,11 @@ import {
 } from "@/actions/file.action";
 import { getAccessToken } from "@/lib/projects";
 import { Analytics } from "@/lib/analytics";
+import { useProjectMembership } from "@/context/ProjectMembershipContext";
 
 export default function FileManagement({ projectId }: { projectId: string }) {
+    const { hasPermission } = useProjectMembership();
+    const canWriteFolder = hasPermission("folder", "write");
     const [fileNode, setFileNode] = useState<FileNode[]>([]);
     const [expandedFolders, setExpandedFolders] = useState<Set<number>>(
         new Set(),
@@ -259,16 +262,18 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                         <Badge variant="secondary">
                             {countFiles(fileNode)} Files
                         </Badge>
-                        <Button
-                            data-tour="create-folder"
-                            onClick={() => {
-                                // show inline input at root
-                                setCreating(true);
-                                setCreatingParent(null);
-                            }}
-                        >
-                            Create folder
-                        </Button>
+                        {canWriteFolder && (
+                            <Button
+                                data-tour="create-folder"
+                                onClick={() => {
+                                    // show inline input at root
+                                    setCreating(true);
+                                    setCreatingParent(null);
+                                }}
+                            >
+                                Create folder
+                            </Button>
+                        )}
                     </div>
 
                     <div className="w-full">

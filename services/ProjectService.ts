@@ -1,4 +1,4 @@
-import { Project } from "@/app/dashboard/project/[id]/_components/types";
+import { Project, ProjectMembership } from "@/app/dashboard/project/[id]/_components/types";
 import {ErrorType, ServiceResponse} from "@/type/types";
 import { HttpError } from "@/lib/auth-session";
 
@@ -14,7 +14,7 @@ export interface RecentUpdatedFile {
 export class ProjectService {
     public static async getAllProjects(token: string) {
         const res = await fetch(
-            `${process.env.BACKEND_DOMAIN}/api/v1/projects/`,
+            `${process.env.BACKEND_DOMAIN}/api/v2/projects/`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -28,12 +28,12 @@ export class ProjectService {
             throw new HttpError(res.status, errorData.message || "Failed to fetch projects");
         }
         const data = await res.json();
-        return data.projects;
+        return data.projects || [];
     }
 
     public static async getProjectById(token: string, projectId: string) {
-        const data = await fetch(
-            `${process.env.BACKEND_DOMAIN}/api/v1/projects/${projectId}`,
+        const res = await fetch(
+            `${process.env.BACKEND_DOMAIN}/api/v2/projects/${projectId}`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -41,12 +41,26 @@ export class ProjectService {
             },
         );
 
-        const project: Project = await data.json();
+        if (!res.ok) {
+            const errorData: ErrorType = await res.json().catch(() => ({ message: "Failed to fetch project" }));
+            console.error("Failed to fetch project details:", errorData.message || res.statusText);
+            throw new HttpError(res.status, errorData.message || "Failed to fetch project");
+        }
+
+        const project: Project = await res.json();
         return project;
     }
 
-    public static async createProject(token: string, name: string, description: string, status: string): Promise<ServiceResponse<Project>> {
-        const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/projects/`, {
+    public static async createProject(
+        token: string,
+        name: string,
+        description: string,
+        status: string,
+        team_size: number = 1,
+        due_date?: string,
+        project_priority?: string
+    ): Promise<ServiceResponse<Project>> {
+        const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v2/projects/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -56,6 +70,9 @@ export class ProjectService {
                 name,
                 description: description || null,
                 status: status || "active",
+                team_size,
+                due_date: due_date || null,
+                project_priority: project_priority || "low",
             }),
         });
 
@@ -73,6 +90,25 @@ export class ProjectService {
             statusCode: res.status,
             message: res.statusText
         }
+    }
+
+    public static async getMyProjectMembership(token: string, projectId: string): Promise<ProjectMembership> {
+        const res = await fetch(
+            `${process.env.BACKEND_DOMAIN}/api/v2/projects/${projectId}/members/me`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            },
+        );
+
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({ detail: "Failed to fetch project membership" }));
+            throw new HttpError(res.status, errorData.detail || "Failed to fetch project membership");
+        }
+
+        const data: ProjectMembership = await res.json();
+        return data;
     }
 
     public static async getRecentUpdatedFiles(token: string, projectId: string, limit = 6): Promise<RecentUpdatedFile[]> {

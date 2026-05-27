@@ -23,8 +23,17 @@ export async function getProjectById(projectId: string) {
     }
 }
 
-export async function createProject(name: string, description: string, status: string) {
-    const response = await withAccessToken((accessToken) => ProjectService.createProject(accessToken, name, description, status))
+export async function createProject(
+    name: string,
+    description: string,
+    status: string,
+    teamSize: number = 1,
+    dueDate?: string,
+    priority?: string
+) {
+    const response = await withAccessToken((accessToken) =>
+        ProjectService.createProject(accessToken, name, description, status, teamSize, dueDate, priority)
+    );
 
     if(response.success) {
         return {
@@ -36,6 +45,17 @@ export async function createProject(name: string, description: string, status: s
     return {
         status: response.statusCode,
         message: response.message
+    }
+}
+
+export async function getMyProjectMembership(projectId: string) {
+    try {
+        return await withAccessToken((accessToken) =>
+            ProjectService.getMyProjectMembership(accessToken, projectId)
+        );
+    } catch (error) {
+        console.error(`Error fetching membership for project ${projectId}:`, error);
+        throw error;
     }
 }
 

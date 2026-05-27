@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Analytics } from "@/lib/analytics";
+import { useProjectMembership } from "@/context/ProjectMembershipContext";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -27,8 +28,11 @@ export default function DeleteProjectSection({
     projectName,
 }: DeleteProjectSectionProps) {
     const router = useRouter();
+    const { hasPermission } = useProjectMembership();
     const [isDeleting, setIsDeleting] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+
+    const canDelete = hasPermission("project", "delete");
 
     const handleDelete = async () => {
         setIsDeleting(true);
@@ -52,6 +56,8 @@ export default function DeleteProjectSection({
             setIsOpen(false);
         }
     };
+
+    if (!canDelete) return null;
 
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-red-200 dark:border-red-900/50 shadow-sm">

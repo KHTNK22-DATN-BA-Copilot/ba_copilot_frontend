@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { name, description, status } = body;
+        const { name, description, status, team_size, due_date, project_priority } = body;
 
         // Get access token from cookies
         const cookieStore = await cookies();
@@ -17,8 +17,8 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Call backend API to create project
-        const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/projects/`, {
+        // Call backend API to create project via v2 API
+        const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v2/projects/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -28,6 +28,9 @@ export async function POST(request: NextRequest) {
                 name,
                 description: description || null,
                 status: status || "active",
+                team_size: team_size || 1,
+                due_date: due_date || "2026-05-27T14:44:09.420Z",
+                project_priority: project_priority || "low",
             }),
         });
 
@@ -63,8 +66,8 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Call backend API to get projects (backend filters out soft-deleted projects with status="deleted")
-        const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/projects/`, {
+        // Call backend API to get projects via v2 API
+        const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v2/projects/`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${accessToken.value}`,

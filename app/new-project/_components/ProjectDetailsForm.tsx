@@ -9,8 +9,6 @@ interface ProjectDetailsFormProps {
   setProjectName: (value: string) => void;
   description: string;
   setDescription: (value: string) => void;
-  dueDate: string;
-  setDueDate: (value: string) => void;
 }
 
 export default function ProjectDetailsForm({
@@ -18,8 +16,6 @@ export default function ProjectDetailsForm({
   setProjectName,
   description,
   setDescription,
-  dueDate,
-  setDueDate,
 }: ProjectDetailsFormProps) {
   return (
     <Card>
@@ -59,56 +55,56 @@ export default function ProjectDetailsForm({
             />
           </div>
 
-          {/* Due Date and Team Size */}
+          {/* Due Date and Priority (Disabled in UI, but preserving logic in page action defaults) */}
           {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="due-date" className="text-gray-900 dark:text-gray-100">
+              <Label htmlFor="due-date" className="text-gray-550 dark:text-gray-400">
                 Due Date
               </Label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-550" />
                 <Input
                   id="due-date"
                   type="date"
-                  className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                  className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 opacity-60 cursor-not-allowed"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
+                  disabled
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="team-size" className="text-gray-900 dark:text-gray-100">
-                Estimated Team Size
+              <Label htmlFor="priority" className="text-gray-550 dark:text-gray-400">
+                Project Priority
               </Label>
-              <Select defaultValue="small">
-                <SelectTrigger id="team-size">
+              <Select value={priority} onValueChange={setPriority} disabled>
+                <SelectTrigger id="priority" className="opacity-60 cursor-not-allowed">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="solo">Solo (1 person)</SelectItem>
-                  <SelectItem value="small">Small (2-5 people)</SelectItem>
-                  <SelectItem value="medium">Medium (6-15 people)</SelectItem>
-                  <SelectItem value="large">Large (16+ people)</SelectItem>
+                  <SelectItem value="low">Low Priority</SelectItem>
+                  <SelectItem value="medium">Medium Priority</SelectItem>
+                  <SelectItem value="high">High Priority</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div> */}
 
-          {/* Project Priority */}
+          {/* Estimated Team Size (Commented out based on feedback) */}
           {/* <div className="space-y-2">
-            <Label htmlFor="priority" className="text-gray-900 dark:text-gray-100">
-              Project Priority
+            <Label htmlFor="team-size" className="text-gray-900 dark:text-gray-100">
+              Estimated Team Size
             </Label>
-            <Select defaultValue="medium">
-              <SelectTrigger id="priority">
+            <Select defaultValue="small">
+              <SelectTrigger id="team-size">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="low">Low Priority</SelectItem>
-                <SelectItem value="medium">Medium Priority</SelectItem>
-                <SelectItem value="high">High Priority</SelectItem>
-                <SelectItem value="critical">Critical Priority</SelectItem>
+                <SelectItem value="solo">Solo (1 person)</SelectItem>
+                <SelectItem value="small">Small (2-5 people)</SelectItem>
+                <SelectItem value="medium">Medium (6-15 people)</SelectItem>
+                <SelectItem value="large">Large (16+ people)</SelectItem>
               </SelectContent>
             </Select>
           </div> */}
