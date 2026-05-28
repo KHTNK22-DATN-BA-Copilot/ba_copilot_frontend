@@ -191,7 +191,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
 
     const handleRemoveFolder = async (folderId: number) => {
         try {
-            await deleteFolderAction(folderId);
+            await deleteFolderAction(projectId, folderId);
             Analytics.deleteFolder(folderId);
             setFileNode((prev) => removeNodeById(prev, folderId));
 
@@ -208,14 +208,14 @@ export default function FileManagement({ projectId }: { projectId: string }) {
     const handleRenameFolder = useCallback(
         async (folderId: number, newName: string) => {
             try {
-                await renameFolderAction(folderId, newName);
+                await renameFolderAction(projectId, folderId, newName);
                 Analytics.renameFolder(folderId);
                 setFileNode((prev) => renameNodeById(prev, folderId, newName));
             } catch (err) {
                 console.error("Failed to rename folder:", err);
             }
         },
-        [],
+        [projectId],
     );
 
     const handleCreateConfirm = () => {

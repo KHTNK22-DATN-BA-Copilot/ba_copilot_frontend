@@ -1,6 +1,6 @@
 'use server'
 
-import { FileService, ApiFileRaw, ApiTreeRaw } from "@/services/FileService";
+import { FileService, ApiFileRaw, ApiTreeRaw, ApiFolderRaw } from "@/services/FileService";
 import { FileNode } from "@/components/file-management/type";
 import { formatFileSize, formatDate } from "@/components/file-management/utils";
 import { withAccessToken } from "@/lib/auth-action";
@@ -67,15 +67,23 @@ export async function createFolderAction(
     return withAccessToken((token) => FileService.createFolder(token, projectId, name, parentId));
 }
 
-export async function deleteFolderAction(folderId: number): Promise<void> {
-    await withAccessToken((token) => FileService.deleteFolder(token, folderId));
+export async function getFolderContentsAction(
+    projectId: string,
+    folderId: number,
+): Promise<{ folders: ApiFolderRaw[]; files: ApiFileRaw[] }> {
+    return withAccessToken((token) => FileService.getFolderContents(token, projectId, folderId));
+}
+
+export async function deleteFolderAction(projectId: string, folderId: number): Promise<void> {
+    await withAccessToken((token) => FileService.deleteFolder(token, projectId, folderId));
 }
 
 export async function renameFolderAction(
+    projectId: string,
     folderId: number,
     newName: string,
 ): Promise<void> {
-    await withAccessToken((token) => FileService.renameFolder(token, folderId, newName));
+    await withAccessToken((token) => FileService.renameFolder(token, projectId, folderId, newName));
 }
 
 export async function uploadFileAction(

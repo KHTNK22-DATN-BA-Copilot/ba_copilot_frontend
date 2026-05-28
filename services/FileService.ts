@@ -77,7 +77,7 @@ export class FileService {
         parentId: number | null,
     ): Promise<{ id: number; name: string }> {
         const resp = await fetch(
-            `${this.baseUrl}/api/v1/projects/${projectId}/folders`,
+            `${this.baseUrl}/api/v2/projects/${projectId}/folders`,
             {
                 method: "POST",
                 headers: this.authHeaders(token, true),
@@ -89,28 +89,52 @@ export class FileService {
         return resp.json();
     }
 
+    public static async getFolderContents(
+        token: string,
+        projectId: string,
+        folderId: number,
+    ): Promise<{ folders: ApiFolderRaw[]; files: ApiFileRaw[] }> {
+        const resp = await fetch(
+            `${this.baseUrl}/api/v2/projects/${projectId}/folders/${folderId}/contents`,
+            {
+                headers: this.authHeaders(token),
+            },
+        );
+        if (!resp.ok)
+            throw new HttpError(resp.status, `Failed to get folder contents: ${resp.status}`);
+        return resp.json();
+    }
+
     public static async deleteFolder(
         token: string,
+        projectId: string,
         folderId: number,
     ): Promise<void> {
-        const resp = await fetch(`${this.baseUrl}/api/v1/folders/${folderId}`, {
-            method: "DELETE",
-            headers: this.authHeaders(token),
-        });
+        const resp = await fetch(
+            `${this.baseUrl}/api/v2/projects/${projectId}/folders/${folderId}`,
+            {
+                method: "DELETE",
+                headers: this.authHeaders(token),
+            },
+        );
         if (!resp.ok)
             throw new HttpError(resp.status, `Failed to delete folder: ${resp.status}`);
     }
 
     public static async renameFolder(
         token: string,
+        projectId: string,
         folderId: number,
         newName: string,
     ): Promise<void> {
-        const resp = await fetch(`${this.baseUrl}/api/v1/folders/${folderId}`, {
-            method: "PATCH",
-            headers: this.authHeaders(token, true),
-            body: JSON.stringify({ name: newName }),
-        });
+        const resp = await fetch(
+            `${this.baseUrl}/api/v2/projects/${projectId}/folders/${folderId}`,
+            {
+                method: "PATCH",
+                headers: this.authHeaders(token, true),
+                body: JSON.stringify({ name: newName }),
+            },
+        );
         if (!resp.ok)
             throw new HttpError(resp.status, `Failed to rename folder: ${resp.status}`);
     }
