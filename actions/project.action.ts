@@ -35,7 +35,7 @@ export async function createProject(
         ProjectService.createProject(accessToken, name, description, status, teamSize, dueDate, priority)
     );
 
-    if(response.success) {
+    if (response.success) {
         return {
             status: response.statusCode,
             data: response.data,
@@ -66,5 +66,49 @@ export async function getRecentUpdatedFiles(projectId: string, limit = 6) {
     catch (error) {
         console.error(`Error fetching recent updated files for project ${projectId}:`, error);
         return [];
+    }
+}
+
+export async function getProjectMembers(projectId: string) {
+    try {
+        return await withAccessToken((accessToken) =>
+            ProjectService.getProjectMembers(accessToken, projectId)
+        );
+    } catch (error) {
+        console.error(`Error fetching members for project ${projectId}:`, error);
+        throw error;
+    }
+}
+
+export async function inviteProjectMember(projectId: string, email: string, role: string) {
+    try {
+        const data = await withAccessToken((accessToken) =>
+            ProjectService.inviteProjectMember(accessToken, projectId, email, role)
+        );
+        return { success: true, data };
+    } catch (error: any) {
+        return { success: false, error: error.message || "Failed to invite member" };
+    }
+}
+
+export async function updateProjectMemberRole(projectId: string, userId: string | number, role: string) {
+    try {
+        const data = await withAccessToken((accessToken) =>
+            ProjectService.updateProjectMemberRole(accessToken, projectId, userId, role)
+        );
+        return { success: true, data };
+    } catch (error: any) {
+        return { success: false, error: error.message || "Failed to update member role" };
+    }
+}
+
+export async function removeProjectMember(projectId: string, userId: string | number) {
+    try {
+        const data = await withAccessToken((accessToken) =>
+            ProjectService.removeProjectMember(accessToken, projectId, userId)
+        );
+        return { success: true, data };
+    } catch (error: any) {
+        return { success: false, error: error.message || "Failed to remove member" };
     }
 }

@@ -1,5 +1,5 @@
 import { Project, ProjectMembership } from "@/app/dashboard/project/[id]/_components/types";
-import {ErrorType, ServiceResponse} from "@/type/types";
+import { ErrorType, ServiceResponse } from "@/type/types";
 import { HttpError } from "@/lib/auth-session";
 
 export interface RecentUpdatedFile {
@@ -76,7 +76,7 @@ export class ProjectService {
             }),
         });
 
-        if(res.ok) {
+        if (res.ok) {
             const data: Project = await res.json()
             return {
                 success: true,
@@ -108,6 +108,128 @@ export class ProjectService {
         }
 
         const data: ProjectMembership = await res.json();
+        return data;
+    }
+
+    public static async getProjectMembers(token: string, projectId: string) {
+        const res = await fetch(
+            `${process.env.BACKEND_DOMAIN}/api/v2/projects/${projectId}/members`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            },
+        );
+
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({ detail: "Failed to fetch project members" }));
+            throw new HttpError(res.status, errorData.detail || "Failed to fetch project members");
+        }
+
+        const data = await res.json();
+        return data.members || [];
+    }
+
+    public static async inviteProjectMember(token: string, projectId: string, email: string, role: string) {
+        const res = await fetch(
+            `${process.env.BACKEND_DOMAIN}/api/v2/projects/${projectId}/members/invite`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ email, role }),
+            },
+        );
+
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({ detail: "Failed to invite project member" }));
+            let errorMsg = "Failed to invite project member";
+            
+            if (errorData.detail) {
+                if (Array.isArray(errorData.detail)) {
+                    errorMsg = errorData.detail.map((err: { loc: string[]; msg: string }) => `${err.loc.join('.')}: ${err.msg}`).join(', ');
+                } else if (typeof errorData.detail === "string") {
+                    errorMsg = errorData.detail;
+                }
+            }
+            
+            throw new HttpError(res.status, errorMsg);
+        }
+
+        const data = await res.json();
+        return data;
+    }
+
+    public static async updateProjectMemberRole(
+        token: string,
+        projectId: string,
+        userId: string | number,
+        role: string
+    ) {
+        const res = await fetch(
+            `${process.env.BACKEND_DOMAIN}/api/v2/projects/${projectId}/members/${userId}/role`,
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ role }),
+            },
+        );
+
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({ detail: "Failed to update project member role" }));
+            let errorMsg = "Failed to update project member role";
+            
+            if (errorData.detail) {
+                if (Array.isArray(errorData.detail)) {
+                    errorMsg = errorData.detail.map((err: { loc: string[]; msg: string }) => `${err.loc.join('.')}: ${err.msg}`).join(', ');
+                } else if (typeof errorData.detail === "string") {
+                    errorMsg = errorData.detail;
+                }
+            }
+            
+            throw new HttpError(res.status, errorMsg);
+        }
+
+        const data = await res.json();
+        return data;
+    }
+
+    public static async removeProjectMember(
+        token: string,
+        projectId: string,
+        userId: string | number
+    ) {
+        const res = await fetch(
+            `${process.env.BACKEND_DOMAIN}/api/v2/projects/${projectId}/members/${userId}`,
+            {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            },
+        );
+
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({ detail: "Failed to remove member from project" }));
+            let errorMsg = "Failed to remove member from project";
+            
+            if (errorData.detail) {
+                if (Array.isArray(errorData.detail)) {
+                    errorMsg = errorData.detail.map((err: { loc: string[]; msg: string }) => `${err.loc.join('.')}: ${err.msg}`).join(', ');
+                } else if (typeof errorData.detail === "string") {
+                    errorMsg = errorData.detail;
+                }
+            }
+            
+            throw new HttpError(res.status, errorMsg);
+        }
+
+        const data = await res.json();
         return data;
     }
 
