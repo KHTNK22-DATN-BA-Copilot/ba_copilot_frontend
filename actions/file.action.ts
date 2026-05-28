@@ -97,8 +97,14 @@ export async function uploadFileAction(
     });
 }
 
-export async function deleteFileAction(fileId: number): Promise<void> {
-    await withAccessToken((token) => FileService.deleteFile(token, fileId));
+export async function deleteFileAction(projectId: string, fileId: string | number): Promise<void> {
+    await withAccessToken((token) => FileService.deleteFile(token, projectId, fileId));
+}
+
+export async function exportFileAction(projectId: string, fileId: string | number): Promise<string> {
+    const blob = await withAccessToken((token) => FileService.exportFile(token, projectId, fileId));
+    const buffer = Buffer.from(await blob.arrayBuffer());
+    return buffer.toString("base64");
 }
 
 export async function fileExists(projectId: string): Promise<boolean> {

@@ -16,7 +16,7 @@ export interface ApiFolderRaw {
 }
 
 export interface ApiFileRaw {
-    id: number;
+    id: number | string;
     name: string;
     extension?: string;
     file_type?: string;
@@ -145,8 +145,12 @@ export class FileService {
         folderId: number,
         formData: FormData,
     ): Promise<ApiFileRaw | ApiFileRaw[]> {
+        if (!formData.has("folder_id")) {
+            formData.append("folder_id", folderId.toString());
+        }
+
         const resp = await fetch(
-            `${this.baseUrl}/api/v1/files/upload/${projectId}/${folderId}`,
+            `${this.baseUrl}/api/v2/projects/${projectId}/files/upload`,
             {
                 method: "POST",
                 headers: this.authHeaders(token),
@@ -157,11 +161,12 @@ export class FileService {
         if (!resp.ok) throw new HttpError(resp.status, `Failed to upload file: ${resp.status}`);
         const response = (await resp.json()) as FileUploadResponse;
 
-        if (response.status === "ok") {
-            const data = response.files;
+        if (response.status === "ok" || response.status === "success" || (response as any).status === "success") {
+            const data = response.files || [];
             const result: ApiFileRaw[] = data.map((item) => {
+                const parsedId = parseInt(item.id);
                 return {
-                    id: parseInt(item.id),
+                    id: isNaN(parsedId) ? item.id : parsedId,
                     name: item.name,
                     file_size: item.size_kb,
                     extension: item.type,
@@ -178,12 +183,31 @@ export class FileService {
 
     public static async deleteFile(
         token: string,
-        fileId: number,
+        projectId: string,
+        fileId: string | number,
     ): Promise<void> {
-        const resp = await fetch(`${this.baseUrl}/api/v1/files/${fileId}`, {
-            method: "DELETE",
-            headers: this.authHeaders(token),
-        });
+        const resp = await fetch(
+            `${this.baseUrl}/api/v2/projects/${projectId}/files/${fileId}`,
+            {
+                method: "DELETE",
+                headers: this.authHeaders(token),
+            },
+        );
         if (!resp.ok) throw new HttpError(resp.status, `Failed to delete file: ${resp.status}`);
+    }
+
+    public static async exportFile(
+        token: string,
+        projectId: string,
+        fileId: string | number,
+    ): Promise<Blob> {
+        const resp = await fetch(
+            `${this.baseUrl}/api/v2/projects/${projectId}/files/${fileId}/export`,
+            {
+                headers: this.authHeaders(token),
+            },
+        );
+        if (!resp.ok) throw new HttpError(resp.status, `Failed to export file: ${resp.status}`);
+        return resp.blob();
     }
 }

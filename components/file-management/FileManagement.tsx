@@ -27,6 +27,7 @@ import {
 import { getAccessToken } from "@/lib/projects";
 import { Analytics } from "@/lib/analytics";
 import { useProjectMembership } from "@/context/ProjectMembershipContext";
+import { toast } from "sonner";
 
 export default function FileManagement({ projectId }: { projectId: string }) {
     const { hasPermission } = useProjectMembership();
@@ -134,10 +135,21 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                     }
                     return updated;
                 });
-            } catch (err) {
+
+                // Fetch fresh tree contents on success
+                const freshTree = await getFileTree(projectId);
+                setFileNode(freshTree);
+                toast.success("File uploaded successfully.");
+            } catch (err: any) {
                 console.error("Failed to upload file:", err);
                 setFileNode(previousState);
-                alert("Failed to upload file. Please try again.");
+                if (err.status === 403) {
+                    toast.error("You do not have permission to perform this action on this file.");
+                } else if (err.status === 404) {
+                    toast.error("Action failed. Invalid file or project.");
+                } else {
+                    toast.error("Failed to upload file. Please try again.");
+                }
             } finally {
                 setLoadingFiles((prev) => {
                     const next = new Set(prev);
@@ -151,13 +163,26 @@ export default function FileManagement({ projectId }: { projectId: string }) {
         fileInput.click();
     };
 
-    const handleDeleteFile = (folderId: number, fileId: number) => {
-        deleteFileAction(fileId).then(() => {
+    const handleDeleteFile = (folderId: number, fileId: string | number) => {
+        deleteFileAction(projectId, fileId).then(() => {
             Analytics.deleteFile(fileId);
-        }).catch((err) => {
+            // Fetch fresh tree contents on success
+            getFileTree(projectId)
+                .then((data) => {
+                    setFileNode(data);
+                })
+                .catch(console.error);
+            toast.success("File deleted successfully.");
+        }).catch((err: any) => {
             console.error("Failed to delete file:", err);
-            alert("Failed to delete file. Please try again.");
-        })
+            if (err.status === 403) {
+                toast.error("You do not have permission to perform this action on this file.");
+            } else if (err.status === 404) {
+                toast.error("Action failed. Invalid file or project.");
+            } else {
+                toast.error("Failed to delete file. Please try again.");
+            }
+        });
         setFileNode((prev) => removeNodeById(prev, fileId));
     };
 
@@ -245,11 +270,17 @@ export default function FileManagement({ projectId }: { projectId: string }) {
 
         try {
             const token = await getAccessToken();
-            await exportFileFromClient(file.id as number | string, token ?? "");
+            await exportFileFromClient(projectId, file.id as number | string, token ?? "");
             Analytics.downloadFile(file.id as string | number);
-        } catch (err) {
+        } catch (err: any) {
             console.error("Failed to download file:", err);
-            alert("Failed to download file. Please try again.");
+            if (err.status === 403) {
+                toast.error("You do not have permission to perform this action on this file.");
+            } else if (err.status === 404) {
+                toast.error("Action failed. Invalid file or project.");
+            } else {
+                toast.error("Failed to download file. Please try again.");
+            }
         }
     };
 

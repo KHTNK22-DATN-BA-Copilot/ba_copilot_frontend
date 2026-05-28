@@ -25,7 +25,7 @@ type FolderCompositeProps = {
     isUploading?: Set<string | number>;
     toggle: (id: number) => void;
     onUpload: (folderId: number) => void;
-    onDelete: (folderId: number, fileId: number) => void;
+    onDelete: (folderId: number, fileId: number | string) => void;
     onDownload?: (file: FileNode) => void;
     onSelect?: (file: FileNode) => void;
     onCreateFolder?: (parentId: number, name: string) => void;

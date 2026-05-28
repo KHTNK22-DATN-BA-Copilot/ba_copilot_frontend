@@ -7,7 +7,7 @@ import { useProjectMembership } from "@/context/ProjectMembershipContext";
 type FileLeafProps = {
     file: FileNode;
     isUploading?: Set<string | number>;
-    onDelete: (fileId: number) => void;
+    onDelete: (fileId: number | string) => void;
     onDownload?: (file: FileNode) => void;
     onSelect?: (file: FileNode) => void;
 };
@@ -75,7 +75,7 @@ export const FileLeaf: React.FC<FileLeafProps> = ({ file, isUploading, onDelete,
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onDelete(file.id as number)}
+                        onClick={() => onDelete(file.id)}
                         aria-label={`Delete ${file.name}`}
                     >
                         <Trash2 className="w-4 h-4 text-red-600" />

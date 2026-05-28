@@ -113,16 +113,21 @@ export function calculateFolderPath(
  * or trigger browser downloads.
  */
 export async function exportFileFromClient(
+    projectId: string,
     documentId: number | string,
     accessToken: string,
 ): Promise<void> {
     const baseUrl = process.env.NEXT_PUBLIC_BACKEND_DOMAIN ?? "http://localhost:8010";
-    const resp = await fetch(`${baseUrl}/api/v1/files/export/${documentId}`, {
+    const resp = await fetch(`${baseUrl}/api/v2/projects/${projectId}/files/${documentId}/export`, {
         method: "GET",
         headers: { Authorization: `Bearer ${accessToken}` },
         credentials: "include",
     });
-    if (!resp.ok) throw new Error(`Failed to export file: ${resp.status}`);
+    if (!resp.ok) {
+        const error = new Error(`Failed to export file: ${resp.status}`);
+        (error as any).status = resp.status;
+        throw error;
+    }
 
     const blob = await resp.blob();
 
