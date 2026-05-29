@@ -62,7 +62,7 @@ export class FileService {
         projectId: string,
     ): Promise<ApiTreeRaw> {
         const resp = await fetch(
-            `${this.baseUrl}/api/v1/projects/${projectId}/tree`,
+            `${this.baseUrl}/api/v2/projects/${projectId}/tree`,
             { headers: this.authHeaders(token) },
         );
         if (!resp.ok) throw new HttpError(resp.status, `Failed to fetch tree: ${resp.status}`);

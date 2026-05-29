@@ -234,7 +234,7 @@ export class ProjectService {
     }
 
     public static async getRecentUpdatedFiles(token: string, projectId: string, limit = 6): Promise<RecentUpdatedFile[]> {
-        const treeRes = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/projects/${projectId}/tree`, {
+        const treeRes = await fetch(`${process.env.BACKEND_DOMAIN}/api/v2/projects/${projectId}/tree`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },

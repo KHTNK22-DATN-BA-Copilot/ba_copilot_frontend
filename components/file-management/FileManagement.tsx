@@ -2,6 +2,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { FileNode } from "./type";
 import { FolderComposite } from "./FolderComposite";
@@ -30,6 +31,7 @@ import { useProjectMembership } from "@/context/ProjectMembershipContext";
 import { toast } from "sonner";
 
 export default function FileManagement({ projectId }: { projectId: string }) {
+    const router = useRouter();
     const { hasPermission } = useProjectMembership();
     const canWriteFolder = hasPermission("folder", "write");
     const [fileNode, setFileNode] = useState<FileNode[]>([]);
@@ -63,9 +65,23 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                 });
                 setExpandedFolders(initial);
             })
-            .catch(console.error);
+            .catch((err: any) => {
+                if (!mounted) return;
+
+                console.error("Failed to load project structure:", err);
+
+                if (err.status === 404) {
+                    toast.error("Project structure data not found.");
+                    router.push("/dashboard");
+                } else if (err.status === 422) {
+                    toast.error("Invalid request. Please check the project ID.");
+                    router.push("/dashboard");
+                } else {
+                    toast.error("An error occurred while loading the folder structure.");
+                }
+            });
         return () => { mounted = false; };
-    }, [projectId]);
+    }, [projectId, router]);
 
     const toggleFolder = useCallback((folderId: number) => {
         setExpandedFolders((prev) => {
@@ -111,7 +127,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                 for (const file of files) {
                     formData.append("files", file);
                 }
-                
+
                 setLoadingFiles((prev) => {
                     const next = new Set(prev);
                     for (const tempFileNode of tempFileNodes) {
@@ -121,7 +137,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                 });
                 const uploadedFiles = await uploadFileAction(projectId, folderId, formData);
                 Analytics.uploadFile(projectId, files.length);
-                
+
                 window.dispatchEvent(new Event("file-uploaded"));
 
                 // Replace optimistic temp node with real server data
