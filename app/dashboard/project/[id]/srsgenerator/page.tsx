@@ -18,8 +18,8 @@ export default async function SRSGeneratorPage({
     searchParams,
     params,
 }: {
-    searchParams: { tabs?: string; doc?: string };
-    params: { id: string };
+    searchParams: Promise<{ tabs?: string; doc?: string }>;
+    params: Promise<{ id: string }>;
 }) {
     const tabs = (await searchParams).tabs;
     const doc = (await searchParams).doc;

@@ -3,7 +3,32 @@ import "server-only";
 
 export class WorkflowService {
     /**
-     * Generate workflow documents (planning/analysis/design)
+     * Parse and format standard FastAPI validation errors (422) and RBAC error responses (403, 404).
+     */
+    private static async handleResponseError(response: Response, defaultMessage: string): Promise<string> {
+        try {
+            const errorData = await response.json();
+            if (errorData.detail) {
+                if (typeof errorData.detail === "string") {
+                    return errorData.detail;
+                }
+                if (Array.isArray(errorData.detail)) {
+                    return errorData.detail
+                        .map((err: any) => {
+                            const field = err.loc ? err.loc.join(".") : "";
+                            return field ? `${field}: ${err.msg}` : err.msg;
+                        })
+                        .join("; ");
+                }
+            }
+            return errorData.message || defaultMessage;
+        } catch {
+            return defaultMessage;
+        }
+    }
+
+    /**
+     * Generate workflow documents (planning/analysis/design) (V2)
      */
     public static async generateDocument(
         token: string,
@@ -11,31 +36,33 @@ export class WorkflowService {
         selectedFiles: string[],
         selectedDocIds: string[],
         projectId: string,
+        stepName: string = "planning",
+        projectName: string = ""
     ): Promise<ServiceResponse<{ jobId: string }>> {
         try {
+            const docType = selectedDocIds[0] || "";
             const response = await fetch(
-                `${process.env.BACKEND_DOMAIN}/api/v1/workflow/generate`,
+                `${process.env.BACKEND_DOMAIN}/api/v2/projects/${projectId}/${stepName}/generate`,
                 {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
+                        "Content-Type": "application/json",
                         "Authorization": `Bearer ${token}`,
                     },
-                    body: new URLSearchParams({
-                        prompt: String(prompt),
-                        selectedFiles: JSON.stringify(selectedFiles),
-                        selectedDocIds: JSON.stringify(selectedDocIds),
-                        projectId: String(projectId),
-                    }).toString(),
+                    body: JSON.stringify({
+                        project_name: projectName || "Project",
+                        doc_type: docType,
+                        description: prompt,
+                    }),
                 }
             );
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
+                const message = await this.handleResponseError(response, "Failed to generate document");
                 return {
                     success: false,
                     statusCode: response.status,
-                    message: errorData.message || "Failed to generate document",
+                    message,
                 };
             }
 
@@ -44,7 +71,7 @@ export class WorkflowService {
                 success: true,
                 statusCode: response.status,
                 data: {
-                    jobId: data.jobId,
+                    jobId: data.document_id || "",
                 },
             };
         } catch (error) {
@@ -58,7 +85,7 @@ export class WorkflowService {
     }
 
     /**
-     * Get the status of a workflow generation job
+     * Get the status of a workflow generation job (Kept for compatibility)
      */
     public static async getJobStatus(
         token: string,
@@ -110,7 +137,7 @@ export class WorkflowService {
     }
 
     /**
-     * Get list of documents for a specific workflow step
+     * Get list of documents for a specific workflow step (V2)
      */
     public static async getDocumentsByStep(
         token: string,
@@ -136,7 +163,7 @@ export class WorkflowService {
             }
 
             const response = await fetch(
-                `${process.env.BACKEND_DOMAIN}/api/v1/${stepName}/list/${projectId}`,
+                `${process.env.BACKEND_DOMAIN}/api/v2/projects/${projectId}/${stepName}`,
                 {
                     method: "GET",
                     headers: {
@@ -147,11 +174,11 @@ export class WorkflowService {
             );
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
+                const message = await this.handleResponseError(response, `Failed to fetch ${stepName} documents`);
                 return {
                     success: false,
                     statusCode: response.status,
-                    message: errorData.message || `Failed to fetch ${stepName} documents`,
+                    message,
                 };
             }
 
@@ -174,17 +201,15 @@ export class WorkflowService {
     }
 
     /**
-     * Regenerate a specific document for a workflow step
+     * Get detail of a specific workflow document (V2)
      */
-    public static async regenerateDocument(
+    public static async getDocument(
         token: string,
         stepName: string,
         projectId: string,
         documentId: string,
-        description?: string,
     ): Promise<ServiceResponse<any>> {
         try {
-            console.log("WorkflowService.regenerateDocument called with description:", description);
             if (!stepName || !projectId || !documentId) {
                 return {
                     success: false,
@@ -203,23 +228,89 @@ export class WorkflowService {
             }
 
             const response = await fetch(
-                `${process.env.BACKEND_DOMAIN}/api/v1/${stepName}/regenerate/${projectId}/${documentId}`,
+                `${process.env.BACKEND_DOMAIN}/api/v2/projects/${projectId}/${stepName}/${documentId}`,
                 {
-                    method: "PATCH",
+                    method: "GET",
                     headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
+                        "Content-Type": "application/json",
                         "Authorization": `Bearer ${token}`,
                     },
-                    body: new URLSearchParams({ ...(description ? { description } : {}) }),
                 }
             );
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
+                const message = await this.handleResponseError(response, "Failed to fetch document details");
                 return {
                     success: false,
                     statusCode: response.status,
-                    message: errorData.message || "Failed to regenerate document",
+                    message,
+                };
+            }
+
+            const data = await response.json();
+            return {
+                success: true,
+                statusCode: response.status,
+                data,
+            };
+        } catch (error) {
+            console.error("Error fetching document details:", error);
+            return {
+                success: false,
+                statusCode: 500,
+                message: "An unexpected error occurred while fetching document details",
+            };
+        }
+    }
+
+    /**
+     * Regenerate a specific document for a workflow step (V2)
+     */
+    public static async regenerateDocument(
+        token: string,
+        stepName: string,
+        projectId: string,
+        documentId: string,
+        description?: string,
+    ): Promise<ServiceResponse<any>> {
+        try {
+            if (!stepName || !projectId || !documentId) {
+                return {
+                    success: false,
+                    statusCode: 400,
+                    message: "Step name, project ID, and document ID are required",
+                };
+            }
+
+            const validSteps = ["planning", "analysis", "design"];
+            if (!validSteps.includes(stepName)) {
+                return {
+                    success: false,
+                    statusCode: 400,
+                    message: `Invalid step name. Must be one of: ${validSteps.join(", ")}`,
+                };
+            }
+
+            const response = await fetch(
+                `${process.env.BACKEND_DOMAIN}/api/v2/projects/${projectId}/${stepName}/${documentId}/regenerate`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        description: description || "",
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                const message = await this.handleResponseError(response, "Failed to regenerate document");
+                return {
+                    success: false,
+                    statusCode: response.status,
+                    message,
                 };
             }
 
@@ -240,7 +331,7 @@ export class WorkflowService {
     }
 
     /**
-     * Update document content for a workflow step
+     * Update document content for a workflow step (V2)
      */
     public static async updateDocument(
         token: string,
@@ -276,23 +367,23 @@ export class WorkflowService {
             }
 
             const response = await fetch(
-                `${process.env.BACKEND_DOMAIN}/api/v1/${stepName}/update/${projectId}/${documentId}`,
+                `${process.env.BACKEND_DOMAIN}/api/v2/projects/${projectId}/${stepName}/${documentId}`,
                 {
                     method: "PUT",
                     headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
+                        "Content-Type": "application/json",
                         "Authorization": `Bearer ${token}`,
                     },
-                    body: new URLSearchParams({ content }).toString(),
+                    body: JSON.stringify({ content }),
                 }
             );
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
+                const message = await this.handleResponseError(response, "Failed to update document");
                 return {
                     success: false,
                     statusCode: response.status,
-                    message: errorData.message || "Failed to update document",
+                    message,
                 };
             }
 
@@ -313,11 +404,12 @@ export class WorkflowService {
     }
 
     /**
-     * Export a workflow document and return file metadata with base64 content
+     * Export a workflow document and return file metadata with base64 content (V2)
      */
     public static async exportDocument(
         token: string,
         documentId: string,
+        projectId?: string,
     ): Promise<ServiceResponse<{ filename: string; contentType: string; base64: string }>> {
         try {
             if (!documentId) {
@@ -328,8 +420,12 @@ export class WorkflowService {
                 };
             }
 
+            const url = projectId
+                ? `${process.env.BACKEND_DOMAIN}/api/v2/projects/${projectId}/files/${documentId}/export`
+                : `${process.env.BACKEND_DOMAIN}/api/v1/files/export/${documentId}`;
+
             const response = await fetch(
-                `${process.env.BACKEND_DOMAIN}/api/v1/files/export/${documentId}`,
+                url,
                 {
                     method: "GET",
                     headers: {
@@ -343,7 +439,7 @@ export class WorkflowService {
                 return {
                     success: false,
                     statusCode: response.status,
-                    message: errorData.message || "Failed to export document",
+                    message: errorData.message || errorData.detail || "Failed to export document",
                 };
             }
 

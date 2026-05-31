@@ -49,11 +49,16 @@ const submitAction = async (prevState: any, formData: FormData) => {
 };
 
 export default function SignInForm() {
-    const [state, formAction, isPending] = useActionState(submitAction, {
+    const initialState: {
+        success: boolean;
+        errors?: Record<string, string[]>;
+        message?: string;
+    } = {
         success: false,
-        errors: {},
-        message: "",
-    });
+        errors: undefined,
+        message: undefined,
+    };
+    const [state, formAction, isPending] = useActionState(submitAction, initialState);
 
     async function handleGoogleLogin() {
         const response = await getGoogleAuthUrl();

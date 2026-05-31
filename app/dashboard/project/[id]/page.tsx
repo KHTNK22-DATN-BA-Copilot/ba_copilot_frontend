@@ -66,10 +66,12 @@ export default async function ProjectOverviewPage({
         return Number.isNaN(value) ? sum : sum + value;
     }, 0);
 
+    const totalT = project.totalTasks || 0;
+    const completedT = project.completedTasks || 0;
     const tasksOverview: TaskOverview = {
-        completed: project.completedTasks || 0,
-        inProgress: Math.floor((project.totalTasks - project.completedTasks) * 0.6) || 0,
-        pending: Math.ceil((project.totalTasks - project.completedTasks) * 0.4) || 0,
+        completed: completedT,
+        inProgress: Math.floor((totalT - completedT) * 0.6) || 0,
+        pending: Math.ceil((totalT - completedT) * 0.4) || 0,
     };
 
 

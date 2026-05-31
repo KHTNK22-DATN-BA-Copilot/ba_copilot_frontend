@@ -345,7 +345,7 @@ export async function exportDocument(
   documentId: string
 ): Promise<void> {
   try {
-    const response = await exportWorkflowDocument(documentId);
+    const response = await exportWorkflowDocument(documentId, projectId);
     if (!response.success || !response.data) {
       throw new Error(response.message || "Failed to export document");
     }
