@@ -384,11 +384,12 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                         );
 
                         return (
-                          <button
+                          <div
                             key={doc.id}
-                            type="button"
+                            role="button"
+                            tabIndex={0}
                             className={cn(
-                              "flex w-full cursor-pointer items-center justify-between rounded-lg border p-3 text-left transition-all",
+                              "flex w-full cursor-pointer items-center justify-between rounded-lg border p-3 text-left transition-all focus:outline-none focus:ring-2 focus:ring-blue-500",
                               selectedDocument === doc.id
                                 ? "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30"
                                 : isGenerated
@@ -396,6 +397,12 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                                 : "border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800/60"
                             )}
                             onClick={() => setSelectedDocument(doc.id)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                setSelectedDocument(doc.id);
+                              }
+                            }}
                           >
                             <div className="flex flex-1 items-center gap-3">
                               {getStatusIcon(displayStatus)}
@@ -466,7 +473,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                                 </Button>
                               )}
                             </div>
-                          </button>
+                          </div>
                         );
                       })}
                     </div>
