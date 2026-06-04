@@ -111,10 +111,10 @@ export function FetchedDocumentsList({
                 throw data;
             }
         } catch (error: any) {
-            console.error("Error regenerating document:", error);
             if (error?.statusCode === 403) {
                 toast.error("Your role in this project may have changed to Viewer. You no longer have permission for this action.");
             } else {
+                console.error("Error regenerating document:", error);
                 const errorMessage = error instanceof Error ? error.message : (error?.message || "Failed to regenerate document");
                 toast.error(errorMessage);
             }
@@ -129,10 +129,10 @@ export function FetchedDocumentsList({
             await exportDocument(stepName, projectId, doc.document_id);
             toast.success(`Document "${doc.design_type}" downloaded successfully`);
         } catch (error: any) {
-            console.error("Error downloading document:", error);
             if (error?.statusCode === 403) {
                 toast.error("Your role in this project may have changed to Viewer. You no longer have permission for this action.");
             } else {
+                console.error("Error downloading document:", error);
                 const errorMessage = error instanceof Error ? error.message : (error?.message || "Failed to download document");
                 toast.error(errorMessage);
             }
@@ -168,10 +168,10 @@ export function FetchedDocumentsList({
                 throw data;
             }
         } catch (error: any) {
-            console.error("Error regenerating document:", error);
             if (error?.statusCode === 403) {
                 toast.error("Your role in this project may have changed to Viewer. You no longer have permission for this action.");
             } else {
+                console.error("Error regenerating document:", error);
                 const errorMessage = error instanceof Error ? error.message : (error?.message || "Failed to regenerate document");
                 toast.error(errorMessage);
             }
