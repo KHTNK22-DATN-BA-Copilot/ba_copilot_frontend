@@ -605,12 +605,16 @@ export function DocumentPreviewModal({
                     onRegenerateSuccess?.();
                     void loadSessionHistory(document.document_id);
                 } else {
-                    throw new Error(response.message || "Failed to regenerate document");
+                    throw response;
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Error regenerating document:", error);
-                const errorMessage = error instanceof Error ? error.message : "Failed to regenerate document";
-                toast.error(errorMessage);
+                if (error?.statusCode === 403) {
+                    toast.error("Your role in this project may have changed to Viewer. You no longer have permission for this action.");
+                } else {
+                    const errorMessage = error instanceof Error ? error.message : (error?.message || "Failed to regenerate document");
+                    toast.error(errorMessage);
+                }
             } finally {
                 setIsSendingMessage(false);
             }
@@ -623,10 +627,14 @@ export function DocumentPreviewModal({
         try {
             await exportDocument(stepName, projectId, document.document_id);
             toast.success(`Document "${document.design_type}" downloaded successfully`);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error downloading document:", error);
-            const errorMessage = error instanceof Error ? error.message : "Failed to download document";
-            toast.error(errorMessage);
+            if (error?.statusCode === 403) {
+                toast.error("Your role in this project may have changed to Viewer. You no longer have permission for this action.");
+            } else {
+                const errorMessage = error instanceof Error ? error.message : (error?.message || "Failed to download document");
+                toast.error(errorMessage);
+            }
         } finally {
             setDownloadingDoc(false);
         }
@@ -653,7 +661,7 @@ export function DocumentPreviewModal({
             );
 
             if (response.status === "error") {
-                throw new Error(response.message || "Failed to update document");
+                throw response;
             }
 
             if (response.result?.content) {
@@ -661,10 +669,14 @@ export function DocumentPreviewModal({
             }
 
             toast.success("Document updated successfully");
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to update document:", error);
-            const errorMessage = error instanceof Error ? error.message : "Failed to update document";
-            toast.error(errorMessage);
+            if (error?.statusCode === 403) {
+                toast.error("Your role in this project may have changed to Viewer. You no longer have permission for this action.");
+            } else {
+                const errorMessage = error instanceof Error ? error.message : (error?.message || "Failed to update document");
+                toast.error(errorMessage);
+            }
         } finally {
             setIsSaving(false);
         }

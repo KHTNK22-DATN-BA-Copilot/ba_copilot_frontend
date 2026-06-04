@@ -108,12 +108,16 @@ export function FetchedDocumentsList({
                 }
                 onRegenerateSuccess?.();
             } else {
-                throw new Error(data.message || "Failed to regenerate document");
+                throw data;
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error regenerating document:", error);
-            const errorMessage = error instanceof Error ? error.message : "Failed to regenerate document";
-            toast.error(errorMessage);
+            if (error?.statusCode === 403) {
+                toast.error("Your role in this project may have changed to Viewer. You no longer have permission for this action.");
+            } else {
+                const errorMessage = error instanceof Error ? error.message : (error?.message || "Failed to regenerate document");
+                toast.error(errorMessage);
+            }
         } finally {
             setRegeneratingDocId(null);
         }
@@ -124,10 +128,14 @@ export function FetchedDocumentsList({
         try {
             await exportDocument(stepName, projectId, doc.document_id);
             toast.success(`Document "${doc.design_type}" downloaded successfully`);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error downloading document:", error);
-            const errorMessage = error instanceof Error ? error.message : "Failed to download document";
-            toast.error(errorMessage);
+            if (error?.statusCode === 403) {
+                toast.error("Your role in this project may have changed to Viewer. You no longer have permission for this action.");
+            } else {
+                const errorMessage = error instanceof Error ? error.message : (error?.message || "Failed to download document");
+                toast.error(errorMessage);
+            }
         } finally {
             setDownloadingDocId(null);
         }
@@ -157,12 +165,16 @@ export function FetchedDocumentsList({
                 await refreshPreviewDocument(selectedDoc.document_id, selectedDoc.content);
                 onRegenerateSuccess?.();
             } else {
-                throw new Error(data.message || "Failed to regenerate document");
+                throw data;
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error regenerating document:", error);
-            const errorMessage = error instanceof Error ? error.message : "Failed to regenerate document";
-            toast.error(errorMessage);
+            if (error?.statusCode === 403) {
+                toast.error("Your role in this project may have changed to Viewer. You no longer have permission for this action.");
+            } else {
+                const errorMessage = error instanceof Error ? error.message : (error?.message || "Failed to regenerate document");
+                toast.error(errorMessage);
+            }
         } finally {
             setRegeneratingDocId(null);
             setSelectedDoc(null);

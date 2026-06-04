@@ -4,6 +4,8 @@ import { FileService, ApiFileRaw, ApiTreeRaw, ApiFolderRaw } from "@/services/Fi
 import { FileNode } from "@/components/file-management/type";
 import { formatFileSize, formatDate } from "@/components/file-management/utils";
 import { withAccessToken } from "@/lib/auth-action";
+import { HttpError } from "@/lib/auth-session";
+import { ActionResponse } from "@/type/types";
 
 // ── Helpers: transform raw API shapes → FileNode ───────────────
 
@@ -63,8 +65,29 @@ export async function createFolderAction(
     projectId: string,
     name: string,
     parentId: number | null,
-): Promise<{ id: number; name: string }> {
-    return withAccessToken((token) => FileService.createFolder(token, projectId, name, parentId));
+): Promise<ActionResponse<{ id: number; name: string }>> {
+    try {
+        const data = await withAccessToken((token) => FileService.createFolder(token, projectId, name, parentId));
+        return {
+            success: true,
+            message: "Folder created successfully",
+            statusCode: 201,
+            data,
+        };
+    } catch (error) {
+        if (error instanceof HttpError) {
+            return {
+                success: false,
+                message: "Failed to create folder",
+                statusCode: error.statusCode,
+            };
+        }
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "An unexpected error occurred while creating folder",
+            statusCode: 500,
+        };
+    }
 }
 
 export async function getFolderContentsAction(
@@ -74,31 +97,117 @@ export async function getFolderContentsAction(
     return withAccessToken((token) => FileService.getFolderContents(token, projectId, folderId));
 }
 
-export async function deleteFolderAction(projectId: string, folderId: number): Promise<void> {
-    await withAccessToken((token) => FileService.deleteFolder(token, projectId, folderId));
+export async function deleteFolderAction(projectId: string, folderId: number): Promise<ActionResponse> {
+    try {
+        await withAccessToken((token) => FileService.deleteFolder(token, projectId, folderId));
+        return {
+            success: true,
+            message: "Folder deleted successfully",
+            statusCode: 200,
+        };
+    } catch (error) {
+        if (error instanceof HttpError) {
+            return {
+                success: false,
+                message: "Failed to delete folder",
+                statusCode: error.statusCode,
+            };
+        }
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "An unexpected error occurred while deleting folder",
+            statusCode: 500,
+        };
+    }
 }
 
 export async function renameFolderAction(
     projectId: string,
     folderId: number,
     newName: string,
-): Promise<void> {
-    await withAccessToken((token) => FileService.renameFolder(token, projectId, folderId, newName));
+): Promise<ActionResponse> {
+    try {
+        await withAccessToken((token) => FileService.renameFolder(token, projectId, folderId, newName));
+        return {
+            success: true,
+            message: "Folder renamed successfully",
+            statusCode: 200,
+        };
+    } catch (error) {
+        if (error instanceof HttpError) {
+            return {
+                success: false,
+                message: "Failed to rename folder",
+                statusCode: error.statusCode,
+            };
+        }
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "An unexpected error occurred while renaming folder",
+            statusCode: 500,
+        };
+    }
 }
 
 export async function uploadFileAction(
     projectId: string,
     folderId: number,
     formData: FormData,
-): Promise<FileNode[]> {
-    return withAccessToken(async (token) => {
-        const result = await FileService.uploadFile(token, projectId, folderId, formData);
-        return buildUploadedFiles(result);
-    });
+): Promise<ActionResponse<FileNode[]>> {
+    try {
+        const data = await withAccessToken(async (token) => {
+            const result = await FileService.uploadFile(token, projectId, folderId, formData);
+            return buildUploadedFiles(result);
+        });
+        return {
+            success: true,
+            message: "Files uploaded successfully",
+            statusCode: 200,
+            data,
+        };
+    } catch (error) {
+        if (error instanceof HttpError) {
+            return {
+                success: false,
+                message: "Failed to upload file",
+                statusCode: error.statusCode,
+            };
+        }
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "An unexpected error occurred while uploading file",
+            statusCode: 500,
+        };
+    }
 }
 
-export async function deleteFileAction(projectId: string, fileId: string | number): Promise<void> {
-    await withAccessToken((token) => FileService.deleteFile(token, projectId, fileId));
+export async function deleteFileAction(
+    projectId: string,
+    fileId: string | number,
+): Promise<ActionResponse> {
+    try {
+        await withAccessToken((token) => FileService.deleteFile(token, projectId, fileId));
+
+        return {
+            success: true,
+            message: "File deleted successfully",
+            statusCode: 200,
+        };
+    } catch (error) {
+        if (error instanceof HttpError) {
+            return {
+                success: false,
+                message: "Failed to delete file",
+                statusCode: error.statusCode,
+            };
+        }
+
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "An unexpected error occurred while deleting file",
+            statusCode: 500,
+        };
+    }
 }
 
 export async function exportFileAction(projectId: string, fileId: string | number): Promise<string> {

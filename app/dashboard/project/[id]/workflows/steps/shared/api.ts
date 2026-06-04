@@ -165,18 +165,21 @@ export async function getDocumentsList(
       return {
         status: "error",
         message: response.message || `Failed to fetch ${stepName} documents`,
+        statusCode: response.statusCode,
       };
     }
 
     return {
       status: "success",
       documents: response.data?.documents || [],
+      statusCode: response.statusCode,
     };
   } catch (error) {
     console.error(`[API] getDocumentsList error (${stepName}):`, error);
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Unknown error occurred",
+      statusCode: (error as any)?.statusCode || 500,
     };
   }
 }
@@ -210,18 +213,21 @@ export async function regenerateDocument(
       return {
         status: "error",
         message: response.message || "Failed to regenerate document",
+        statusCode: response.statusCode,
       };
     }
 
     return {
       status: "success",
       result: response.data,
+      statusCode: response.statusCode,
     };
   } catch (error) {
     console.error(`[API] regenerateDocument error (${stepName}):`, error);
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Unknown error occurred",
+      statusCode: (error as any)?.statusCode || 500,
     };
   }
 }
@@ -253,18 +259,21 @@ export async function updateDocumentContent(
       return {
         status: "error",
         message: response.message || "Failed to update document",
+        statusCode: response.statusCode,
       };
     }
 
     return {
       status: "success",
       result: response.data,
+      statusCode: response.statusCode,
     };
   } catch (error) {
     console.error(`[API] updateDocumentContent error (${stepName}):`, error);
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Unknown error occurred",
+      statusCode: (error as any)?.statusCode || 500,
     };
   }
 }
@@ -284,18 +293,21 @@ export async function getSessionHistory(
       return {
         status: "error",
         message: response.message || "Failed to fetch session history",
+        statusCode: response.statusCode,
       };
     }
 
     return {
       status: "success",
       Sessions: response.data?.Sessions || [],
+      statusCode: response.statusCode,
     };
   } catch (error) {
     console.error("[API] getSessionHistory error:", error);
     return {
       status: "error",
       message: error instanceof Error ? error.message : "Unknown error occurred",
+      statusCode: (error as any)?.statusCode || 500,
     };
   }
 }
@@ -347,7 +359,9 @@ export async function exportDocument(
   try {
     const response = await exportWorkflowDocument(documentId, projectId);
     if (!response.success || !response.data) {
-      throw new Error(response.message || "Failed to export document");
+      const err = new Error(response.message || "Failed to export document") as any;
+      err.statusCode = response.statusCode;
+      throw err;
     }
 
     const byteCharacters = atob(response.data.base64);

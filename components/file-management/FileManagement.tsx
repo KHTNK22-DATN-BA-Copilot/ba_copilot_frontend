@@ -30,6 +30,35 @@ import { Analytics } from "@/lib/analytics";
 import { useProjectMembership } from "@/context/ProjectMembershipContext";
 import { toast } from "sonner";
 
+function getErrorStatus(err: unknown): number | null {
+    if (!err || typeof err !== "object") {
+        return null;
+    }
+
+    const typedErr = err as {
+        status?: unknown;
+        statusCode?: unknown;
+        message?: unknown;
+    };
+
+    if (typeof typedErr.status === "number") {
+        return typedErr.status;
+    }
+
+    if (typeof typedErr.statusCode === "number") {
+        return typedErr.statusCode;
+    }
+
+    if (typeof typedErr.message === "string") {
+        const match = typedErr.message.match(/\b(4\d\d|5\d\d)\b/);
+        if (match) {
+            return Number(match[1]);
+        }
+    }
+
+    return null;
+}
+
 export default function FileManagement({ projectId }: { projectId: string }) {
     const router = useRouter();
     const { hasPermission } = useProjectMembership();
@@ -43,6 +72,11 @@ export default function FileManagement({ projectId }: { projectId: string }) {
     const [newName, setNewName] = useState("");
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [loadingFiles, setLoadingFiles] = useState<Set<string | number>>(new Set());
+
+    const showPermissionNotice = useCallback(() => {
+        const message = "Your role in this project may have changed to Viewer. You no longer have permission for this action.";
+        toast.error(message);
+    }, []);
 
 
     useEffect(() => {
@@ -135,7 +169,19 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                     }
                     return next;
                 });
-                const uploadedFiles = await uploadFileAction(projectId, folderId, formData);
+                const response = await uploadFileAction(projectId, folderId, formData);
+                if (!response.success || !response.data) {
+                    setFileNode(previousState);
+                    if (response.statusCode === 403) {
+                        showPermissionNotice();
+                    } else if (response.statusCode === 404) {
+                        toast.error("Action failed. Invalid file or project.");
+                    } else {
+                        toast.error(response.message || "Failed to upload file. Please try again.");
+                    }
+                    return;
+                }
+                const uploadedFiles = response.data;
                 Analytics.uploadFile(projectId, files.length);
 
                 window.dispatchEvent(new Event("file-uploaded"));
@@ -159,9 +205,10 @@ export default function FileManagement({ projectId }: { projectId: string }) {
             } catch (err: any) {
                 console.error("Failed to upload file:", err);
                 setFileNode(previousState);
-                if (err.status === 403) {
-                    toast.error("You do not have permission to perform this action on this file.");
-                } else if (err.status === 404) {
+                const status = getErrorStatus(err);
+                if (status === 403) {
+                    showPermissionNotice();
+                } else if (status === 404) {
                     toast.error("Action failed. Invalid file or project.");
                 } else {
                     toast.error("Failed to upload file. Please try again.");
@@ -179,33 +226,58 @@ export default function FileManagement({ projectId }: { projectId: string }) {
         fileInput.click();
     };
 
-    const handleDeleteFile = (folderId: number, fileId: string | number) => {
-        deleteFileAction(projectId, fileId).then(() => {
+    const handleDeleteFile = async (_folderId: number, fileId: string | number) => {
+        const previousState = fileNode;
+        setFileNode((prev) => removeNodeById(prev, fileId));
+
+        try {
+            const response = await deleteFileAction(projectId, fileId);
+            if (!response.success) {
+                setFileNode(previousState);
+
+                if (response.statusCode === 403) {
+                    showPermissionNotice();
+                } else if (response.statusCode === 404) {
+                    toast.error("Action failed. Invalid file or project.");
+                } else {
+                    toast.error("Failed to delete file. Please try again.");
+                }
+
+                return;
+            }
+
             Analytics.deleteFile(fileId);
             // Fetch fresh tree contents on success
-            getFileTree(projectId)
-                .then((data) => {
-                    setFileNode(data);
-                })
-                .catch(console.error);
+            const data = await getFileTree(projectId);
+            setFileNode(data);
             toast.success("File deleted successfully.");
-        }).catch((err: any) => {
+        } catch (err: any) {
             console.error("Failed to delete file:", err);
-            if (err.status === 403) {
-                toast.error("You do not have permission to perform this action on this file.");
-            } else if (err.status === 404) {
+            setFileNode(previousState);
+            const status = getErrorStatus(err);
+            if (status === 403) {
+                showPermissionNotice();
+            } else if (status === 404) {
                 toast.error("Action failed. Invalid file or project.");
             } else {
                 toast.error("Failed to delete file. Please try again.");
             }
-        });
-        setFileNode((prev) => removeNodeById(prev, fileId));
+        }
     };
 
     const handleCreateFolder = useCallback(
         async (parentId: number | null, name: string) => {
             try {
-                const created = await createFolderAction(projectId, name, parentId);
+                const response = await createFolderAction(projectId, name, parentId);
+                if (!response.success || !response.data) {
+                    if (response.statusCode === 403) {
+                        showPermissionNotice();
+                    } else {
+                        toast.error(response.message || "Failed to create folder");
+                    }
+                    return;
+                }
+                const created = response.data;
                 const newFolder: FileNode = {
                     id: created.id,
                     name: created.name,
@@ -223,16 +295,30 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                     }
                     return next;
                 });
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Failed to create folder:", err);
+                const status = getErrorStatus(err);
+                if (status === 403) {
+                    showPermissionNotice();
+                } else {
+                    toast.error("Failed to create folder. Please try again.");
+                }
             }
         },
-        [projectId],
+        [projectId, showPermissionNotice],
     );
 
     const handleRemoveFolder = async (folderId: number) => {
         try {
-            await deleteFolderAction(projectId, folderId);
+            const response = await deleteFolderAction(projectId, folderId);
+            if (!response.success) {
+                if (response.statusCode === 403) {
+                    showPermissionNotice();
+                } else {
+                    toast.error(response.message || "Failed to remove folder");
+                }
+                return;
+            }
             Analytics.deleteFolder(folderId);
             setFileNode((prev) => removeNodeById(prev, folderId));
 
@@ -241,22 +327,42 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                 next.delete(folderId);
                 return next;
             });
-        } catch (err) {
+        } catch (err: any) {
             console.error("Failed to remove folder:", err);
+            const status = getErrorStatus(err);
+            if (status === 403) {
+                showPermissionNotice();
+            } else {
+                toast.error("Failed to remove folder. Please try again.");
+            }
         }
     };
 
     const handleRenameFolder = useCallback(
         async (folderId: number, newName: string) => {
             try {
-                await renameFolderAction(projectId, folderId, newName);
+                const response = await renameFolderAction(projectId, folderId, newName);
+                if (!response.success) {
+                    if (response.statusCode === 403) {
+                        showPermissionNotice();
+                    } else {
+                        toast.error(response.message || "Failed to rename folder");
+                    }
+                    return;
+                }
                 Analytics.renameFolder(folderId);
                 setFileNode((prev) => renameNodeById(prev, folderId, newName));
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Failed to rename folder:", err);
+                const status = getErrorStatus(err);
+                if (status === 403) {
+                    showPermissionNotice();
+                } else {
+                    toast.error("Failed to rename folder. Please try again.");
+                }
             }
         },
-        [projectId],
+        [projectId, showPermissionNotice],
     );
 
     const handleCreateConfirm = () => {
@@ -290,9 +396,10 @@ export default function FileManagement({ projectId }: { projectId: string }) {
             Analytics.downloadFile(file.id as string | number);
         } catch (err: any) {
             console.error("Failed to download file:", err);
-            if (err.status === 403) {
-                toast.error("You do not have permission to perform this action on this file.");
-            } else if (err.status === 404) {
+            const status = getErrorStatus(err);
+            if (status === 403) {
+                showPermissionNotice();
+            } else if (status === 404) {
                 toast.error("Action failed. Invalid file or project.");
             } else {
                 toast.error("Failed to download file. Please try again.");

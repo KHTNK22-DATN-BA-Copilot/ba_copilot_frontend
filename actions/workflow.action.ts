@@ -3,6 +3,7 @@
 import { WorkflowService } from "@/services/WorkflowService";
 import { ActionResponse } from "@/type/types";
 import { withAccessToken } from "@/lib/auth-action";
+import { HttpError } from "@/lib/auth-session";
 
 /**
  * Generate workflow documents (planning/analysis/design)
@@ -52,6 +53,13 @@ export async function generateWorkflowDocument(
         });
     } catch (error) {
         console.error("Error generating document:", error);
+        if (error instanceof HttpError) {
+            return {
+                success: false,
+                message: error.message || "Failed to generate document",
+                statusCode: error.statusCode,
+            };
+        }
         return {
             success: false,
             message: error instanceof Error ? error.message : "An unexpected error occurred",
@@ -85,6 +93,13 @@ export async function getWorkflowJobStatus(jobId: string): Promise<ActionRespons
         });
     } catch (error) {
         console.error("Error getting job status:", error);
+        if (error instanceof HttpError) {
+            return {
+                success: false,
+                message: error.message || "Failed to get job status",
+                statusCode: error.statusCode,
+            };
+        }
         return {
             success: false,
             message: error instanceof Error ? error.message : "An unexpected error occurred",
@@ -125,6 +140,13 @@ export async function getWorkflowDocumentsByStep(
         });
     } catch (error) {
         console.error("Error getting workflow documents:", error);
+        if (error instanceof HttpError) {
+            return {
+                success: false,
+                message: error.message || "Failed to get documents",
+                statusCode: error.statusCode,
+            };
+        }
         return {
             success: false,
             message: error instanceof Error ? error.message : "An unexpected error occurred",
@@ -167,6 +189,13 @@ export async function getWorkflowDocument(
         });
     } catch (error) {
         console.error("Error getting workflow document detail:", error);
+        if (error instanceof HttpError) {
+            return {
+                success: false,
+                message: error.message || "Failed to get document detail",
+                statusCode: error.statusCode,
+            };
+        }
         return {
             success: false,
             message: error instanceof Error ? error.message : "An unexpected error occurred",
@@ -211,6 +240,13 @@ export async function regenerateWorkflowDocument(
         });
     } catch (error) {
         console.error("Error regenerating document:", error);
+        if (error instanceof HttpError) {
+            return {
+                success: false,
+                message: error.message || "Failed to regenerate document",
+                statusCode: error.statusCode,
+            };
+        }
         return {
             success: false,
             message: error instanceof Error ? error.message : "An unexpected error occurred",
@@ -255,6 +291,13 @@ export async function updateWorkflowDocument(
         });
     } catch (error) {
         console.error("Error updating document:", error);
+        if (error instanceof HttpError) {
+            return {
+                success: false,
+                message: error.message || "Failed to update document",
+                statusCode: error.statusCode,
+            };
+        }
         return {
             success: false,
             message: error instanceof Error ? error.message : "An unexpected error occurred",
@@ -291,6 +334,13 @@ export async function exportWorkflowDocument(
         });
     } catch (error) {
         console.error("Error exporting workflow document:", error);
+        if (error instanceof HttpError) {
+            return {
+                success: false,
+                message: error.message || "Failed to export document",
+                statusCode: error.statusCode,
+            };
+        }
         return {
             success: false,
             message: error instanceof Error ? error.message : "An unexpected error occurred",
@@ -326,6 +376,13 @@ export async function getWorkflowSessionHistory(
         });
     } catch (error) {
         console.error("Error fetching workflow session history:", error);
+        if (error instanceof HttpError) {
+            return {
+                success: false,
+                message: error.message || "Failed to fetch session history",
+                statusCode: error.statusCode,
+            };
+        }
         return {
             success: false,
             message: error instanceof Error ? error.message : "An unexpected error occurred",
