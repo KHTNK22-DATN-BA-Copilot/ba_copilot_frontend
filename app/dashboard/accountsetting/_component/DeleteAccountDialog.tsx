@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Trash2, AlertTriangle } from "lucide-react";
 import { deleteUserAccount } from "./utils";
+import { redirect } from "next/dist/client/components/navigation";
 
 interface DeleteAccountDialogProps {
     userEmail: string;
@@ -35,7 +36,7 @@ export default function DeleteAccountDialog({ userEmail }: DeleteAccountDialogPr
 
         if (result.success) {
             alert("Account deleted successfully");
-            window.location.href = "/login";
+            redirect("/login");
         } else {
             alert(result.message || "Failed to delete account. Please try again.");
             setIsDeleting(false);
@@ -133,7 +134,9 @@ export default function DeleteAccountDialog({ userEmail }: DeleteAccountDialogPr
                                     Cancel
                                 </AlertDialogCancel>
                                 <AlertDialogAction
-                                    onClick={handleDelete}
+                                    onClick={() => {
+                                        handleDelete();
+                                    }}
                                     disabled={!isChecked || isDeleting}
                                     className="bg-red-600 hover:bg-red-700 focus-visible:ring-red-600/50 w-full sm:w-auto"
                                 >

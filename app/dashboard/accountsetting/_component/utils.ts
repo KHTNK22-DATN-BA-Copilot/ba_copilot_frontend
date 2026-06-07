@@ -63,11 +63,13 @@ export const deleteUserAccount = async (): Promise<{
 }> => {
     try {
         const res = await deleteAccount();
-        if (res.ok) {
+        if (res.status == 200) {
             return { success: true };
         } else {
-            const result = await res.json();
-            throw new Error(result.message || "Failed to delete account");
+            return {
+                success: false,
+                message: res.result || "Failed to delete account",
+            };
         }
     } catch (error) {
         console.error("Failed to delete account:", error);

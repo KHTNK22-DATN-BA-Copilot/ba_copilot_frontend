@@ -83,13 +83,13 @@ export default function DashboardLayout({
                     </div>
 
                     {/* Main Content with margin for fixed header and sidebar */}
-                    <div className="pt-16 xl:ml-64">
+                    <div className="pt-16 xl:ml-64" key="project-view">
                         {children}
                     </div>
                 </>
             ) : (
                 <>
-                    <main className="pt-16 min-h-[calc(100vh-4rem)]">
+                    <main className="pt-16 min-h-[calc(100vh-4rem)]" key="dashboard-view">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                             {children}
                         </div>

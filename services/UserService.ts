@@ -63,7 +63,7 @@ export class UserService {
         const result = await res.json();
         if (res.status == 200) {
             return {
-                result: JSON.stringify(result),
+                result: result.message || "Account deleted successfully",
                 status: res.status,
             };
         } else {

@@ -225,7 +225,7 @@ const fileManagerSteps: Step[] = [
         ),
         placement: "bottom",
         skipBeacon: true,
-        data: { waitOnTargetClick: true, hideFooter: true },
+        data: { waitOnTargetClick: true },
     },
     {
         target: '[data-tour="folder-input"]',
@@ -239,7 +239,6 @@ const fileManagerSteps: Step[] = [
         ),
         placement: "bottom",
         skipBeacon: true,
-        styles: { tooltipFooter: { display: "none" } },
         data: { waitOnEvent: "folder-created", pauseTour: true },
     },
     {
@@ -254,7 +253,7 @@ const fileManagerSteps: Step[] = [
         ),
         placement: "bottom",
         skipBeacon: true,
-        data: { waitOnEvent: "file-uploaded", hideFooter: true },
+        data: { waitOnEvent: "file-uploaded" },
     },
     {
         target: "body",
