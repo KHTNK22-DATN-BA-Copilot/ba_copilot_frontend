@@ -30,6 +30,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getProjectById } from "@/actions/project.action";
 import { toast } from "sonner";
+import { useProjectMembership } from "@/context/ProjectMembershipContext";
 
 import { DocumentPreviewModal } from "../../workflows/steps/shared/components/DocumentPreviewModal";
 import type { DocumentListItem, GenerateWorkflowPayload, GenerationDocumentItem, StepName } from "../../workflows/steps/shared/types";
@@ -56,6 +57,8 @@ interface PhasesBoardProps {
 const ALL_PHASE_IDS: PhaseId[] = ["planning", "analysis", "design"];
 
 export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps) {
+  const { role } = useProjectMembership();
+  const isViewer = role === "Viewer";
   const filteredPhases = useMemo(() => getPhases(phaseFilter), [phaseFilter]);
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
   const [generatedByPhase, setGeneratedByPhase] = useState<
@@ -255,6 +258,16 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
       setGeneratingDocumentItem(null);
       toast.error("An error occurred while generating");
     }
+  };
+
+  const handleGenerateClick = (e: React.MouseEvent) => {
+    if (isViewer) {
+      e.preventDefault();
+      e.stopPropagation();
+      toast.error("You do not have permission to generate documents. Your role is Viewer.");
+      return;
+    }
+    handleGenerate();
   };
 
   const handleOpenPreview = (document: GeneratedPhaseDocument, phaseId: PhaseId) => {
@@ -560,28 +573,45 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                       />
                     </div>
 
-                    <Button
-                      className="w-full gap-2"
-                      onClick={handleGenerate}
-                      disabled={
-                        isGenerating ||
-                        isSyncingDocuments ||
-                        hasMissingRequiredDependencies ||
-                        Boolean(
-                          getMatchedGeneratedDocument(
-                            selectedEntry.phase.id,
-                            selectedEntry.document.id
+                    {isViewer ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            className="w-full gap-2 opacity-50 cursor-not-allowed pointer-events-auto hover:bg-primary hover:text-primary-foreground"
+                            onClick={handleGenerateClick}
+                          >
+                            <Sparkles className="h-4 w-4" />
+                            Generate
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          You do not have permission to generate documents. Your role is Viewer.
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <Button
+                        className="w-full gap-2"
+                        onClick={handleGenerate}
+                        disabled={
+                          isGenerating ||
+                          isSyncingDocuments ||
+                          hasMissingRequiredDependencies ||
+                          Boolean(
+                            getMatchedGeneratedDocument(
+                              selectedEntry.phase.id,
+                              selectedEntry.document.id
+                            )
                           )
-                        )
-                      }
-                    >
-                      {isGenerating ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Sparkles className="h-4 w-4" />
-                      )}
-                      {isGenerating ? "Generating..." : "Generate"}
-                    </Button>
+                        }
+                      >
+                        {isGenerating ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-4 w-4" />
+                        )}
+                        {isGenerating ? "Generating..." : "Generate"}
+                      </Button>
+                    )}
 
                     {hasMissingRequiredDependencies && (
                       <p className="text-xs text-red-600 dark:text-red-400">
