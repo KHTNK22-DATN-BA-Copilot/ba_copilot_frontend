@@ -15,6 +15,8 @@ import { Download, Send, Loader2, GitCompare, Eye } from "lucide-react";
 import { exportDocument, getSessionHistory, regenerateDocument, updateDocumentContent } from "../api";
 import { toast } from "sonner";
 import type { StepName } from "../types";
+import { useProjectMembership } from "@/context/ProjectMembershipContext";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { diffLines } from "diff";
 import { cn } from "@/lib/utils";
 import mermaid from "mermaid";
@@ -310,6 +312,8 @@ export function DocumentPreviewModal({
     isRegenerating = false,
     onRegenerate,
 }: DocumentPreviewModalProps) {
+    const { role } = useProjectMembership();
+    const isViewer = role === "Viewer";
     const [edit, setEdit] = useState(false);
     const [content, setContent] = useState("");
     const [isSaving, setIsSaving] = useState(false);
@@ -747,13 +751,34 @@ export function DocumentPreviewModal({
                                         )}
                                     </Button>
                                 )}
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setEdit(!edit)}
-                                    size="sm"
-                                >
-                                    {edit ? "Preview Only" : "Split View"}
-                                </Button>
+                                {isViewer ? (
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div onClick={() => {
+                                                toast.error("You do not have permission to edit documents. Your role is Viewer.");
+                                            }}>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="opacity-50 cursor-not-allowed pointer-events-none"
+                                                >
+                                                    Split View
+                                                </Button>
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            You do not have permission to edit documents. Your role is Viewer.
+                                        </TooltipContent>
+                                    </Tooltip>
+                                ) : (
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setEdit(!edit)}
+                                        size="sm"
+                                    >
+                                        {edit ? "Preview Only" : "Split View"}
+                                    </Button>
+                                )}
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -851,31 +876,63 @@ export function DocumentPreviewModal({
                                     ) : null}
                                 </div>
                                 <div className="flex gap-2 flex-shrink-0">
-                                    <Textarea
-                                        placeholder="Enter your prompt"
-                                        className="min-h-[32px] sm:min-h-[36px] resize-none text-xs sm:text-sm w-full break-words"
-                                        value={chatInput}
-                                        onChange={(e) => setChatInput(e.target.value)}
-                                        disabled={isRegenerating || isSendingMessage}
-                                        onKeyDown={(e) => {
-                                            if (e.key === "Enter" && !e.shiftKey) {
-                                                e.preventDefault();
-                                                handleSend();
-                                            }
-                                        }}
-                                    />
-                                    <Button
-                                        size="sm"
-                                        className="self-end flex-shrink-0 min-h-[32px] sm:min-h-[36px]"
-                                        onClick={handleSend}
-                                        disabled={isRegenerating || isSendingMessage || !chatInput.trim()}
-                                    >
-                                        {isRegenerating || isSendingMessage ? (
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                        ) : (
-                                            <Send className="w-4 h-4" />
-                                        )}
-                                    </Button>
+                                    {isViewer ? (
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div 
+                                                    className="flex gap-2 w-full cursor-not-allowed opacity-50"
+                                                    onClick={() => {
+                                                        toast.error("You do not have permission to update or regenerate documents. Your role is Viewer.");
+                                                    }}
+                                                >
+                                                    <Textarea
+                                                        placeholder="Viewers cannot edit or regenerate documents"
+                                                        className="min-h-[32px] sm:min-h-[36px] resize-none text-xs sm:text-sm w-full break-words pointer-events-none"
+                                                        value=""
+                                                        readOnly
+                                                    />
+                                                    <Button
+                                                        size="sm"
+                                                        className="self-end flex-shrink-0 min-h-[32px] sm:min-h-[36px] pointer-events-none"
+                                                        disabled
+                                                    >
+                                                        <Send className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                You do not have permission to update or regenerate documents. Your role is Viewer.
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    ) : (
+                                        <>
+                                            <Textarea
+                                                placeholder="Enter your prompt"
+                                                className="min-h-[32px] sm:min-h-[36px] resize-none text-xs sm:text-sm w-full break-words"
+                                                value={chatInput}
+                                                onChange={(e) => setChatInput(e.target.value)}
+                                                disabled={isRegenerating || isSendingMessage}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter" && !e.shiftKey) {
+                                                        e.preventDefault();
+                                                        handleSend();
+                                                    }
+                                                }}
+                                            />
+                                            <Button
+                                                size="sm"
+                                                className="self-end flex-shrink-0 min-h-[32px] sm:min-h-[36px]"
+                                                onClick={handleSend}
+                                                disabled={isRegenerating || isSendingMessage || !chatInput.trim()}
+                                            >
+                                                {isRegenerating || isSendingMessage ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    <Send className="w-4 h-4" />
+                                                )}
+                                            </Button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
 
