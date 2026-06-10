@@ -39,9 +39,11 @@ export default function DashboardLayout({
         const savedTheme = localStorage.getItem("theme");
         if (savedTheme === "dark") {
             setIsDarkMode(true);
+            localStorage.setItem("theme", "dark");
             document.documentElement.classList.add("dark");
         } else {
             setIsDarkMode(false);
+            localStorage.setItem("theme", "light");
             document.documentElement.classList.remove("dark");
         }
     }, []);

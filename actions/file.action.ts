@@ -32,6 +32,7 @@ function transformApiTree(tree: ApiTreeRaw): FileNode[] {
             fileType: file.extension ?? file.file_type ?? "",
             file: null as unknown as File,
             status: file.status ?? "ok",
+            extension: file.extension ?? ".txt"
         });
     }
 
@@ -233,4 +234,9 @@ export async function fileExists(projectId: string): Promise<boolean> {
 
     return hasFiles(tree);
 
+}
+
+export async function getFileContentAction(projectId: string, fileId: string | number): Promise<Blob> {
+    const blob = await withAccessToken((token) => FileService.getFileContent(token, projectId, fileId));
+    return blob;
 }

@@ -210,4 +210,19 @@ export class FileService {
         if (!resp.ok) throw new HttpError(resp.status, `Failed to export file: ${resp.status}`);
         return resp.blob();
     }
+
+    public static async getFileContent(
+        token: string,
+        projectId: string,
+        fileId: string | number,
+    ): Promise<Blob> {
+        const resp = await fetch(
+            `${this.baseUrl}/api/v2/projects/${projectId}/files/${fileId}/export`,
+            {
+                headers: this.authHeaders(token),
+            },
+        );
+        if (!resp.ok) throw new HttpError(resp.status, `Failed to export file: ${resp.status}`);
+        return resp.blob();
+    }
 }

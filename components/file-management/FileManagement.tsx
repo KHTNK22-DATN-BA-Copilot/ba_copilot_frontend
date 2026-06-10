@@ -130,6 +130,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
         fileInput.multiple = true;
+        fileInput.accept = ".pdf, .md, .txt, .docx, .doc"
         fileInput.onchange = async (e: Event) => {
             const target = e.target as HTMLInputElement;
             const files = target.files ? Array.from(target.files) : [];
