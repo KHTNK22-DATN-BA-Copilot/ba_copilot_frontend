@@ -3,6 +3,7 @@
 import { UserService } from "@/services/UserService"
 import { revalidatePath } from 'next/cache'
 import { withAccessToken } from "@/lib/auth-action"
+import { cookies } from "next/headers"
 
 export async function getUserInfo() {
     return withAccessToken((access_token) => UserService.getUserInfo(access_token))
@@ -22,13 +23,18 @@ export async function deleteAccount() {
 
     if (response.status === 200) {
         // Clear the access token and refresh token cookies
-        const res = new Response(response.result, { status: 200 })
-        res.headers.set('Set-Cookie', 'access_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax')
-        res.headers.set('Set-Cookie', 'refresh_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax')
-        return res
+        (await cookies()).set('access_token', '', { path: '/', expires: new Date(0) });
+        (await cookies()).set('refresh_token', '', { path: '/', expires: new Date(0) });
+        return {
+            status: 200,
+            result: response.result,
+        }
     }
     else {
-        return new Response(response.result, { status: response.status })
+        return {
+            status: response.status,
+            result: response.result,
+        }
     }
 
 }

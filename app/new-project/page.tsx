@@ -10,6 +10,8 @@ import ProjectActions from './_components/ProjectActions';
 import { useDarkMode } from './_components/useDarkMode';
 import { createProject } from "@/actions/project.action";
 
+const MAX_DESCRIPTION_LENGTH = 100;
+
 export default function NewProjectPage() {
   const router = useRouter();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
@@ -88,7 +90,7 @@ export default function NewProjectPage() {
             <ProjectActions
               onCancel={handleClose}
               onCreate={handleCreate}
-              isDisabled={!projectName.trim() || isCreating}
+              isDisabled={(!projectName.trim() || description.length < MAX_DESCRIPTION_LENGTH) || isCreating}
               isLoading={isCreating}
             />
           </div>

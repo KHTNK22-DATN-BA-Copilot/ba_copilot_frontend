@@ -1,6 +1,7 @@
 import { Project, ProjectMembership } from "@/app/dashboard/project/[id]/_components/types";
 import { ErrorType, ServiceResponse } from "@/type/types";
 import { HttpError } from "@/lib/auth-session";
+import { notFound } from 'next/navigation';
 
 export interface RecentUpdatedFile {
     id: string;
@@ -44,7 +45,7 @@ export class ProjectService {
         if (!res.ok) {
             const errorData: ErrorType = await res.json().catch(() => ({ message: "Failed to fetch project" }));
             console.error("Failed to fetch project details:", errorData.message || res.statusText);
-            throw new HttpError(res.status, errorData.message || "Failed to fetch project");
+            return null;
         }
 
         const project: Project = await res.json();

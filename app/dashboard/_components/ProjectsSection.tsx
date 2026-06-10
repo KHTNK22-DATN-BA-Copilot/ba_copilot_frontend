@@ -258,6 +258,7 @@ export default function ProjectsSection({
                             <div
                                 onClick={(e) => {
                                     Analytics.viewProject(item.id);
+                                    localStorage.setItem("projectId", item.id)
                                     redirect(`/dashboard/project/${item.id}`)
                                 }}
                                 key={item.id}

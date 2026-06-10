@@ -24,7 +24,6 @@ export default function DashboardLayout({
     const toggleDarkMode = () => {
         setIsDarkMode((prev) => {
             const newMode = !prev;
-            localStorage.setItem("theme", newMode ? "dark" : "light");
             if (newMode) {
                 document.documentElement.classList.add("dark");
             } else {
@@ -39,9 +38,11 @@ export default function DashboardLayout({
         const savedTheme = localStorage.getItem("theme");
         if (savedTheme === "dark") {
             setIsDarkMode(true);
+            localStorage.setItem("theme", "dark");
             document.documentElement.classList.add("dark");
         } else {
             setIsDarkMode(false);
+            localStorage.setItem("theme", "light");
             document.documentElement.classList.remove("dark");
         }
     }, []);
@@ -83,13 +84,13 @@ export default function DashboardLayout({
                     </div>
 
                     {/* Main Content with margin for fixed header and sidebar */}
-                    <div className="pt-16 xl:ml-64">
+                    <div className="pt-16 xl:ml-64" key="project-view">
                         {children}
                     </div>
                 </>
             ) : (
                 <>
-                    <main className="pt-16 min-h-[calc(100vh-4rem)]">
+                    <main className="pt-16 min-h-[calc(100vh-4rem)]" key="dashboard-view">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                             {children}
                         </div>

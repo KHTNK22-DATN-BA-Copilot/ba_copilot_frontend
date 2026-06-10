@@ -76,7 +76,11 @@ export default function ProjectHeader({ project, onProjectUpdate }: ProjectHeade
                                 </Badge>
                             )}
                         </div>
-                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 break-words">
+                        <p
+                            className="text-sm whitespace-pre-wrap sm:text-base text-gray-600 dark:text-gray-400 break-words"
+                            
+                        
+                        >
                             {prj.description}
                         </p>
                     </div>

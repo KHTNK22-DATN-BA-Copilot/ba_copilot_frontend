@@ -44,7 +44,7 @@ export default function ProjectDetailsForm({
           {/* Project Description */}
           <div className="space-y-2">
             <Label htmlFor="description" className="text-gray-900 dark:text-gray-100">
-              Project Description
+              Project Description (at least 100 characters) *
             </Label>
             <textarea
               id="description"
@@ -53,6 +53,9 @@ export default function ProjectDetailsForm({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
+            <p className="text-sm text-muted-foreground">
+              {description.length} / 500
+            </p>
           </div>
 
           {/* Due Date and Priority (Disabled in UI, but preserving logic in page action defaults) */}
