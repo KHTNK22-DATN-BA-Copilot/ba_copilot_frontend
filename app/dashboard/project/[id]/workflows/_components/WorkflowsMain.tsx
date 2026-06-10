@@ -6,13 +6,25 @@ import { CheckCircle2 } from "lucide-react";
 import { SRSIcon, DiagramIcon, WireframeIcon, HomeIcon } from "@/components/icons/project-icons";
 import WorkflowHeader from "./WorkflowHeader";
 import WorkflowStepIndicator from "./WorkflowStepIndicator";
-import WorkflowOnboardingTour from "./WorkflowOnboardingTour";
-import RequirementsStep from "../steps/requirments/RequirementsStep";
-import PlanningStep from "../steps/planning/PlaningStep";
-import AnalysisStep from "../steps/analysis/AnalysisStep";
-import DesignStep from "../steps/design/DesignStep";
-import ReviewStep from "../steps/review/ReviewStep";
 import { WorkflowStep } from "./types";
+import dynamic from "next/dynamic";
+
+const WorkflowOnboardingTour = dynamic(() => import("./WorkflowOnboardingTour"), { ssr: false });
+const RequirementsStep = dynamic(() => import("../steps/requirments/RequirementsStep"), {
+    loading: () => <div className="animate-pulse h-40 bg-gray-100 dark:bg-gray-700/50 rounded-lg" />,
+});
+const PlanningStep = dynamic(() => import("../steps/planning/PlaningStep"), {
+    loading: () => <div className="animate-pulse h-40 bg-gray-100 dark:bg-gray-700/50 rounded-lg" />,
+});
+const AnalysisStep = dynamic(() => import("../steps/analysis/AnalysisStep"), {
+    loading: () => <div className="animate-pulse h-40 bg-gray-100 dark:bg-gray-700/50 rounded-lg" />,
+});
+const DesignStep = dynamic(() => import("../steps/design/DesignStep"), {
+    loading: () => <div className="animate-pulse h-40 bg-gray-100 dark:bg-gray-700/50 rounded-lg" />,
+});
+const ReviewStep = dynamic(() => import("../steps/review/ReviewStep"), {
+    loading: () => <div className="animate-pulse h-40 bg-gray-100 dark:bg-gray-700/50 rounded-lg" />,
+});
 import { useProjectData } from "../../_components/useProjectData";
 import { Analytics } from "@/lib/analytics";
 
@@ -100,11 +112,11 @@ export default function WorkflowsMain({ projectId }: WorkflowsMainProps) {
         setGeneratedSRS("Software Requirements Specification document has been generated based on your input.");
     }, [projectId]);
 
-    const handleGenerateWireframes = () => {
+    const handleGenerateWireframes = useCallback(() => {
         // Simulate wireframe generation
         Analytics.generateArtifact(projectId, 'wireframes');
         setGeneratedWireframes(["Login Page", "Dashboard", "User Profile"]);
-    };
+    }, [projectId]);
 
     const completeWorkflow = useCallback(() => {
         // Handle workflow completion
