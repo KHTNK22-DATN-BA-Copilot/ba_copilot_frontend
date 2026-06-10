@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import useSWR from "swr";
 import {
   CheckCircle2,
   Circle,
@@ -61,16 +62,52 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
   const isViewer = role === "Viewer";
   const filteredPhases = useMemo(() => getPhases(phaseFilter), [phaseFilter]);
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
-  const [generatedByPhase, setGeneratedByPhase] = useState<
-    Partial<Record<PhaseId, GeneratedPhaseDocument[]>>
-  >({});
   const [previewDocument, setPreviewDocument] = useState<GeneratedPhaseDocument | null>(null);
   const [previewPhaseId, setPreviewPhaseId] = useState<PhaseId | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [additionalInstructions, setAdditionalInstructions] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [generatingDocumentItem, setGeneratingDocumentItem] = useState<GenerationDocumentItem | null>(null);
-  const [isSyncingDocuments, setIsSyncingDocuments] = useState(true);
+
+  const fetchPhaseDocs = async ([pId, pFilter]: [string, PhaseId]) => {
+    return getGeneratedDocumentsByPhase(pFilter, pId);
+  };
+
+  const { data: planningDocs = [], isLoading: loadingPlanning, mutate: mutatePlanning } = useSWR(
+    projectId ? [projectId, "planning"] : null,
+    fetchPhaseDocs,
+    { revalidateOnFocus: false }
+  );
+
+  const { data: analysisDocs = [], isLoading: loadingAnalysis, mutate: mutateAnalysis } = useSWR(
+    projectId ? [projectId, "analysis"] : null,
+    fetchPhaseDocs,
+    { revalidateOnFocus: false }
+  );
+
+  const { data: designDocs = [], isLoading: loadingDesign, mutate: mutateDesign } = useSWR(
+    projectId ? [projectId, "design"] : null,
+    fetchPhaseDocs,
+    { revalidateOnFocus: false }
+  );
+
+  const generatedByPhase = useMemo(() => {
+    return {
+      planning: planningDocs,
+      analysis: analysisDocs,
+      design: designDocs,
+    };
+  }, [planningDocs, analysisDocs, designDocs]);
+
+  const isSyncingDocuments = loadingPlanning || loadingAnalysis || loadingDesign;
+
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      mutatePlanning();
+      mutateAnalysis();
+      mutateDesign();
+    }
+  }, [refreshTrigger, mutatePlanning, mutateAnalysis, mutateDesign]);
 
   const { generateDocuments, isGenerating, error: wsError, cancelGeneration, documentStatuses } = useWorkflowGeneration(
     undefined,
@@ -93,50 +130,6 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
       : `${filteredPhases.length} Phases`;
 
   const selectedEntry = selectedDocument ? findDocument(selectedDocument) : null;
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchGeneratedDocuments = async () => {
-      if (isMounted) {
-        setIsSyncingDocuments(true);
-      }
-
-      try {
-        const results = await Promise.all(
-          ALL_PHASE_IDS.map(async (phaseId) => {
-            const documents = await getGeneratedDocumentsByPhase(phaseId, projectId);
-            return [phaseId, documents] as const;
-          })
-        );
-
-        if (!isMounted) {
-          return;
-        }
-
-        setGeneratedByPhase(
-          results.reduce((acc, [phaseId, documents]) => {
-            acc[phaseId] = documents;
-            return acc;
-          }, {} as Partial<Record<PhaseId, GeneratedPhaseDocument[]>>)
-        );
-      } catch {
-        if (isMounted) {
-          toast.error("Failed to sync phase documents");
-        }
-      } finally {
-        if (isMounted) {
-          setIsSyncingDocuments(false);
-        }
-      }
-    };
-
-    fetchGeneratedDocuments();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [filteredPhases, projectId, refreshTrigger]);
 
   const generatedDocumentIndex = useMemo(() => {
     const index: Partial<Record<PhaseId, Record<string, GeneratedPhaseDocument>>> = {};
