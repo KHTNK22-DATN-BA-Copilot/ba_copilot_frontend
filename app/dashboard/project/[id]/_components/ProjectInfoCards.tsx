@@ -1,17 +1,25 @@
-import { Calendar, Clock, Users, CheckCircle2 } from 'lucide-react';
+"use client";
+
+import { Calendar, Clock, Users } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Project } from './types';
 import { getDay } from '@/lib/utils';
+import { useProjectMembership } from "@/context/ProjectMembershipContext";
+import InviteMemberDialog from './InviteMemberDialog';
 
 interface ProjectInfoCardsProps {
     project: Project;
 }
 
 export default function ProjectInfoCards({ project }: ProjectInfoCardsProps) {
+    const { hasPermission } = useProjectMembership();
+    const canManageMembers = hasPermission("project", "manage_members");
+    const projectId = (Array.isArray(project.id) ? project.id[0] : project.id) || "";
+
     const infoCards = [
         {
             label: 'Start Date',
-            value: getDay(project.created_at),
+            value: getDay(project.created_at || ""),
             icon: Calendar,
         },
         {
@@ -24,32 +32,35 @@ export default function ProjectInfoCards({ project }: ProjectInfoCardsProps) {
             value: `${project.team_size} Members`,
             icon: Users,
         },
-        // {
-        //     label: 'Status',
-        //     value: `${project.progress}%`,
-        //     icon: CheckCircle2,
-        // },
     ];
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {infoCards.map((card, index) => {
                 const Icon = card.icon;
+                const isTeamMembers = card.label === 'Team Members';
+
                 return (
                     <Card key={index}>
                         <CardContent className="p-6">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                                    <Icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                        <Icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            {card.label}
+                                        </p>
+                                        <p className="font-semibold text-gray-900 dark:text-gray-100">
+                                            {card.value}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="flex-1">
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                        {card.label}
-                                    </p>
-                                    <p className="font-semibold text-gray-900 dark:text-gray-100">
-                                        {card.value}
-                                    </p>
-                                </div>
+
+                                {isTeamMembers && canManageMembers && (
+                                    <InviteMemberDialog projectId={projectId} />
+                                )}
                             </div>
                         </CardContent>
                     </Card>

@@ -7,7 +7,7 @@ import RecentActivitySection from './_components/RecentActivitySection';
 import TasksOverviewSection from './_components/TasksOverviewSection';
 import DeleteProjectSection from './_components/DeleteProjectSection';
 import { QuickStat, RecentFile, TaskOverview } from './_components/types';
-import { getProjectById, getRecentUpdatedFiles } from '@/actions/project.action';
+import { getProjectById, getRecentUpdatedFiles, getProjectMembers } from '@/actions/project.action';
 import { getPlanningDocuments, getAnalysisDocuments, getDesignDocuments } from '@/app/dashboard/project/[id]/workflows/steps/shared/api';
 import { notFound } from 'next/navigation';
 
@@ -33,6 +33,12 @@ export default async function ProjectOverviewPage({
     const project = await getProjectById(id);
     if (project.detail === "Project not found") {
         notFound();
+    }
+
+    // Fetch actual members count to display in ProjectInfoCards
+    const members = await getProjectMembers(id).catch(() => []);
+    if (members && members.length > 0) {
+        project.team_size = members.length;
     }
 
     const recentFilesFromApi = await getRecentUpdatedFiles(id, 6);
@@ -66,10 +72,12 @@ export default async function ProjectOverviewPage({
         return Number.isNaN(value) ? sum : sum + value;
     }, 0);
 
+    const totalT = project.totalTasks || 0;
+    const completedT = project.completedTasks || 0;
     const tasksOverview: TaskOverview = {
-        completed: project.completedTasks || 0,
-        inProgress: Math.floor((project.totalTasks - project.completedTasks) * 0.6) || 0,
-        pending: Math.ceil((project.totalTasks - project.completedTasks) * 0.4) || 0,
+        completed: completedT,
+        inProgress: Math.floor((totalT - completedT) * 0.6) || 0,
+        pending: Math.ceil((totalT - completedT) * 0.4) || 0,
     };
 
 

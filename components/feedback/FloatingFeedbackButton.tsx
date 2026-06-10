@@ -31,14 +31,15 @@ export default function FloatingFeedbackButton({
             {/* Floating Button */}
             <div className="fixed bottom-6 right-6 z-40">
                 <Button
-                    onClick={() => setIsDialogOpen(true)}
-                    className="rounded-full w-14 h-14 p-0 shadow-lg hover:shadow-xl transition-all 
-bg-black hover:bg-gray-800 
-dark:bg-white dark:hover:bg-gray-300"
-                    title="Send feedback"
-                >
-                    <Send className="w-6 h-6" />
-                </Button>
+  onClick={() => setIsDialogOpen(true)}
+  className="flex items-center gap-2 px-4 py-2 rounded-full shadow-lg hover:shadow-xl transition-all 
+  bg-black hover:bg-gray-800 
+  dark:bg-white dark:hover:bg-gray-300"
+  title="Send feedback"
+>
+  <Send className="w-5 h-5" />
+  <span>Feedback</span>
+</Button>
             </div>
 
             {/* Feedback Dialog */}

@@ -88,24 +88,26 @@ export default function DeleteAccountDialog({ userEmail }: DeleteAccountDialogPr
                                     <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                                     Are you absolutely sure?
                                 </AlertDialogTitle>
-                                <AlertDialogDescription className="text-left space-y-2 text-xs sm:text-sm">
-                                    <p>
-                                        This action cannot be undone. This will permanently delete the account{' '}
-                                        <span className="font-semibold text-gray-900 dark:text-white break-all">
-                                            {userEmail}
-                                        </span>
-                                        .
-                                    </p>
-                                    <p className="text-red-600 dark:text-red-400 font-medium">
-                                        All associated data including:
-                                    </p>
-                                    <ul className="list-disc list-inside space-y-1 pl-2">
-                                        <li>All projects and documents</li>
-                                        <li>SRS documents and wireframes</li>
-                                        <li>AI conversations history</li>
-                                        <li>Account settings and preferences</li>
-                                    </ul>
-                                    <p className="font-medium">will be permanently removed from our servers.</p>
+                                <AlertDialogDescription className="text-left space-y-2 text-xs sm:text-sm" asChild>
+                                    <div>
+                                        <p>
+                                            This action cannot be undone. This will permanently delete the account{' '}
+                                            <span className="font-semibold text-gray-900 dark:text-white break-all">
+                                                {userEmail}
+                                            </span>
+                                            .
+                                        </p>
+                                        <p className="text-red-600 dark:text-red-400 font-medium">
+                                            All associated data including:
+                                        </p>
+                                        <ul className="list-disc list-inside space-y-1 pl-2">
+                                            <li>All projects and documents</li>
+                                            <li>SRS documents and wireframes</li>
+                                            <li>AI conversations history</li>
+                                            <li>Account settings and preferences</li>
+                                        </ul>
+                                        <p className="font-medium">will be permanently removed from our servers.</p>
+                                    </div>
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
 

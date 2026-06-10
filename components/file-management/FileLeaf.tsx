@@ -2,16 +2,19 @@ import { DownloadIcon, FileIcon, Trash2 } from "lucide-react";
 import { FileNode } from "./type";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
+import { useProjectMembership } from "@/context/ProjectMembershipContext";
 
 type FileLeafProps = {
     file: FileNode;
     isUploading?: Set<string | number>;
-    onDelete: (fileId: number) => void;
+    onDelete: (fileId: number | string) => void;
     onDownload?: (file: FileNode) => void;
     onSelect?: (file: FileNode) => void;
 };
 
 export const FileLeaf: React.FC<FileLeafProps> = ({ file, isUploading, onDelete, onDownload, onSelect }) => {
+    const { hasPermission } = useProjectMembership();
+    const canDeleteFile = hasPermission("file", "delete");
     if(isUploading && isUploading.has(file.id)) {
         //create a loading spinner here
         return (
@@ -68,14 +71,16 @@ export const FileLeaf: React.FC<FileLeafProps> = ({ file, isUploading, onDelete,
                 >
                     <DownloadIcon className="w-4 h-4" />
                 </Button>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onDelete(file.id as number)}
-                    aria-label={`Delete ${file.name}`}
-                >
-                    <Trash2 className="w-4 h-4 text-red-600" />
-                </Button>
+                {canDeleteFile && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDelete(file.id)}
+                        aria-label={`Delete ${file.name}`}
+                    >
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                    </Button>
+                )}
             </div>
         </div>
     );

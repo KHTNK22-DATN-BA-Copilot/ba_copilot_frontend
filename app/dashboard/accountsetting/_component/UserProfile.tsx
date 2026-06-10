@@ -27,8 +27,19 @@ export default function UserProfile({
     name: string;
     email: string;
 }) {
-    const [avatar, setAvatar] = useState(Avatar.src);
+    const [avatar, setAvatar] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAvatar(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const [state, setState] = useState<StateProps>({
         state: "view",
@@ -87,13 +98,25 @@ export default function UserProfile({
             <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-x-3 sm:gap-x-4 mb-4 sm:mb-5 min-w-0">
                     <div className="relative group flex-shrink-0">
-                        <Image
-                            src={avatar}
-                            alt="User Avatar"
-                            width={50}
-                            height={50}
-                            className="w-12 h-12 sm:w-[60px] sm:h-[60px] rounded-full border border-gray-200 dark:border-gray-700 object-cover"
-                        />
+                        {avatar ? (
+                            <Image
+                                src={avatar}
+                                alt="User Avatar"
+                                width={60}
+                                height={60}
+                                className="w-12 h-12 sm:w-[60px] sm:h-[60px] rounded-full border border-gray-200 dark:border-gray-700 object-cover"
+                            />
+                        ) : (
+                            <div className="w-12 h-12 sm:w-[60px] sm:h-[60px] rounded-full border border-gray-200 dark:border-gray-700 bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 flex items-center justify-center overflow-hidden shadow-sm">
+                                <svg
+                                    className="w-7 h-7 sm:w-8 sm:h-8"
+                                    fill="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                            </div>
+                        )}
                         <label
                             className="absolute cursor-pointer bottom-0 right-0 w-5 h-5 bg-white dark:bg-gray-800 border-2 border-white dark:border-gray-800 rounded-full flex items-center justify-center shadow-2xl transition-all group-hover:scale-110"
                             title="Change profile picture"
@@ -104,6 +127,7 @@ export default function UserProfile({
                                 type="file"
                                 accept="image/*"
                                 className="hidden"
+                                onChange={handleFileChange}
                                 aria-label="Upload profile picture"
                             />
                         </label>

@@ -119,9 +119,15 @@ export default function UserActions({
                     onClick={() =>
                         setIsAvatarDropdownOpen(!isAvatarDropdownOpen)
                     }
-                    className="w-8 h-8 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center text-white text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                    className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 transition-all duration-200 hover:scale-105 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
-                    🦀
+                    <svg
+                        className="w-full h-full p-2"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
                 </button>
 
                 {/* Dropdown Menu */}

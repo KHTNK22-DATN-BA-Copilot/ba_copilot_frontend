@@ -15,8 +15,8 @@ export default async function WireframeGeneratorPage({
     searchParams,
     params,
 }: {
-    searchParams: { wireframe_id?: string };
-    params: { id: string };
+    searchParams: Promise<{ wireframe_id?: string }>;
+    params: Promise<{ id: string }>;
 }) {
 
     const project_id = (await params).id;

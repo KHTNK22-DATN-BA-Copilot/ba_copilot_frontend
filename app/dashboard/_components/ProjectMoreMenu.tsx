@@ -104,24 +104,26 @@ export default function ProjectMoreMenu({ projectId, projectName, onDelete, isDe
                             <AlertTriangle className="w-5 h-5 sm:w-7 sm:h-7 flex-shrink-0 mt-0.5" />
                             <span>Are you absolutely sure?</span>
                         </AlertDialogTitle>
-                        <AlertDialogDescription className="text-left space-y-2 sm:space-y-3 text-sm sm:text-base text-gray-300 dark:text-gray-300 pt-2">
-                            <p className="text-gray-200 dark:text-gray-200">
-                                This action cannot be undone. This will permanently delete the project{' '}
-                                <span className="font-semibold text-white break-words">
-                                    {projectName ? `"${projectName}"` : 'this project'}
-                                </span>
-                                .
-                            </p>
-                            <p className="text-red-400 dark:text-red-400 font-semibold">
-                                All associated data including:
-                            </p>
-                            <ul className="list-disc list-inside space-y-1 sm:space-y-1.5 pl-1 text-gray-300 dark:text-gray-300">
-                                <li>SRS documents</li>
-                                <li>Wireframes and diagrams</li>
-                                <li>AI conversations</li>
-                                <li>Project settings and history</li>
-                            </ul>
-                            <p className="font-medium text-gray-200 dark:text-gray-200">will be permanently removed from our servers.</p>
+                        <AlertDialogDescription className="text-left space-y-2 sm:space-y-3 text-sm sm:text-base text-gray-300 dark:text-gray-300 pt-2" asChild>
+                            <div>
+                                <p className="text-gray-200 dark:text-gray-200">
+                                    This action cannot be undone. This will permanently delete the project{' '}
+                                    <span className="font-semibold text-white break-words">
+                                        {projectName ? `"${projectName}"` : 'this project'}
+                                    </span>
+                                    .
+                                </p>
+                                <p className="text-red-400 dark:text-red-400 font-semibold">
+                                    All associated data including:
+                                </p>
+                                <ul className="list-disc list-inside space-y-1 sm:space-y-1.5 pl-1 text-gray-300 dark:text-gray-300">
+                                    <li>SRS documents</li>
+                                    <li>Wireframes and diagrams</li>
+                                    <li>AI conversations</li>
+                                    <li>Project settings and history</li>
+                                </ul>
+                                <p className="font-medium text-gray-200 dark:text-gray-200">will be permanently removed from our servers.</p>
+                            </div>
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2 pt-2 sm:pt-4">
