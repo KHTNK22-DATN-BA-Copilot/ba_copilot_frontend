@@ -68,7 +68,7 @@ export function useProjectData(projectId: string | string[]) {
                     progress: data.progress || 0,
                     created_at: data.created_at ? formatDate(data.created_at) : formatDate(new Date().toISOString()),
                     dueDate: data.updated_at ? formatDate(data.updated_at) : formatDate(new Date().toISOString()),
-                    teamMembers: data.team_members || 1,
+                    teamMembers: data.team_size,
                     completedTasks: data.completed_tasks || 0,
                     totalTasks: data.total_tasks || 0,
                 });
