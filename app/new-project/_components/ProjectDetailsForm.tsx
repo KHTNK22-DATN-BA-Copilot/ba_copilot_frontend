@@ -54,7 +54,7 @@ export default function ProjectDetailsForm({
               onChange={(e) => setDescription(e.target.value)}
             />
             <p className="text-sm text-muted-foreground">
-              {description.length} / 500
+              {description.length} characters (minimum 100 required)
             </p>
           </div>
 
