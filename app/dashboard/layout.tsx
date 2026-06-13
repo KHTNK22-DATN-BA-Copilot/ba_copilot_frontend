@@ -24,6 +24,7 @@ export default function DashboardLayout({
     const toggleDarkMode = () => {
         setIsDarkMode((prev) => {
             const newMode = !prev;
+            localStorage.setItem("theme", newMode ? "dark" : "light");
             if (newMode) {
                 document.documentElement.classList.add("dark");
             } else {
