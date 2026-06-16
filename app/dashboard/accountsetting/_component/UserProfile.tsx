@@ -3,7 +3,7 @@ import Image from "next/image";
 import Avatar from "@/public/Profile.png";
 import { Pencil, Edit } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
     AlertDialog,
@@ -19,7 +19,6 @@ import { Field } from "./Field";
 import { StateProps, UserProfileProps } from "./types";
 import { isEqual, isValidEmail, updateUserProfile } from "./utils";
 
-
 export default function UserProfile({
     name,
     email,
@@ -27,8 +26,9 @@ export default function UserProfile({
     name: string;
     email: string;
 }) {
-    const [avatar, setAvatar] = useState<string | null>(null);
+    const [avatar, setAvatar] = useState<string | null>(name[0].toUpperCase());
     const fileInputRef = useRef<HTMLInputElement>(null);
+
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -46,7 +46,7 @@ export default function UserProfile({
     });
     const [originalProfile, setOriginalProfile] = useState<UserProfileProps>({
         fullName: name,
-        email: email
+        email: email,
     });
     const [EditProfile, setEditProfile] = useState(originalProfile);
 
@@ -99,15 +99,15 @@ export default function UserProfile({
                 <div className="flex items-center gap-x-3 sm:gap-x-4 mb-4 sm:mb-5 min-w-0">
                     <div className="relative group flex-shrink-0">
                         {avatar ? (
-                            <Image
-                                src={avatar}
-                                alt="User Avatar"
-                                width={60}
-                                height={60}
-                                className="w-12 h-12 sm:w-[60px] sm:h-[60px] rounded-full border border-gray-200 dark:border-gray-700 object-cover"
-                            />
+                            <div
+                                className={`*:w-12 h-12 flex justify-center items-center text-2xl sm:w-[60px] sm:h-[60px] rounded-full border border-gray-200 dark:border-gray-700 object-cover bg-gray-200 dark:bg-gray-700`}
+                            >
+                                {avatar}
+                            </div>
                         ) : (
-                            <div className="w-12 h-12 sm:w-[60px] sm:h-[60px] rounded-full border border-gray-200 dark:border-gray-700 bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 flex items-center justify-center overflow-hidden shadow-sm">
+                            <div
+                                className={`w-12 h-12 sm:w-[60px] sm:h-[60px] rounded-full border border-gray-200 dark:border-gray-700 bg-gray-200 dark:bg-gray-700 text-white flex items-center justify-center overflow-hidden shadow-sm`}
+                            >
                                 <svg
                                     className="w-7 h-7 sm:w-8 sm:h-8"
                                     fill="currentColor"
@@ -117,24 +117,14 @@ export default function UserProfile({
                                 </svg>
                             </div>
                         )}
-                        <label
-                            className="absolute cursor-pointer bottom-0 right-0 w-5 h-5 bg-white dark:bg-gray-800 border-2 border-white dark:border-gray-800 rounded-full flex items-center justify-center shadow-2xl transition-all group-hover:scale-110"
-                            title="Change profile picture"
-                        >
-                            <Pencil className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-                            <Input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={handleFileChange}
-                                aria-label="Upload profile picture"
-                            />
-                        </label>
                     </div>
                     <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-sm sm:text-base truncate">{name}</p>
-                        <p className="text-gray-500 text-xs sm:text-sm truncate">{email}</p>
+                        <p className="font-semibold text-sm sm:text-base truncate">
+                            {name}
+                        </p>
+                        <p className="text-gray-500 text-xs sm:text-sm truncate">
+                            {email}
+                        </p>
                     </div>
                 </div>
                 <Edit
