@@ -235,7 +235,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
 
       const payload: GenerateWorkflowPayload = {
         project_name: project.name ?? projectId,
-        description: additionalInstructions || `Generate ${selectedEntry.document.name} for the project`,
+        description: additionalInstructions,
         documents: [{ type: selectedEntry.document.id }],
       };
 

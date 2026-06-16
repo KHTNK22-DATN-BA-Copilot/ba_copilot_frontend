@@ -12,9 +12,10 @@ interface HeaderProps {
     setIsMenuOpen: (open: boolean) => void;
     isDarkMode: boolean;
     toggleDarkMode: () => void;
+    name?: string;
 }
 
-export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDarkMode }: HeaderProps) {
+export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDarkMode, name }: HeaderProps) {
     const router = useRouter();
     const pathname = usePathname();
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -180,6 +181,7 @@ export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDa
                             toggleDarkMode={toggleDarkMode}
                             isMenuOpen={isMenuOpen}
                             setIsMenuOpen={setIsMenuOpen}
+                            name={name}
                         />
                     </div>
                 </div>

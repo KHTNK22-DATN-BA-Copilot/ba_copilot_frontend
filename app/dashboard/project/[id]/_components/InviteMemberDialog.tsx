@@ -218,7 +218,7 @@ export default function InviteMemberDialog({ projectId }: InviteMemberDialogProp
             <DialogTrigger asChild>
                 <Button size="sm" variant="outline" className="gap-1 cursor-pointer">
                     <UserPlus className="w-4.5 h-4.5" />
-                    Invite
+                    Manage
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-lg bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
