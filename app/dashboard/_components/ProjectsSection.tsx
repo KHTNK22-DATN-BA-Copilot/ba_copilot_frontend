@@ -269,9 +269,9 @@ export default function ProjectsSection({
                                     <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center shrink-0">
                                         <FolderOpen className="w-8 h-8 text-muted-foreground/50 dark:text-gray-400" />
                                     </div>
-                                    <div className="flex-1 flex items-center justify-between">
-                                        <div className="flex-1 space-y-1">
-                                            <p className="text-sm truncate text-gray-900 dark:text-gray-100">
+                                    <div className="flex-1 flex items-center justify-between min-w-0">
+                                        <div className="flex-1 space-y-1 min-w-0">
+                                            <p className="text-sm truncate text-gray-900 dark:text-gray-100 font-medium">
                                                 {item.name}
                                             </p>
                                             <div className="flex items-center gap-2">
@@ -304,7 +304,7 @@ export default function ProjectsSection({
                                         <FolderOpen className="w-12 h-12 text-muted-foreground/50 dark:text-gray-400" />
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <div className="flex-1 space-y-1">
+                                        <div className="flex-1 space-y-1 min-w-0">
                                             <p className="text-sm truncate text-gray-900 dark:text-gray-100 font-medium">
                                                 {item.name}
                                             </p>
