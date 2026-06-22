@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Trash2, AlertTriangle } from "lucide-react";
 import { deleteUserAccount } from "./utils";
+import { redirect } from "next/dist/client/components/navigation";
 
 interface DeleteAccountDialogProps {
     userEmail: string;
@@ -35,7 +36,7 @@ export default function DeleteAccountDialog({ userEmail }: DeleteAccountDialogPr
 
         if (result.success) {
             alert("Account deleted successfully");
-            window.location.href = "/login";
+            redirect("/login");
         } else {
             alert(result.message || "Failed to delete account. Please try again.");
             setIsDeleting(false);
@@ -88,24 +89,26 @@ export default function DeleteAccountDialog({ userEmail }: DeleteAccountDialogPr
                                     <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                                     Are you absolutely sure?
                                 </AlertDialogTitle>
-                                <AlertDialogDescription className="text-left space-y-2 text-xs sm:text-sm">
-                                    <p>
-                                        This action cannot be undone. This will permanently delete the account{' '}
-                                        <span className="font-semibold text-gray-900 dark:text-white break-all">
-                                            {userEmail}
-                                        </span>
-                                        .
-                                    </p>
-                                    <p className="text-red-600 dark:text-red-400 font-medium">
-                                        All associated data including:
-                                    </p>
-                                    <ul className="list-disc list-inside space-y-1 pl-2">
-                                        <li>All projects and documents</li>
-                                        <li>SRS documents and wireframes</li>
-                                        <li>AI conversations history</li>
-                                        <li>Account settings and preferences</li>
-                                    </ul>
-                                    <p className="font-medium">will be permanently removed from our servers.</p>
+                                <AlertDialogDescription className="text-left space-y-2 text-xs sm:text-sm" asChild>
+                                    <div>
+                                        <p>
+                                            This action cannot be undone. This will permanently delete the account{' '}
+                                            <span className="font-semibold text-gray-900 dark:text-white break-all">
+                                                {userEmail}
+                                            </span>
+                                            .
+                                        </p>
+                                        <p className="text-red-600 dark:text-red-400 font-medium">
+                                            All associated data including:
+                                        </p>
+                                        <ul className="list-disc list-inside space-y-1 pl-2">
+                                            <li>All projects and documents</li>
+                                            <li>SRS documents and wireframes</li>
+                                            <li>AI conversations history</li>
+                                            <li>Account settings and preferences</li>
+                                        </ul>
+                                        <p className="font-medium">will be permanently removed from our servers.</p>
+                                    </div>
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
 
@@ -131,7 +134,9 @@ export default function DeleteAccountDialog({ userEmail }: DeleteAccountDialogPr
                                     Cancel
                                 </AlertDialogCancel>
                                 <AlertDialogAction
-                                    onClick={handleDelete}
+                                    onClick={() => {
+                                        handleDelete();
+                                    }}
                                     disabled={!isChecked || isDeleting}
                                     className="bg-red-600 hover:bg-red-700 focus-visible:ring-red-600/50 w-full sm:w-auto"
                                 >

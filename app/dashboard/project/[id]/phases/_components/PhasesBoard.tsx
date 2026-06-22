@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import useSWR from "swr";
 import {
   CheckCircle2,
   Circle,
@@ -30,6 +31,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getProjectById } from "@/actions/project.action";
 import { toast } from "sonner";
+import { useProjectMembership } from "@/context/ProjectMembershipContext";
 
 import { DocumentPreviewModal } from "../../workflows/steps/shared/components/DocumentPreviewModal";
 import type { DocumentListItem, GenerateWorkflowPayload, GenerationDocumentItem, StepName } from "../../workflows/steps/shared/types";
@@ -56,18 +58,56 @@ interface PhasesBoardProps {
 const ALL_PHASE_IDS: PhaseId[] = ["planning", "analysis", "design"];
 
 export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps) {
+  const { role } = useProjectMembership();
+  const isViewer = role === "Viewer";
   const filteredPhases = useMemo(() => getPhases(phaseFilter), [phaseFilter]);
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
-  const [generatedByPhase, setGeneratedByPhase] = useState<
-    Partial<Record<PhaseId, GeneratedPhaseDocument[]>>
-  >({});
   const [previewDocument, setPreviewDocument] = useState<GeneratedPhaseDocument | null>(null);
   const [previewPhaseId, setPreviewPhaseId] = useState<PhaseId | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [additionalInstructions, setAdditionalInstructions] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [generatingDocumentItem, setGeneratingDocumentItem] = useState<GenerationDocumentItem | null>(null);
-  const [isSyncingDocuments, setIsSyncingDocuments] = useState(true);
+
+  const fetchPhaseDocs = async ([pId, pFilter]: [string, PhaseId]) => {
+    return getGeneratedDocumentsByPhase(pFilter, pId);
+  };
+
+  const { data: planningDocs = [], isLoading: loadingPlanning, mutate: mutatePlanning } = useSWR(
+    projectId ? [projectId, "planning"] : null,
+    fetchPhaseDocs,
+    { revalidateOnFocus: false }
+  );
+
+  const { data: analysisDocs = [], isLoading: loadingAnalysis, mutate: mutateAnalysis } = useSWR(
+    projectId ? [projectId, "analysis"] : null,
+    fetchPhaseDocs,
+    { revalidateOnFocus: false }
+  );
+
+  const { data: designDocs = [], isLoading: loadingDesign, mutate: mutateDesign } = useSWR(
+    projectId ? [projectId, "design"] : null,
+    fetchPhaseDocs,
+    { revalidateOnFocus: false }
+  );
+
+  const generatedByPhase = useMemo(() => {
+    return {
+      planning: planningDocs,
+      analysis: analysisDocs,
+      design: designDocs,
+    };
+  }, [planningDocs, analysisDocs, designDocs]);
+
+  const isSyncingDocuments = loadingPlanning || loadingAnalysis || loadingDesign;
+
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      mutatePlanning();
+      mutateAnalysis();
+      mutateDesign();
+    }
+  }, [refreshTrigger, mutatePlanning, mutateAnalysis, mutateDesign]);
 
   const { generateDocuments, isGenerating, error: wsError, cancelGeneration, documentStatuses } = useWorkflowGeneration(
     undefined,
@@ -90,50 +130,6 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
       : `${filteredPhases.length} Phases`;
 
   const selectedEntry = selectedDocument ? findDocument(selectedDocument) : null;
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchGeneratedDocuments = async () => {
-      if (isMounted) {
-        setIsSyncingDocuments(true);
-      }
-
-      try {
-        const results = await Promise.all(
-          ALL_PHASE_IDS.map(async (phaseId) => {
-            const documents = await getGeneratedDocumentsByPhase(phaseId, projectId);
-            return [phaseId, documents] as const;
-          })
-        );
-
-        if (!isMounted) {
-          return;
-        }
-
-        setGeneratedByPhase(
-          results.reduce((acc, [phaseId, documents]) => {
-            acc[phaseId] = documents;
-            return acc;
-          }, {} as Partial<Record<PhaseId, GeneratedPhaseDocument[]>>)
-        );
-      } catch {
-        if (isMounted) {
-          toast.error("Failed to sync phase documents");
-        }
-      } finally {
-        if (isMounted) {
-          setIsSyncingDocuments(false);
-        }
-      }
-    };
-
-    fetchGeneratedDocuments();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [filteredPhases, projectId, refreshTrigger]);
 
   const generatedDocumentIndex = useMemo(() => {
     const index: Partial<Record<PhaseId, Record<string, GeneratedPhaseDocument>>> = {};
@@ -239,7 +235,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
 
       const payload: GenerateWorkflowPayload = {
         project_name: project.name ?? projectId,
-        description: additionalInstructions || `Generate ${selectedEntry.document.name} for the project`,
+        description: additionalInstructions,
         documents: [{ type: selectedEntry.document.id }],
       };
 
@@ -255,6 +251,16 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
       setGeneratingDocumentItem(null);
       toast.error("An error occurred while generating");
     }
+  };
+
+  const handleGenerateClick = (e: React.MouseEvent) => {
+    if (isViewer) {
+      e.preventDefault();
+      e.stopPropagation();
+      toast.error("You do not have permission to generate documents. Your role is Viewer.");
+      return;
+    }
+    handleGenerate();
   };
 
   const handleOpenPreview = (document: GeneratedPhaseDocument, phaseId: PhaseId) => {
@@ -384,11 +390,12 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                         );
 
                         return (
-                          <button
+                          <div
                             key={doc.id}
-                            type="button"
+                            role="button"
+                            tabIndex={0}
                             className={cn(
-                              "flex w-full cursor-pointer items-center justify-between rounded-lg border p-3 text-left transition-all",
+                              "flex w-full cursor-pointer items-center justify-between rounded-lg border p-3 text-left transition-all focus:outline-none focus:ring-2 focus:ring-blue-500",
                               selectedDocument === doc.id
                                 ? "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30"
                                 : isGenerated
@@ -396,6 +403,12 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                                 : "border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800/60"
                             )}
                             onClick={() => setSelectedDocument(doc.id)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                setSelectedDocument(doc.id);
+                              }
+                            }}
                           >
                             <div className="flex flex-1 items-center gap-3">
                               {getStatusIcon(displayStatus)}
@@ -466,7 +479,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                                 </Button>
                               )}
                             </div>
-                          </button>
+                          </div>
                         );
                       })}
                     </div>
@@ -553,28 +566,45 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                       />
                     </div>
 
-                    <Button
-                      className="w-full gap-2"
-                      onClick={handleGenerate}
-                      disabled={
-                        isGenerating ||
-                        isSyncingDocuments ||
-                        hasMissingRequiredDependencies ||
-                        Boolean(
-                          getMatchedGeneratedDocument(
-                            selectedEntry.phase.id,
-                            selectedEntry.document.id
+                    {isViewer ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            className="w-full gap-2 opacity-50 cursor-not-allowed pointer-events-auto hover:bg-primary hover:text-primary-foreground"
+                            onClick={handleGenerateClick}
+                          >
+                            <Sparkles className="h-4 w-4" />
+                            Generate
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          You do not have permission to generate documents. Your role is Viewer.
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <Button
+                        className="w-full gap-2"
+                        onClick={handleGenerate}
+                        disabled={
+                          isGenerating ||
+                          isSyncingDocuments ||
+                          hasMissingRequiredDependencies ||
+                          Boolean(
+                            getMatchedGeneratedDocument(
+                              selectedEntry.phase.id,
+                              selectedEntry.document.id
+                            )
                           )
-                        )
-                      }
-                    >
-                      {isGenerating ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Sparkles className="h-4 w-4" />
-                      )}
-                      {isGenerating ? "Generating..." : "Generate"}
-                    </Button>
+                        }
+                      >
+                        {isGenerating ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-4 w-4" />
+                        )}
+                        {isGenerating ? "Generating..." : "Generate"}
+                      </Button>
+                    )}
 
                     {hasMissingRequiredDependencies && (
                       <p className="text-xs text-red-600 dark:text-red-400">

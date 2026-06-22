@@ -10,6 +10,8 @@ import ProjectActions from './_components/ProjectActions';
 import { useDarkMode } from './_components/useDarkMode';
 import { createProject } from "@/actions/project.action";
 
+const MAX_DESCRIPTION_LENGTH = 100;
+
 export default function NewProjectPage() {
   const router = useRouter();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
@@ -17,7 +19,6 @@ export default function NewProjectPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [description, setDescription] = useState("");
-  const [dueDate, setDueDate] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,7 +29,15 @@ export default function NewProjectPage() {
     setError(null);
 
     try {
-      const response = await createProject(projectName, description, "active")
+      // Use defaults as in the V2 projects API example: team_size=1, due_date="2026-05-27T14:44:09.420Z", project_priority="low"
+      const response = await createProject(
+        projectName,
+        description,
+        "active",
+        1,
+        "2026-05-27T14:44:09.420Z",
+        "low"
+      );
 
       if (response.status === 201 && response.data) {
         // After successful creation, navigate to the new project or dashboard
@@ -74,8 +83,6 @@ export default function NewProjectPage() {
               setProjectName={setProjectName}
               description={description}
               setDescription={setDescription}
-              dueDate={dueDate}
-              setDueDate={setDueDate}
             />
 
             {/* <ProjectFeatures /> */}
@@ -83,7 +90,7 @@ export default function NewProjectPage() {
             <ProjectActions
               onCancel={handleClose}
               onCreate={handleCreate}
-              isDisabled={!projectName.trim() || isCreating}
+              isDisabled={(!projectName.trim() || description.length < MAX_DESCRIPTION_LENGTH) || isCreating}
               isLoading={isCreating}
             />
           </div>

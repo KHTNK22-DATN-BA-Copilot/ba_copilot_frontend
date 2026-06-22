@@ -1,4 +1,6 @@
 import WorkflowsMain from "./_components/WorkflowsMain";
+import { getProjectById } from '@/actions/project.action';
+import NotFound from "@/app/dashboard/project/[id]/_components/NotFound";
 
 export default async function WorkflowsPage({
     params,
@@ -6,6 +8,11 @@ export default async function WorkflowsPage({
     params: Promise<{ id: string }>;
 }) {
     const { id } = await params;
+    const project = await getProjectById(id);
+
+    if (!project) {
+        return <NotFound />;
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

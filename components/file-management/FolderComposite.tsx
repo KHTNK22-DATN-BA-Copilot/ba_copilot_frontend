@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useEffect, useRef, useState } from "react";
 import { countFiles } from "./utils";
+import { useProjectMembership } from "@/context/ProjectMembershipContext";
 
 type FolderCompositeProps = {
     folder: FileNode;
@@ -24,7 +25,7 @@ type FolderCompositeProps = {
     isUploading?: Set<string | number>;
     toggle: (id: number) => void;
     onUpload: (folderId: number) => void;
-    onDelete: (folderId: number, fileId: number) => void;
+    onDelete: (folderId: number, fileId: number | string) => void;
     onDownload?: (file: FileNode) => void;
     onSelect?: (file: FileNode) => void;
     onCreateFolder?: (parentId: number, name: string) => void;
@@ -46,6 +47,11 @@ export const FolderComposite = ({
     onRenameFolder,
     isUploading,
 }: FolderCompositeProps) => {
+    const { hasPermission } = useProjectMembership();
+    const canWriteFolder = hasPermission("folder", "write");
+    const canDeleteFolder = hasPermission("folder", "delete");
+    const canWriteFile = hasPermission("file", "write");
+
     const [creating, setCreating] = useState(false);
     const [renaming, setRenaming] = useState(false);
     const [newName, setNewName] = useState("");
@@ -175,12 +181,13 @@ export const FolderComposite = ({
                                     e.stopPropagation();
                                     onUpload(folder.id as number);
                                 }}
+                                disabled={!canWriteFile}
                             >
                                 <FilePlus className="w-4 h-4" />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                            <p>Add New file</p>
+                            <p>{canWriteFile ? "Add New file" : "You do not have permission to upload files (Viewer)"}</p>
                         </TooltipContent>
                     </Tooltip>
 
@@ -193,12 +200,13 @@ export const FolderComposite = ({
                                     e.stopPropagation();
                                     setCreating(true);
                                 }}
+                                disabled={!canWriteFolder}
                             >
                                 <FolderPlus className="w-5 h-5" />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                            <p>Add New folder</p>
+                            <p>{canWriteFolder ? "Add New folder" : "You do not have permission to add folders (Viewer)"}</p>
                         </TooltipContent>
                     </Tooltip>
 
@@ -214,12 +222,13 @@ export const FolderComposite = ({
                                             setRenaming(true);
                                             setRenameName(folder.name);
                                         }}
+                                        disabled={!canWriteFolder}
                                     >
                                         <Edit2 className="w-4 h-4" />
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>Rename folder</p>
+                                    <p>{canWriteFolder ? "Rename folder" : "You do not have permission to rename folders"}</p>
                                 </TooltipContent>
                             </Tooltip>
 
@@ -232,12 +241,13 @@ export const FolderComposite = ({
                                             e.stopPropagation();
                                             handleRemoveClick(e);
                                         }}
+                                        disabled={!canDeleteFolder}
                                     >
                                         <FolderMinus className="w-4 h-4" />
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>Remove folder</p>
+                                    <p>{canDeleteFolder ? "Remove folder" : "You do not have permission to delete folders"}</p>
                                 </TooltipContent>
                             </Tooltip>
                         </>
@@ -253,14 +263,16 @@ export const FolderComposite = ({
                         <div className="text-center py-8 text-muted-foreground">
                             <Folder className="w-12 h-12 mx-auto mb-2 opacity-50" />
                             <p>No files in this folder</p>
-                            <Button
-                                variant="link"
-                                size="sm"
-                                onClick={() => onUpload(folder.id as number)}
-                                className="mt-2"
-                            >
-                                Upload your first file
-                            </Button>
+                            {canWriteFile && (
+                                <Button
+                                    variant="link"
+                                    size="sm"
+                                    onClick={() => onUpload(folder.id as number)}
+                                    className="mt-2"
+                                >
+                                    Upload your first file
+                                </Button>
+                            )}
                         </div>
                     ) : (
                         <div className="space-y-2">

@@ -2,6 +2,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { FileNode } from "./type";
 import { FolderComposite } from "./FolderComposite";
@@ -26,8 +27,42 @@ import {
 } from "@/actions/file.action";
 import { getAccessToken } from "@/lib/projects";
 import { Analytics } from "@/lib/analytics";
+import { useProjectMembership } from "@/context/ProjectMembershipContext";
+import { toast } from "sonner";
+
+function getErrorStatus(err: unknown): number | null {
+    if (!err || typeof err !== "object") {
+        return null;
+    }
+
+    const typedErr = err as {
+        status?: unknown;
+        statusCode?: unknown;
+        message?: unknown;
+    };
+
+    if (typeof typedErr.status === "number") {
+        return typedErr.status;
+    }
+
+    if (typeof typedErr.statusCode === "number") {
+        return typedErr.statusCode;
+    }
+
+    if (typeof typedErr.message === "string") {
+        const match = typedErr.message.match(/\b(4\d\d|5\d\d)\b/);
+        if (match) {
+            return Number(match[1]);
+        }
+    }
+
+    return null;
+}
 
 export default function FileManagement({ projectId }: { projectId: string }) {
+    const router = useRouter();
+    const { hasPermission } = useProjectMembership();
+    const canWriteFolder = hasPermission("folder", "write");
     const [fileNode, setFileNode] = useState<FileNode[]>([]);
     const [expandedFolders, setExpandedFolders] = useState<Set<number>>(
         new Set(),
@@ -37,6 +72,11 @@ export default function FileManagement({ projectId }: { projectId: string }) {
     const [newName, setNewName] = useState("");
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [loadingFiles, setLoadingFiles] = useState<Set<string | number>>(new Set());
+
+    const showPermissionNotice = useCallback(() => {
+        const message = "Your role in this project may have changed to Viewer. You no longer have permission for this action.";
+        toast.error(message);
+    }, []);
 
 
     useEffect(() => {
@@ -59,9 +99,23 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                 });
                 setExpandedFolders(initial);
             })
-            .catch(console.error);
+            .catch((err: any) => {
+                if (!mounted) return;
+
+                console.error("Failed to load project structure:", err);
+
+                if (err.status === 404) {
+                    toast.error("Project structure data not found.");
+                    router.push("/dashboard");
+                } else if (err.status === 422) {
+                    toast.error("Invalid request. Please check the project ID.");
+                    router.push("/dashboard");
+                } else {
+                    toast.error("An error occurred while loading the folder structure.");
+                }
+            });
         return () => { mounted = false; };
-    }, [projectId]);
+    }, [projectId, router]);
 
     const toggleFolder = useCallback((folderId: number) => {
         setExpandedFolders((prev) => {
@@ -76,6 +130,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
         fileInput.multiple = true;
+        fileInput.accept = ".pdf, .md, .txt, .docx, .doc"
         fileInput.onchange = async (e: Event) => {
             const target = e.target as HTMLInputElement;
             const files = target.files ? Array.from(target.files) : [];
@@ -107,7 +162,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                 for (const file of files) {
                     formData.append("files", file);
                 }
-                
+
                 setLoadingFiles((prev) => {
                     const next = new Set(prev);
                     for (const tempFileNode of tempFileNodes) {
@@ -115,9 +170,21 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                     }
                     return next;
                 });
-                const uploadedFiles = await uploadFileAction(projectId, folderId, formData);
+                const response = await uploadFileAction(projectId, folderId, formData);
+                if (!response.success || !response.data) {
+                    setFileNode(previousState);
+                    if (response.statusCode === 403) {
+                        showPermissionNotice();
+                    } else if (response.statusCode === 404) {
+                        toast.error("Action failed. Invalid file or project.");
+                    } else {
+                        toast.error(response.message || "Failed to upload file. Please try again.");
+                    }
+                    return;
+                }
+                const uploadedFiles = response.data;
                 Analytics.uploadFile(projectId, files.length);
-                
+
                 window.dispatchEvent(new Event("file-uploaded"));
 
                 // Replace optimistic temp node with real server data
@@ -131,10 +198,22 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                     }
                     return updated;
                 });
-            } catch (err) {
+
+                // Fetch fresh tree contents on success
+                const freshTree = await getFileTree(projectId);
+                setFileNode(freshTree);
+                toast.success("File uploaded successfully.");
+            } catch (err: any) {
                 console.error("Failed to upload file:", err);
                 setFileNode(previousState);
-                alert("Failed to upload file. Please try again.");
+                const status = getErrorStatus(err);
+                if (status === 403) {
+                    showPermissionNotice();
+                } else if (status === 404) {
+                    toast.error("Action failed. Invalid file or project.");
+                } else {
+                    toast.error("Failed to upload file. Please try again.");
+                }
             } finally {
                 setLoadingFiles((prev) => {
                     const next = new Set(prev);
@@ -148,20 +227,58 @@ export default function FileManagement({ projectId }: { projectId: string }) {
         fileInput.click();
     };
 
-    const handleDeleteFile = (folderId: number, fileId: number) => {
-        deleteFileAction(fileId).then(() => {
-            Analytics.deleteFile(fileId);
-        }).catch((err) => {
-            console.error("Failed to delete file:", err);
-            alert("Failed to delete file. Please try again.");
-        })
+    const handleDeleteFile = async (_folderId: number, fileId: string | number) => {
+        const previousState = fileNode;
         setFileNode((prev) => removeNodeById(prev, fileId));
+
+        try {
+            const response = await deleteFileAction(projectId, fileId);
+            if (!response.success) {
+                setFileNode(previousState);
+
+                if (response.statusCode === 403) {
+                    showPermissionNotice();
+                } else if (response.statusCode === 404) {
+                    toast.error("Action failed. Invalid file or project.");
+                } else {
+                    toast.error("Failed to delete file. Please try again.");
+                }
+
+                return;
+            }
+
+            Analytics.deleteFile(fileId);
+            // Fetch fresh tree contents on success
+            const data = await getFileTree(projectId);
+            setFileNode(data);
+            toast.success("File deleted successfully.");
+        } catch (err: any) {
+            console.error("Failed to delete file:", err);
+            setFileNode(previousState);
+            const status = getErrorStatus(err);
+            if (status === 403) {
+                showPermissionNotice();
+            } else if (status === 404) {
+                toast.error("Action failed. Invalid file or project.");
+            } else {
+                toast.error("Failed to delete file. Please try again.");
+            }
+        }
     };
 
     const handleCreateFolder = useCallback(
         async (parentId: number | null, name: string) => {
             try {
-                const created = await createFolderAction(projectId, name, parentId);
+                const response = await createFolderAction(projectId, name, parentId);
+                if (!response.success || !response.data) {
+                    if (response.statusCode === 403) {
+                        showPermissionNotice();
+                    } else {
+                        toast.error(response.message || "Failed to create folder");
+                    }
+                    return;
+                }
+                const created = response.data;
                 const newFolder: FileNode = {
                     id: created.id,
                     name: created.name,
@@ -179,16 +296,30 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                     }
                     return next;
                 });
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Failed to create folder:", err);
+                const status = getErrorStatus(err);
+                if (status === 403) {
+                    showPermissionNotice();
+                } else {
+                    toast.error("Failed to create folder. Please try again.");
+                }
             }
         },
-        [projectId],
+        [projectId, showPermissionNotice],
     );
 
     const handleRemoveFolder = async (folderId: number) => {
         try {
-            await deleteFolderAction(folderId);
+            const response = await deleteFolderAction(projectId, folderId);
+            if (!response.success) {
+                if (response.statusCode === 403) {
+                    showPermissionNotice();
+                } else {
+                    toast.error(response.message || "Failed to remove folder");
+                }
+                return;
+            }
             Analytics.deleteFolder(folderId);
             setFileNode((prev) => removeNodeById(prev, folderId));
 
@@ -197,22 +328,42 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                 next.delete(folderId);
                 return next;
             });
-        } catch (err) {
+        } catch (err: any) {
             console.error("Failed to remove folder:", err);
+            const status = getErrorStatus(err);
+            if (status === 403) {
+                showPermissionNotice();
+            } else {
+                toast.error("Failed to remove folder. Please try again.");
+            }
         }
     };
 
     const handleRenameFolder = useCallback(
         async (folderId: number, newName: string) => {
             try {
-                await renameFolderAction(folderId, newName);
+                const response = await renameFolderAction(projectId, folderId, newName);
+                if (!response.success) {
+                    if (response.statusCode === 403) {
+                        showPermissionNotice();
+                    } else {
+                        toast.error(response.message || "Failed to rename folder");
+                    }
+                    return;
+                }
                 Analytics.renameFolder(folderId);
                 setFileNode((prev) => renameNodeById(prev, folderId, newName));
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Failed to rename folder:", err);
+                const status = getErrorStatus(err);
+                if (status === 403) {
+                    showPermissionNotice();
+                } else {
+                    toast.error("Failed to rename folder. Please try again.");
+                }
             }
         },
-        [],
+        [projectId, showPermissionNotice],
     );
 
     const handleCreateConfirm = () => {
@@ -242,11 +393,18 @@ export default function FileManagement({ projectId }: { projectId: string }) {
 
         try {
             const token = await getAccessToken();
-            await exportFileFromClient(file.id as number | string, token ?? "");
+            await exportFileFromClient(projectId, file.id as number | string, token ?? "");
             Analytics.downloadFile(file.id as string | number);
-        } catch (err) {
+        } catch (err: any) {
             console.error("Failed to download file:", err);
-            alert("Failed to download file. Please try again.");
+            const status = getErrorStatus(err);
+            if (status === 403) {
+                showPermissionNotice();
+            } else if (status === 404) {
+                toast.error("Action failed. Invalid file or project.");
+            } else {
+                toast.error("Failed to download file. Please try again.");
+            }
         }
     };
 
@@ -261,6 +419,7 @@ export default function FileManagement({ projectId }: { projectId: string }) {
                         </Badge>
                         <Button
                             data-tour="create-folder"
+                            disabled={!canWriteFolder}
                             onClick={() => {
                                 // show inline input at root
                                 setCreating(true);

@@ -1,10 +1,11 @@
 import { FolderOpen } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProjectMoreMenu from "./ProjectMoreMenu";
 import { redirect } from "next/navigation";
 import { getDay } from "@/lib/utils";
 import { Analytics } from "@/lib/analytics";
+import { Badge } from "@/components/ui/badge";
 
 type ProjectsSectionProps = {
     isOpenFilter: boolean;
@@ -41,7 +42,13 @@ export default function ProjectsSection({
         null
     );
     const [deleteError, setDeleteError] = useState<string | null>(null);
-    const [sortedProjects, setSortedProjects] = useState<any[]>(projects);
+    const [sortedProjects, setSortedProjects] = useState<any[]>(
+        Array.isArray(projects) ? projects : []
+    );
+
+    useEffect(() => {
+        setSortedProjects(Array.isArray(projects) ? projects : []);
+    }, [projects]);
 
     const handleFilterSelect = (filterName: string) => {
         setSelectedFilter(filterName);
@@ -251,6 +258,7 @@ export default function ProjectsSection({
                             <div
                                 onClick={(e) => {
                                     Analytics.viewProject(item.id);
+                                    localStorage.setItem("projectId", item.id)
                                     redirect(`/dashboard/project/${item.id}`)
                                 }}
                                 key={item.id}
@@ -261,23 +269,32 @@ export default function ProjectsSection({
                                     <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center shrink-0">
                                         <FolderOpen className="w-8 h-8 text-muted-foreground/50 dark:text-gray-400" />
                                     </div>
-                                    <div className="flex-1 flex items-center justify-between">
-                                        <div className="flex-1 space-y-1">
-                                            <p className="text-sm truncate text-gray-900 dark:text-gray-100">
+                                    <div className="flex-1 flex items-center justify-between min-w-0">
+                                        <div className="flex-1 space-y-1 min-w-0">
+                                            <p className="text-sm truncate text-gray-900 dark:text-gray-100 font-medium">
                                                 {item.name}
                                             </p>
-                                            <p className="text-xs text-muted-foreground dark:text-gray-400">
-                                                {getDay(item.created_at)}
-                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-xs text-muted-foreground dark:text-gray-400">
+                                                    {getDay(item.created_at)}
+                                                </p>
+                                                {item.my_role && (
+                                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">
+                                                        {item.my_role}
+                                                    </Badge>
+                                                )}
+                                            </div>
                                         </div>
-                                        <ProjectMoreMenu
-                                            projectId={item.id}
-                                            projectName={`Project ${item.name}`}
-                                            onDelete={() => handleDeleteProject(item.id)}
-                                            isDeleting={
-                                                deletingProjectId === item.id
-                                            }
-                                        />
+                                        {item.my_role === "Owner" && (
+                                            <ProjectMoreMenu
+                                                projectId={item.id}
+                                                projectName={`Project ${item.name}`}
+                                                onDelete={() => handleDeleteProject(item.id)}
+                                                isDeleting={
+                                                    deletingProjectId === item.id
+                                                }
+                                            />
+                                        )}
                                     </div>
                                 </div>
 
@@ -287,13 +304,20 @@ export default function ProjectsSection({
                                         <FolderOpen className="w-12 h-12 text-muted-foreground/50 dark:text-gray-400" />
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <div className="flex-1 space-y-1">
-                                            <p className="text-sm truncate text-gray-900 dark:text-gray-100">
+                                        <div className="flex-1 space-y-1 min-w-0">
+                                            <p className="text-sm truncate text-gray-900 dark:text-gray-100 font-medium">
                                                 {item.name}
                                             </p>
-                                            <p className="text-xs text-muted-foreground dark:text-gray-400">
-                                                {getDay(item.created_at)}
-                                            </p>
+                                            <div className="flex items-center justify-between gap-2 mt-1">
+                                                <p className="text-xs text-muted-foreground dark:text-gray-400">
+                                                    {getDay(item.created_at)}
+                                                </p>
+                                                {item.my_role && (
+                                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 capitalize font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+                                                        {item.my_role}
+                                                    </Badge>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

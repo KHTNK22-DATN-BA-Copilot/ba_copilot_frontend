@@ -21,7 +21,7 @@ export async function PUT(
             );
         }
 
-        // Build request body - include all fields as required by backend
+        // Build request body - include fields as required by backend
         const updateData = {
             name,
             description,
@@ -32,9 +32,9 @@ export async function PUT(
             settings,
         };
 
-        // Call backend API to update project
-        const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/projects/${id}`, {
-            method: "PUT",
+        // Call backend API to update project via v2 PATCH API
+        const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v2/projects/${id}`, {
+            method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${accessToken.value}`,
@@ -79,8 +79,8 @@ export async function DELETE(
             );
         }
 
-        // Call backend API to soft delete project (sets status to "deleted")
-        const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/projects/${id}`, {
+        // Call backend API to delete project via v2 DELETE API
+        const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v2/projects/${id}`, {
             method: "DELETE",
             headers: {
                 "Authorization": `Bearer ${accessToken.value}`,
@@ -127,8 +127,8 @@ export async function GET(
             );
         }
 
-        // Call backend API to get project details
-        const backendUrl = `${process.env.BACKEND_DOMAIN}/api/v1/projects/${id}`;
+        // Call backend API to get project details via v2 GET API
+        const backendUrl = `${process.env.BACKEND_DOMAIN}/api/v2/projects/${id}`;
         
         const res = await fetch(backendUrl, {
             method: "GET",
@@ -140,7 +140,6 @@ export async function GET(
         const response = await res.json();
 
         if (res.ok) {
-
             return NextResponse.json(response, { status: 200 });
         } else {
             return NextResponse.json(

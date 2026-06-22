@@ -2,11 +2,10 @@
 
 import {
     DocumentListResponse,
-    RegenerateDocumentResponse,
     StepName,
-} from "@/app/dashboard/project/[id]/workflows/_components/steps/shared/types";
+} from "@/app/dashboard/project/[id]/workflows/steps/shared/types";
 import { getAccessToken } from "./projects";
-import { WorkFlowService } from "@/services/WorkflowService";
+import { WorkflowService } from "@/services/WorkflowService";
 import { HttpError } from "./auth-session";
 
 const API_CONFIG = {

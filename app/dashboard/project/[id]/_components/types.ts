@@ -3,16 +3,28 @@ export interface Project {
     name: string;
     description: string;
     status: string;
-    progress: number;
-    created_at: string;
-    dueDate: string;
-    teamMembers: number;
-    completedTasks: number;
-    totalTasks: number;
+    progress?: number;
+    created_at?: string;
+    dueDate?: string;
+    teamMembers?: number;
+    completedTasks?: number;
+    totalTasks?: number;
     priority?: 'low' | 'medium' | 'high';
     updated_at?: string;
     team_size?: number;
     detail?: string;
+    my_role?: string;
+}
+
+export interface ProjectMembership {
+    project_id: number;
+    user_id: number;
+    role: "Owner" | "Editor" | "Viewer";
+    permissions: {
+        project: string[];
+        file: string[];
+        folder: string[];
+    };
 }
 
 export interface Activity {

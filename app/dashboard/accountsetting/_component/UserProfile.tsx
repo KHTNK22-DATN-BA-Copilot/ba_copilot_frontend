@@ -3,7 +3,7 @@ import Image from "next/image";
 import Avatar from "@/public/Profile.png";
 import { Pencil, Edit } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
     AlertDialog,
@@ -19,7 +19,6 @@ import { Field } from "./Field";
 import { StateProps, UserProfileProps } from "./types";
 import { isEqual, isValidEmail, updateUserProfile } from "./utils";
 
-
 export default function UserProfile({
     name,
     email,
@@ -27,15 +26,27 @@ export default function UserProfile({
     name: string;
     email: string;
 }) {
-    const [avatar, setAvatar] = useState(Avatar.src);
+    const [avatar, setAvatar] = useState<string | null>(name[0].toUpperCase());
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAvatar(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const [state, setState] = useState<StateProps>({
         state: "view",
     });
     const [originalProfile, setOriginalProfile] = useState<UserProfileProps>({
         fullName: name,
-        email: email
+        email: email,
     });
     const [EditProfile, setEditProfile] = useState(originalProfile);
 
@@ -87,30 +98,33 @@ export default function UserProfile({
             <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-x-3 sm:gap-x-4 mb-4 sm:mb-5 min-w-0">
                     <div className="relative group flex-shrink-0">
-                        <Image
-                            src={avatar}
-                            alt="User Avatar"
-                            width={50}
-                            height={50}
-                            className="w-12 h-12 sm:w-[60px] sm:h-[60px] rounded-full border border-gray-200 dark:border-gray-700 object-cover"
-                        />
-                        <label
-                            className="absolute cursor-pointer bottom-0 right-0 w-5 h-5 bg-white dark:bg-gray-800 border-2 border-white dark:border-gray-800 rounded-full flex items-center justify-center shadow-2xl transition-all group-hover:scale-110"
-                            title="Change profile picture"
-                        >
-                            <Pencil className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-                            <Input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                aria-label="Upload profile picture"
-                            />
-                        </label>
+                        {avatar ? (
+                            <div
+                                className={`*:w-12 h-12 flex justify-center items-center text-2xl sm:w-[60px] sm:h-[60px] rounded-full border border-gray-200 dark:border-gray-700 object-cover bg-gray-200 dark:bg-gray-700`}
+                            >
+                                {avatar}
+                            </div>
+                        ) : (
+                            <div
+                                className={`w-12 h-12 sm:w-[60px] sm:h-[60px] rounded-full border border-gray-200 dark:border-gray-700 bg-gray-200 dark:bg-gray-700 text-white flex items-center justify-center overflow-hidden shadow-sm`}
+                            >
+                                <svg
+                                    className="w-7 h-7 sm:w-8 sm:h-8"
+                                    fill="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                            </div>
+                        )}
                     </div>
                     <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-sm sm:text-base truncate">{name}</p>
-                        <p className="text-gray-500 text-xs sm:text-sm truncate">{email}</p>
+                        <p className="font-semibold text-sm sm:text-base truncate">
+                            {name}
+                        </p>
+                        <p className="text-gray-500 text-xs sm:text-sm truncate">
+                            {email}
+                        </p>
                     </div>
                 </div>
                 <Edit

@@ -138,21 +138,23 @@ export interface DocumentListResponse {
   status: "success" | "error";
   documents?: DocumentListItem[];
   message?: string;
+  statusCode?: number;
 }
 
 export type StepName = "planning" | "analysis" | "design";
 
-// Regenerate response returned through workflow actions/services
 export interface RegenerateDocumentResponse {
   status: "success" | "error";
   message?: string;
   result?: any; // Backend response data
+  statusCode?: number;
 }
 
 export interface UpdateDocumentResponse {
   status: "success" | "error";
   message?: string;
   result?: any; // Backend response data
+  statusCode?: number;
 }
 
 export interface SessionMessage {
@@ -166,4 +168,5 @@ export interface SessionHistoryResponse {
   status: "success" | "error";
   Sessions?: SessionMessage[];
   message?: string;
+  statusCode?: number;
 }

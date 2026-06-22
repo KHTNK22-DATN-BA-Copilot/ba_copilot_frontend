@@ -6,22 +6,11 @@ import QuickStatsSection from './_components/QuickStatsSection';
 import RecentActivitySection from './_components/RecentActivitySection';
 import TasksOverviewSection from './_components/TasksOverviewSection';
 import DeleteProjectSection from './_components/DeleteProjectSection';
-import { QuickStat, RecentFile, TaskOverview } from './_components/types';
-import { getProjectById, getRecentUpdatedFiles } from '@/actions/project.action';
+import { Project, QuickStat, RecentFile, TaskOverview } from './_components/types';
+import { getProjectById, getRecentUpdatedFiles, getProjectMembers } from '@/actions/project.action';
 import { getPlanningDocuments, getAnalysisDocuments, getDesignDocuments } from '@/app/dashboard/project/[id]/workflows/steps/shared/api';
-import { notFound } from 'next/navigation';
+import NotFound from "@/app/dashboard/project/[id]/_components/NotFound";
 
-const Error = ({ error }: { error: string }) => {
-    return (
-        <main className="min-h-screen overflow-y-auto bg-gray-50 dark:bg-gray-900">
-            <div className="p-6 max-w-7xl mx-auto">
-                <div className="flex items-center justify-center h-96">
-                    <p className="text-red-600 dark:text-red-400">Error: {error}</p>
-                </div>
-            </div>
-        </main>
-    );
-}
 
 export default async function ProjectOverviewPage({
     params,
@@ -29,10 +18,16 @@ export default async function ProjectOverviewPage({
     params: Promise<{ id: string }>;
 }) {
     const { id } = await params;
-
     const project = await getProjectById(id);
-    if (project.detail === "Project not found") {
-        notFound();
+
+    if (!project) {
+        return <NotFound />;
+    }
+
+    // Fetch actual members count to display in ProjectInfoCards
+    const members = await getProjectMembers(id).catch(() => []);
+    if (members && members.length > 0) {
+        project.team_size = members.length;
     }
 
     const recentFilesFromApi = await getRecentUpdatedFiles(id, 6);
@@ -45,9 +40,14 @@ export default async function ProjectOverviewPage({
 
 
     // Fetch document counts from each workflow phase
-    const planningResult = await getPlanningDocuments(id);
-    const analysisResult = await getAnalysisDocuments(id);
-    const designResult = await getDesignDocuments(id);
+    // const planningResult = await getPlanningDocuments(id);
+    // const analysisResult = await getAnalysisDocuments(id);
+    // const designResult = await getDesignDocuments(id);
+    const [planningResult, analysisResult, designResult] = await Promise.all([
+        getPlanningDocuments(id),
+        getAnalysisDocuments(id),
+        getDesignDocuments(id)
+    ]);
 
     const planningDocCount = planningResult.documents?.length ?? 0;
     const analysisDocCount = analysisResult.documents?.length ?? 0;
@@ -66,10 +66,12 @@ export default async function ProjectOverviewPage({
         return Number.isNaN(value) ? sum : sum + value;
     }, 0);
 
+    const totalT = project.totalTasks || 0;
+    const completedT = project.completedTasks || 0;
     const tasksOverview: TaskOverview = {
-        completed: project.completedTasks || 0,
-        inProgress: Math.floor((project.totalTasks - project.completedTasks) * 0.6) || 0,
-        pending: Math.ceil((project.totalTasks - project.completedTasks) * 0.4) || 0,
+        completed: completedT,
+        inProgress: Math.floor((totalT - completedT) * 0.6) || 0,
+        pending: Math.ceil((totalT - completedT) * 0.4) || 0,
     };
 
 

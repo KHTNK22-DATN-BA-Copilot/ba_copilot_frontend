@@ -1,19 +1,21 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, redirect } from 'next/navigation';
 import Image from 'next/image';
 import Search from '../../app/dashboard/_components/Search';
 import UserActions from '../../app/dashboard/_components/UserActions';
+import Link from 'next/link';
 
 interface HeaderProps {
     isMenuOpen: boolean;
     setIsMenuOpen: (open: boolean) => void;
     isDarkMode: boolean;
     toggleDarkMode: () => void;
+    name?: string;
 }
 
-export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDarkMode }: HeaderProps) {
+export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDarkMode, name }: HeaderProps) {
     const router = useRouter();
     const pathname = usePathname();
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -26,15 +28,15 @@ export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDa
     // Check if we're inside a project (to show/hide mobile menu button)
     const isInsideProject = pathname?.startsWith('/dashboard/project/');
 
-    const handleLogoClick = () => {
-        if (pathname === '/dashboard') {
-            // If on dashboard, just reload
-            window.location.reload();
-        } else {
-            // If on other pages, navigate to dashboard
-            router.push('/dashboard');
-        }
-    };
+    // const handleLogoClick = () => {
+    //     if (pathname === '/dashboard') {
+    //         // If on dashboard, just reload
+    //         window.location.reload();
+    //     } else {
+    //         // If on other pages, navigate to dashboard
+    //         redirect('/dashboard');
+    //     }
+    // };
 
     // Handle Ctrl+K shortcut for search
     useEffect(() => {
@@ -104,8 +106,8 @@ export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDa
 
                         {/* Logo */}
                         <div className="flex-shrink-0">
-                            <button
-                                onClick={handleLogoClick}
+                            <Link
+                                href="/dashboard"
                                 className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200 cursor-pointer"
                             >
                                 <Image
@@ -116,7 +118,7 @@ export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDa
                                     className="w-7 h-7 sm:w-8 sm:h-8"
                                 />
                                 BA Copilot
-                            </button>
+                            </Link>
                         </div>
                     </div>
 
@@ -179,6 +181,7 @@ export default function Header({ isMenuOpen, setIsMenuOpen, isDarkMode, toggleDa
                             toggleDarkMode={toggleDarkMode}
                             isMenuOpen={isMenuOpen}
                             setIsMenuOpen={setIsMenuOpen}
+                            name={name}
                         />
                     </div>
                 </div>

@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Analytics } from "@/lib/analytics";
+import { Button } from "@/components/ui/button";
 
 interface UserActionsProps {
     isDarkMode: boolean;
     toggleDarkMode: () => void;
     isMenuOpen: boolean;
     setIsMenuOpen: (open: boolean) => void;
+    name?: string
 }
 
 export default function UserActions({
@@ -14,6 +16,7 @@ export default function UserActions({
     toggleDarkMode,
     isMenuOpen,
     setIsMenuOpen,
+    name
 }: UserActionsProps) {
     const router = useRouter();
     const [isAvatarDropdownOpen, setIsAvatarDropdownOpen] = useState(false);
@@ -115,14 +118,19 @@ export default function UserActions({
 
             {/* Avatar with Dropdown */}
             <div className="relative">
-                <button
+                <Button
+                    variant="ghost"
+                    className="flex items-center space-x-2 justify-center"
                     onClick={() =>
                         setIsAvatarDropdownOpen(!isAvatarDropdownOpen)
                     }
-                    className="w-8 h-8 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center text-white text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                 >
-                    🦀
-                </button>
+                    <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 transition-all duration-200 hover:scale-105 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        {name ? name[0].toUpperCase() : "U"}
+                    </div>
+
+                    <p>{name || "User"}</p>
+                </Button>
 
                 {/* Dropdown Menu */}
                 {isAvatarDropdownOpen && (

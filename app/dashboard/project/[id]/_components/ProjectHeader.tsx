@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
 import { Project } from './types';
 import EditProjectDialog from './EditProjectDialog';
+import { useProjectMembership } from "@/context/ProjectMembershipContext";
 
 interface ProjectHeaderProps {
     project: Project;
@@ -14,6 +15,7 @@ interface ProjectHeaderProps {
 
 export default function ProjectHeader({ project, onProjectUpdate }: ProjectHeaderProps) {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const { role, hasPermission } = useProjectMembership();
     const [prj, setProject] = useState<Project>({
         id: project.id,
         name: project.name,
@@ -48,6 +50,8 @@ export default function ProjectHeader({ project, onProjectUpdate }: ProjectHeade
         }
     };
 
+    const canEdit = hasPermission("project", "write");
+
     return (
         <>
             <div className="space-y-3 sm:space-y-4">
@@ -63,19 +67,33 @@ export default function ProjectHeader({ project, onProjectUpdate }: ProjectHeade
                             >
                                 {prj.status}
                             </Badge>
+                            {role && (
+                                <Badge
+                                    variant="outline"
+                                    className="w-fit border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 bg-blue-50/50 dark:bg-blue-900/10 capitalize text-xs font-semibold"
+                                >
+                                    Role: {role}
+                                </Badge>
+                            )}
                         </div>
-                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 break-words">
+                        <p
+                            className="text-sm whitespace-pre-wrap sm:text-base text-gray-600 dark:text-gray-400 break-words"
+                            
+                        
+                        >
                             {prj.description}
                         </p>
                     </div>
-                    <Button
-                        size="sm"
-                        className="cursor-pointer shrink-0 w-full sm:w-auto"
-                        onClick={() => setIsEditDialogOpen(true)}
-                    >
-                        <Pencil />
-                        Edit Project
-                    </Button>
+                    {canEdit && (
+                        <Button
+                            size="sm"
+                            className="cursor-pointer shrink-0 w-full sm:w-auto"
+                            onClick={() => setIsEditDialogOpen(true)}
+                        >
+                            <Pencil />
+                            Edit Project
+                        </Button>
+                    )}
                 </div>
             </div>
 
