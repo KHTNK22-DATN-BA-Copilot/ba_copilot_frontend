@@ -32,6 +32,7 @@ import {
   statusMeta,
 } from "./utils";
 
+
 export default function VisibilitySettings({ providers }: { providers: ProviderModelMap }) {
   const [keys, setKeys] = useState<APIKeyItem[]>([]);
   const [availableProviders, setAvailableProviders] = useState<ProviderModelMap>(providers);
@@ -43,6 +44,13 @@ export default function VisibilitySettings({ providers }: { providers: ProviderM
   const [isRevealKey, setIsRevealKey] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [deletingProvider, setDeletingProvider] = useState<AIProvider | null>(null);
+  const [selectedKey, setSelectedKey] = useState<{
+      isChangeMode: boolean,
+      selectedKey: string
+  }>({
+      isChangeMode: false,
+      selectedKey: ""
+  });
 
   const [formData, setFormData] = useState<{
     provider: AIProvider;
@@ -72,7 +80,6 @@ export default function VisibilitySettings({ providers }: { providers: ProviderM
     setIsLoading(true);
     setErrorMessage("");
     const result = await fetchAPIKeys();
-    console.log(result)
     if (result.success && result.data) {
       setKeys(result.data.keys);
 
@@ -118,13 +125,13 @@ export default function VisibilitySettings({ providers }: { providers: ProviderM
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (provider: AIProvider) => {
+  const handleDelete = async (provider: AIProvider, apiKeyId: string) => {
     setDeletingProvider(provider);
-    const result = await deleteAPIKey(provider);
+    const result = await deleteAPIKey(provider, apiKeyId);
     if (!result.success) {
       setErrorMessage(result.message || "Failed to delete API key.");
     }
-    await loadKeys();
+    loadKeys();
     setDeletingProvider(null);
   };
 
@@ -138,7 +145,7 @@ export default function VisibilitySettings({ providers }: { providers: ProviderM
 
     if (!trimmedApiKey && existing) {
       if (existing.model !== formData.model) {
-        const result = await changeAPIModel(formData.provider, { model: formData.model });
+        const result = await changeAPIModel(formData.provider, { model: formData.model }, selectedKey.selectedKey);
         if (!result.success) {
           setErrorMessage(result.message || "Failed to change model.");
           setIsSaving(false);
@@ -196,7 +203,13 @@ export default function VisibilitySettings({ providers }: { providers: ProviderM
         <Button
           size="sm"
           className="cursor-pointer"
-          onClick={() => openModalForProvider("openai")}
+          onClick={() => {
+              setSelectedKey(pre => ({
+                  ...pre,
+                  isChangeMode: false
+              }))
+              openModalForProvider("openai")
+          }}
         >
           <Plus className="h-4 w-4 mr-1" />
           Add New Key
@@ -225,47 +238,56 @@ export default function VisibilitySettings({ providers }: { providers: ProviderM
             const providerLabel = item.provider
 
             return (
-              <div
-                key={item.id}
-                className="flex flex-col gap-3 rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-            
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                      {providerLabel} - {item.model}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      {item.maskedKey}
-                    </p>
-                  </div>
-                </div>
+                    <div
+                        key={item.id}
+                        className="flex flex-col gap-3 rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                        <div className="flex items-center gap-3 min-w-0">
 
-                <div className="flex items-center gap-2 flex-wrap sm:justify-end">
-                  <Badge className={badge.className}>{badge.label}</Badge>
-                  {/* <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 px-2 text-xs"
-                    onClick={() => openModalForProvider(item.provider)}
-                  >
-                    Change Model
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-gray-500 hover:text-red-600"
-                    onClick={() => handleDelete(item.provider)}
-                    disabled={deleting}
-                  >
-                    {deleting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                  </Button> */}
-                </div>
-              </div>
+                            <div className="min-w-0">
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                                    {providerLabel} - {item.model}
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                    {item.maskedKey}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-wrap sm:justify-end">
+                            <Badge className={badge.className}>{badge.label}</Badge>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2 text-xs"
+                                onClick={() => {
+                                    setSelectedKey(pre => ({
+                                        ...pre,
+                                        isChangeMode: true,
+                                        selectedKey: item.id
+                                    }))
+                                    openModalForProvider(item.provider)
+                                }}
+                            >
+                                Change Model
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-gray-500 hover:text-red-600"
+                                onClick={() => handleDelete(item.provider, item.id)}
+                                disabled={deleting}
+                            >
+                                {deleting ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Trash2 className="h-4 w-4" />
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+
+
             );
           })}
         </div>
@@ -281,82 +303,83 @@ export default function VisibilitySettings({ providers }: { providers: ProviderM
         </Button>
       </div>
 
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-xl">
-          <DialogHeader>
-            <DialogTitle>Add or Update an API Key</DialogTitle>
-            <DialogDescription>
-              Configure and manage your API keys for different AI providers.
-            </DialogDescription>
-          </DialogHeader>
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogContent className="sm:max-w-xl">
+                <DialogHeader>
+                    <DialogTitle>Add or Update an API Key</DialogTitle>
+                    <DialogDescription>
+                        Configure and manage your API keys for different AI providers.
+                    </DialogDescription>
+                </DialogHeader>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <Label>Provider</Label>
-              <Select
-                value={formData.provider}
-                onValueChange={(value) => handleProviderChange(value as AIProvider)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select provider" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.keys(availableProviders).map((provider) => {
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="space-y-2">
+                        <Label>Provider</Label>
+                        <Select
+                            value={formData.provider}
+                            onValueChange={(value) => handleProviderChange(value as AIProvider)}
+                            disabled={selectedKey.isChangeMode}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select provider" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {Object.keys(availableProviders).map((provider) => {
 
-                    return (
-                      <SelectItem key={provider} value={provider}>
+                                    return (
+                                        <SelectItem key={provider} value={provider}>
                         <span className="inline-flex items-center gap-2">
                           {provider}
-                          {/* <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                            {/* <span className="text-[10px] text-gray-500 dark:text-gray-400">
                             {models?.length} models
                           </span> */}
                         </span>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
+                                        </SelectItem>
+                                    );
+                                })}
+                            </SelectContent>
+                        </Select>
+                    </div>
 
-            <div className="space-y-2">
-              <Label>Model</Label>
-              <Select value={formData.model} onValueChange={handleModelChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select model" />
-                </SelectTrigger>
-                <SelectContent>
-                  {modelOptions.map((model) => (
-                    <SelectItem key={model} value={model}>
-                      {model}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                    <div className="space-y-2">
+                        <Label>Model</Label>
+                        <Select value={formData.model} onValueChange={handleModelChange}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select model" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {modelOptions.map((model) => (
+                                    <SelectItem key={model} value={model}>
+                                        {model}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
 
-            <div className="space-y-2">
-              <Label>API Key</Label>
-              <div className="relative">
-                <Input
-                  value={formData.apiKey}
-                  type={isRevealKey ? "text" : "password"}
-                  placeholder="Enter your API key"
-                  onChange={(event) => handleKeyChange(event.target.value)}
-                  className="pr-9"
-                />
-                <button
-                  type="button"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
-                  onClick={() => setIsRevealKey((previous) => !previous)}
-                >
-                  {isRevealKey ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-              {/* <a
+                    <div className={`space-y-2 ${selectedKey.isChangeMode ? "hidden" : ""}`}>
+                        <Label>API Key</Label>
+                        <div className="relative">
+                            <Input
+                                value={formData.apiKey}
+                                type={isRevealKey ? "text" : "password"}
+                                placeholder="Enter your API key"
+                                onChange={(event) => handleKeyChange(event.target.value)}
+                                className="pr-9"
+                            />
+                            <button
+                                type="button"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+                                onClick={() => setIsRevealKey((previous) => !previous)}
+                            >
+                                {isRevealKey ? (
+                                    <EyeOff className="h-4 w-4" />
+                                ) : (
+                                    <Eye className="h-4 w-4" />
+                                )}
+                            </button>
+                        </div>
+                        {/* <a
                 href={providerMeta[formData.provider].keyHelpUrl}
                 target="_blank"
                 rel="noreferrer"
@@ -364,29 +387,30 @@ export default function VisibilitySettings({ providers }: { providers: ProviderM
               >
                 Need to get an API key?
               </a> */}
-            </div>
-          </div>
+                    </div>
+                </div>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              onClick={handleSave}
-              disabled={isSaving || !formData.model || (!formData.apiKey.trim() && !existingKey)}
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                  Saving...
-                </>
-              ) : existingKey && !formData.apiKey.trim() ? (
-                "Update Model"
-              ) : (
-                "Save Key"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+                <DialogFooter>
+                    <Button
+                        type="button"
+                        onClick={handleSave}
+                        disabled={isSaving || !formData.model || (!formData.apiKey.trim() && !existingKey)}
+                    >
+                        {isSaving ? (
+                            <>
+                                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                Saving...
+                            </>
+                        ) : existingKey && !formData.apiKey.trim() ? (
+                            "Update Model"
+                        ) : (
+                            "Save Key"
+                        )}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
     </div>
   );
 }
