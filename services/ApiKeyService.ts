@@ -136,9 +136,7 @@ export class ApiKeyService {
             success: true,
             statusCode: 200,
             data: {
-                keys: [...(await ApiKeyService.getAllApiKeys())].sort((a, b) =>
-                    a.provider.localeCompare(b.provider),
-                ),
+                keys: [...(await ApiKeyService.getAllApiKeys())],
                 providers: await ApiKeyService.getAllProvidersAndModels(),
             },
         };
@@ -213,24 +211,8 @@ export class ApiKeyService {
         _token: string,
         provider: AIProvider,
         model: string,
+        apiKeyId: string
     ): Promise<ServiceResponse<APIKeyItem>> {
-        if (!isProvider(provider)) {
-            return {
-                success: false,
-                statusCode: 400,
-                message: "Provider is not supported.",
-            };
-        }
-
-        const providerModels = await ApiKeyService.getAllProvidersAndModels();
-
-        if (!providerModels[provider]?.includes(model)) {
-            return {
-                success: false,
-                statusCode: 400,
-                message: "Model is not supported for selected provider.",
-            };
-        }
 
         const existing = keysDb.find((item) => item.provider === provider);
         if (!existing) {
@@ -241,12 +223,38 @@ export class ApiKeyService {
             };
         }
 
+        const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/ai-credentials/api-key/${apiKeyId}/current-model`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${_token}`,
+            },
+            body: JSON.stringify({
+                "current_model": model
+            })
+        })
+
+
+        const response = (await res.json()).data;
+        console.log(response)
+
         const updated: APIKeyItem = {
-            ...existing,
-            model,
-            status: "needs_revalidation",
-            updatedAt: new Date().toISOString(),
-        };
+            id: response.id as unknown as string,
+            provider: response.provider,
+            status: response.status,
+            model: response.current_model,
+            maskedKey: response.masked_api_key,
+            rawKey: "",
+            testedAt: null,
+            updatedAt: response.updated_at,
+        }
+
+        // const updated: APIKeyItem = {
+        //     ...existing,
+        //     model,
+        //     status: "needs_revalidation",
+        //     updatedAt: new Date().toISOString(),
+        // };
 
         keysDb = keysDb.map((item) =>
             item.provider === provider ? updated : item,
@@ -262,31 +270,32 @@ export class ApiKeyService {
     public static async deleteApiKey(
         _token: string,
         provider: AIProvider,
+        apiKeyId: string
     ): Promise<ServiceResponse<null>> {
-        if (!isProvider(provider)) {
+
+        const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/ai-credentials/api-key/${apiKeyId}`, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${_token}`,
+            },
+        });
+
+        if(res.ok) {
             return {
-                success: false,
-                statusCode: 400,
-                message: "Provider is not supported.",
+                success: true,
+                statusCode: 200,
+                data: null,
             };
         }
-
-        const before = keysDb.length;
-        keysDb = keysDb.filter((item) => item.provider !== provider);
-
-        if (keysDb.length === before) {
+        else {
             return {
                 success: false,
-                statusCode: 404,
-                message: "No key found for this provider.",
-            };
+                statusCode: 500,
+                message: "Internal server error"
+            }
         }
 
-        return {
-            success: true,
-            statusCode: 200,
-            data: null,
-        };
+
     }
 
     public static async testApiKey(

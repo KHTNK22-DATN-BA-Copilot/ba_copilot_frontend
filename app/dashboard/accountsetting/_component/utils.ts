@@ -213,9 +213,10 @@ export const saveAPIKey = async (
 export const changeAPIModel = async (
     provider: AIProvider,
     payload: ChangeModelPayload,
+    apiKeyId: string
 ): Promise<{ success: boolean; data?: APIKeyItem; message?: string }> => {
     try {
-        const response = await changeApiModelAction(provider, payload.model);
+        const response = await changeApiModelAction(provider, payload.model, apiKeyId);
         if (!response.success) {
             return {
                 success: false,
@@ -237,9 +238,10 @@ export const changeAPIModel = async (
 
 export const deleteAPIKey = async (
     provider: AIProvider,
+    apiKeyId: string
 ): Promise<{ success: boolean; message?: string }> => {
     try {
-        const response = await deleteApiKeyAction(provider);
+        const response = await deleteApiKeyAction(provider, apiKeyId);
         if (!response.success) {
             return {
                 success: false,
