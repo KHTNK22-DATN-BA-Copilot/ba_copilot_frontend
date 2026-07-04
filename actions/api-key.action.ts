@@ -38,8 +38,9 @@ export async function saveApiKeyAction(
 export async function changeApiModelAction(
     provider: AIProvider,
     model: string,
+    apiKeyId: string
 ): Promise<ServiceResponse<APIKeyItem>> {
-    const result = await withAccessToken((accessToken) => ApiKeyService.changeModel(accessToken, provider, model));
+    const result = await withAccessToken((accessToken) => ApiKeyService.changeModel(accessToken, provider, model, apiKeyId));
 
     if (result.success) {
         revalidatePath("/dashboard/accountsetting");
@@ -50,8 +51,9 @@ export async function changeApiModelAction(
 
 export async function deleteApiKeyAction(
     provider: AIProvider,
+    apiKeyId: string
 ): Promise<ServiceResponse<null>> {
-    const result = await withAccessToken((accessToken) => ApiKeyService.deleteApiKey(accessToken, provider));
+    const result = await withAccessToken((accessToken) => ApiKeyService.deleteApiKey(accessToken, provider, apiKeyId));
 
     if (result.success) {
         revalidatePath("/dashboard/accountsetting");
@@ -62,4 +64,12 @@ export async function deleteApiKeyAction(
 
 export async function getAllProvidersAndModelsAction() {
     return withAccessToken(() => ApiKeyService.getAllProvidersAndModels());
+}
+
+export async function disableAllKeys() {
+    return withAccessToken((accessToken) => ApiKeyService.disableAllKeys(accessToken));
+}
+
+export async function activateKeyAction(apiKeyId: string) {
+    return withAccessToken((accessToken) => ApiKeyService.activateKey(accessToken, apiKeyId));
 }
