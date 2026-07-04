@@ -162,7 +162,7 @@ export class ApiKeyService {
             (item) => item.provider === payload.provider,
         );
 
-        
+
 
         const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/ai-credentials/api-key`, {
             method: "POST",
@@ -280,7 +280,7 @@ export class ApiKeyService {
             },
         });
 
-        if(res.ok) {
+        if (res.ok) {
             return {
                 success: true,
                 statusCode: 200,
@@ -294,8 +294,61 @@ export class ApiKeyService {
                 message: "Internal server error"
             }
         }
+    }
 
+    public static async disableAllKeys(
+        _token: string
+    ): Promise<ServiceResponse<null>> {
+        const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/ai-credentials/api-key/clear-active`, {
+            method: "PATCH",
+            headers: {
+                Authorization: `Bearer ${_token}`
+            }
+        })
 
+        if (res.ok) {
+            const data = await res.json();
+            return {
+                success: true,
+                statusCode: res.status,
+                data: data.message,
+            }
+        }
+        else {
+            return {
+                success: false,
+                statusCode: res.status,
+                message: res.statusText
+            }
+        }
+    }
+
+    public static async activateKey(
+        _token: string,
+        apiKeyId: string
+    ): Promise<ServiceResponse<null>> {
+        const res = await fetch(`${process.env.BACKEND_DOMAIN}/api/v1/ai-credentials/api-key/${apiKeyId}/activate`, {
+            method: "PATCH",
+            headers: {
+                Authorization: `Bearer ${_token}`
+            }
+        })
+
+        if (res.ok) {
+            const data = await res.json();
+            return {
+                success: true,
+                statusCode: res.status,
+                data: data.message,
+            }
+        }
+        else {
+            return {
+                success: false,
+                statusCode: res.status,
+                message: res.statusText
+            }
+        }
     }
 
     public static async testApiKey(

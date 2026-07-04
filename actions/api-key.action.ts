@@ -65,3 +65,11 @@ export async function deleteApiKeyAction(
 export async function getAllProvidersAndModelsAction() {
     return withAccessToken(() => ApiKeyService.getAllProvidersAndModels());
 }
+
+export async function disableAllKeys() {
+    return withAccessToken((accessToken) => ApiKeyService.disableAllKeys(accessToken));
+}
+
+export async function activateKeyAction(apiKeyId: string) {
+    return withAccessToken((accessToken) => ApiKeyService.activateKey(accessToken, apiKeyId));
+}

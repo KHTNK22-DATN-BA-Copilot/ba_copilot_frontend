@@ -149,7 +149,11 @@ let mermaidInitialized = false;
 
 const ensureMermaidInitialized = () => {
     if (mermaidInitialized) return;
-    mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
+    mermaid.initialize({
+        startOnLoad: false,
+        securityLevel: "loose",
+        suppressErrorRendering: true
+    });
     mermaidInitialized = true;
 };
 
@@ -170,14 +174,17 @@ const MermaidBlock = ({ source }: { source: string }) => {
                 ref.current.textContent = "";
                 return;
             }
-
+            let id;
             try {
                 ensureMermaidInitialized();
                 const uniq =
                     typeof crypto !== "undefined" && crypto.randomUUID
                         ? crypto.randomUUID()
                         : `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-                const id = `mermaid-${uniq}`;
+                id = `mermaid-${uniq}`;
+
+                // In case mermaid.parse is available, we can optionally use it, 
+                // but setting suppressErrorRendering and catching render is usually enough.
                 const { svg } = await mermaid.render(id, cleaned);
 
                 if (isCancelled || !ref.current) return;
@@ -187,6 +194,12 @@ const MermaidBlock = ({ source }: { source: string }) => {
                 if (!ref.current) return;
                 // Keep fallback text visible when render fails.
                 ref.current.textContent = cleaned;
+                // Mermaid might still inject an error SVG container into the DOM before throwing
+                // Try to find and remove it if it exists.
+                const errorContainer = document.getElementById(`d${id}`);
+                if (errorContainer) {
+                    errorContainer.remove();
+                }
                 console.error("Mermaid render error:", error);
             }
         };
@@ -879,7 +892,7 @@ export function DocumentPreviewModal({
                                     {isViewer ? (
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <div 
+                                                <div
                                                     className="flex gap-2 w-full cursor-not-allowed opacity-50"
                                                     onClick={() => {
                                                         toast.error("You do not have permission to update or regenerate documents. Your role is Viewer.");
@@ -1018,11 +1031,11 @@ export function DocumentPreviewModal({
                                                 );
                                             }}
                                             className={cn(
-                                            "flex-1 overflow-y-auto overflow-x-hidden border rounded-lg min-h-0",
-                                            diffMode
-                                                ? "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
-                                                : "border-gray-300 bg-white"
-                                        )}>
+                                                "flex-1 overflow-y-auto overflow-x-hidden border rounded-lg min-h-0",
+                                                diffMode
+                                                    ? "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
+                                                    : "border-gray-300 bg-white"
+                                            )}>
                                             {diffMode ? (
                                                 <DiffView
                                                     original={document.content || ""}
