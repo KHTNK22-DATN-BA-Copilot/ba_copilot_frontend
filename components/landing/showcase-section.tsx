@@ -321,7 +321,7 @@ export function ShowcaseSection({ data }: { data: ShowcaseData }) {
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1 flex flex-col min-w-0 bg-white">
+          <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-white">
             <div className="flex items-center justify-between px-4 py-3 bg-slate-50/80 border-b border-slate-200">
               <div className="flex items-center gap-2 overflow-hidden">
                 <span className="text-slate-500 text-sm whitespace-nowrap hidden sm:inline">Viewing:</span>
