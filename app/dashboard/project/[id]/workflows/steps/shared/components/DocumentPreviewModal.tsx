@@ -398,6 +398,18 @@ export function DocumentPreviewModal({
     }, [document]);
 
     useEffect(() => {
+        if (!document) {
+            setEdit(false);
+            return;
+        }
+
+        setEdit(false);
+        setDiffMode(false);
+        setCodeTab("html");
+        hasAutoSwitchedToDiffRef.current = false;
+    }, [document?.document_id, isOpen]);
+
+    useEffect(() => {
         if (!content) {
             setHtmlContent("");
             setCssContent("");
