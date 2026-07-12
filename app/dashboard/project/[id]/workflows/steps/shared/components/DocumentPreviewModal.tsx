@@ -252,7 +252,7 @@ const MermaidBlock = ({ source }: { source: string }) => {
 
             const cleaned = normalizeMermaidSource(source);
             if (!cleaned) {
-                setRenderState({ status: "error", message: "Sơ đồ không hợp lệ hoặc không được hỗ trợ." });
+                setRenderState({ status: "error", message: "The diagram is invalid or format not supported." });
                 return;
             }
 
@@ -357,9 +357,7 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
                         }
 
                         return (
-                            <pre>
-                                <code className={className}>{children}</code>
-                            </pre>
+                            <code className={className}>{children}</code>
                         );
                     },
                 }}
@@ -828,6 +826,7 @@ export function DocumentPreviewModal({
             }
 
             toast.success("Document updated successfully");
+            onRegenerateSuccess?.();
         } catch (error: any) {
             if (error?.statusCode === 403) {
                 toast.error("Your role in this project may have changed to Viewer. You no longer have permission for this action.");
@@ -980,11 +979,11 @@ export function DocumentPreviewModal({
                                             const rawMessage = item.message?.trim() || "";
                                             const cachedPrompt = isUser
                                                 ? cachedUserPrompts.filter(Boolean)[
-                                                      chatHistory
-                                                          .slice(0, index)
-                                                          .filter((historyItem) => isUserRole(historyItem.role))
-                                                          .length
-                                                  ]
+                                                chatHistory
+                                                    .slice(0, index)
+                                                    .filter((historyItem) => isUserRole(historyItem.role))
+                                                    .length
+                                                ]
                                                 : "";
                                             const displayText = isUser
                                                 ? looksLikeDocumentContent(rawMessage)
