@@ -296,12 +296,12 @@ export class WorkflowService {
                 {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/x-www-form-urlencoded",
                         "Authorization": `Bearer ${token}`,
                     },
-                    body: JSON.stringify({
+                    body: new URLSearchParams({
                         description: description || "",
-                    }),
+                    }).toString(),
                 }
             );
 

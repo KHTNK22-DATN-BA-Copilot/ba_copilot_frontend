@@ -61,7 +61,26 @@ const normalizeMermaidSource = (raw: string) => {
         .replace(/\\t/g, "\t");
 
     const withoutYaml = stripYamlFrontMatter(unescaped);
-    return dedent(withoutYaml).trim();
+    const normalized = dedent(withoutYaml).trim();
+
+    return normalized
+        .replace(/^```(?:mermaid)?\s*\r?\n?/, "")
+        .replace(/\r?\n?```\s*$/, "")
+        .replace(/}\s+(?=[A-Za-z_][\w-]*\s*\{)/g, "}\n")
+        .replace(/(\berDiagram\b)\s+(?=[A-Za-z_][\w-]*\s*\{)/g, "$1\n")
+        .split(/\r?\n/)
+        .map((line) => {
+            const trimmed = line.trim();
+
+            // Mermaid ERD does not accept trailing quoted descriptions on attribute lines.
+            // Example: `string username UNIQUE "User's chosen username"`.
+            if (/^(?:uuid|string|int|decimal|float|double|boolean|timestamp|date|datetime|char|text|bigint|smallint)\b/i.test(trimmed)) {
+                return line.replace(/\s+"[^"]*"\s*$/, "");
+            }
+
+            return line;
+        })
+        .join("\n");
 };
 
 const isHtmlDocument = (text: string) => {
@@ -145,6 +164,63 @@ const buildSrcDoc = (html: string, css: string) => `
 </html>
 `;
 
+type PromptCache = Record<string, string[]>;
+const PROMPT_CACHE_KEY = "ba_copilot_document_prompt_cache";
+
+const readPromptCache = (): PromptCache => {
+    if (typeof window === "undefined") return {};
+
+    try {
+        const raw = window.sessionStorage.getItem(PROMPT_CACHE_KEY);
+        return raw ? (JSON.parse(raw) as PromptCache) : {};
+    } catch {
+        return {};
+    }
+};
+
+const writePromptCache = (cache: PromptCache) => {
+    if (typeof window === "undefined") return;
+
+    try {
+        window.sessionStorage.setItem(PROMPT_CACHE_KEY, JSON.stringify(cache));
+    } catch {
+        // Ignore storage failures.
+    }
+};
+
+const appendPromptCache = (documentId: string, prompt: string) => {
+    if (!documentId || !prompt.trim()) return;
+
+    const cache = readPromptCache();
+    const next = [...(cache[documentId] || []), prompt.trim()];
+    cache[documentId] = next.slice(-50);
+    writePromptCache(cache);
+};
+
+const getPromptCache = (documentId: string) => {
+    if (!documentId) return [];
+    return readPromptCache()[documentId] || [];
+};
+
+const looksLikeDocumentContent = (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return false;
+
+    const newlineCount = (trimmed.match(/\n/g) || []).length;
+    return (
+        trimmed.startsWith("<!DOCTYPE") ||
+        trimmed.startsWith("<html") ||
+        trimmed.startsWith("```") ||
+        trimmed.includes("Project Name:") ||
+        trimmed.includes("Project Description:") ||
+        trimmed.includes("Author:") ||
+        trimmed.includes("erDiagram") ||
+        /^#{1,6}\s/m.test(trimmed) ||
+        newlineCount >= 5 ||
+        trimmed.length >= 450
+    );
+};
+
 let mermaidInitialized = false;
 
 const ensureMermaidInitialized = () => {
@@ -159,6 +235,11 @@ const ensureMermaidInitialized = () => {
 
 const MermaidBlock = ({ source }: { source: string }) => {
     const ref = useRef<HTMLDivElement | null>(null);
+    const [renderState, setRenderState] = useState<
+        | { status: "loading" }
+        | { status: "rendered"; svg: string }
+        | { status: "error"; message: string }
+    >({ status: "loading" });
 
     useEffect(() => {
         let isCancelled = false;
@@ -171,10 +252,11 @@ const MermaidBlock = ({ source }: { source: string }) => {
 
             const cleaned = normalizeMermaidSource(source);
             if (!cleaned) {
-                ref.current.textContent = "";
+                setRenderState({ status: "error", message: "The diagram is invalid or format not supported." });
                 return;
             }
-            let id;
+
+            let id: string | undefined;
             try {
                 ensureMermaidInitialized();
                 const uniq =
@@ -185,26 +267,30 @@ const MermaidBlock = ({ source }: { source: string }) => {
 
                 // In case mermaid.parse is available, we can optionally use it, 
                 // but setting suppressErrorRendering and catching render is usually enough.
+                await mermaid.parse(cleaned);
                 const { svg } = await mermaid.render(id, cleaned);
 
                 if (isCancelled || !ref.current) return;
-                ref.current.innerHTML = svg;
-                ref.current.classList.remove("mermaid");
+                setRenderState({ status: "rendered", svg });
             } catch (error) {
-                if (!ref.current) return;
-                // Keep fallback text visible when render fails.
-                ref.current.textContent = cleaned;
-                // Mermaid might still inject an error SVG container into the DOM before throwing
-                // Try to find and remove it if it exists.
-                const errorContainer = document.getElementById(`d${id}`);
-                if (errorContainer) {
-                    errorContainer.remove();
+                if (isCancelled) return;
+
+                if (id) {
+                    const errorContainer = document.getElementById(`d${id}`);
+                    if (errorContainer) {
+                        errorContainer.remove();
+                    }
                 }
-                console.error("Mermaid render error:", error);
+
+                const message = error instanceof Error && error.message
+                    ? error.message
+                    : "The diagram is invalid or format not supported.";
+                setRenderState({ status: "error", message });
             }
         };
 
         // Render immediately and retry after paint to handle dialog mount timing.
+        setRenderState({ status: "loading" });
         void renderDiagram();
         rafA = window.requestAnimationFrame(() => {
             rafB = window.requestAnimationFrame(() => {
@@ -222,6 +308,35 @@ const MermaidBlock = ({ source }: { source: string }) => {
             if (retryTimer !== null) window.clearTimeout(retryTimer);
         };
     }, [source]);
+
+    if (renderState.status === "error") {
+        return (
+            <div className="overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-950 text-zinc-100 shadow-sm">
+                <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-zinc-800 text-xs">∎</span>
+                        Mermaid
+                    </div>
+                    <div className="text-xs text-zinc-400">Render failed</div>
+                </div>
+                <div className="px-6 py-10 text-center text-zinc-300">
+                    <div className="mb-2 text-base">Sơ đồ không hợp lệ hoặc không được hỗ trợ.</div>
+                    <div className="mx-auto max-w-[34rem] text-sm leading-6 text-zinc-400">
+                        {renderState.message}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (renderState.status === "rendered") {
+        return (
+            <div
+                className="mermaid whitespace-pre-wrap"
+                dangerouslySetInnerHTML={{ __html: renderState.svg }}
+            />
+        );
+    }
 
     return <div ref={ref} className="mermaid whitespace-pre-wrap" />;
 };
@@ -242,9 +357,7 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
                         }
 
                         return (
-                            <pre>
-                                <code className={className}>{children}</code>
-                            </pre>
+                            <code className={className}>{children}</code>
                         );
                     },
                 }}
@@ -341,6 +454,7 @@ export function DocumentPreviewModal({
     const [htmlContent, setHtmlContent] = useState("");
     const [cssContent, setCssContent] = useState("");
     const [structuredFormat, setStructuredFormat] = useState<StructuredFormat>("json");
+    const [cachedUserPrompts, setCachedUserPrompts] = useState<string[]>([]);
     const chatListRef = useRef<HTMLDivElement | null>(null);
     const hasAutoSwitchedToDiffRef = useRef(false);
     const editorPanelRef = useRef<HTMLDivElement | null>(null);
@@ -396,6 +510,27 @@ export function DocumentPreviewModal({
             setContent(document.content || "");
         }
     }, [document]);
+
+    useEffect(() => {
+        if (!document?.document_id) {
+            setCachedUserPrompts([]);
+            return;
+        }
+
+        setCachedUserPrompts(getPromptCache(document.document_id));
+    }, [document?.document_id]);
+
+    useEffect(() => {
+        if (!document) {
+            setEdit(false);
+            return;
+        }
+
+        setEdit(false);
+        setDiffMode(false);
+        setCodeTab("html");
+        hasAutoSwitchedToDiffRef.current = false;
+    }, [document?.document_id, isOpen]);
 
     useEffect(() => {
         if (!content) {
@@ -593,6 +728,11 @@ export function DocumentPreviewModal({
         setChatInput("");
         setIsSendingMessage(true);
 
+        if (document?.document_id) {
+            appendPromptCache(document.document_id, prompt);
+            setCachedUserPrompts((prev) => [...prev, prompt]);
+        }
+
         console.log("Sending prompt:", prompt);
 
         if (onRegenerate) {
@@ -686,6 +826,7 @@ export function DocumentPreviewModal({
             }
 
             toast.success("Document updated successfully");
+            onRegenerateSuccess?.();
         } catch (error: any) {
             if (error?.statusCode === 403) {
                 toast.error("Your role in this project may have changed to Viewer. You no longer have permission for this action.");
@@ -835,8 +976,19 @@ export function DocumentPreviewModal({
                                         chatHistory.map((item, index) => {
                                             const isUser = isUserRole(item.role);
                                             const aiSummary = item.summary?.trim();
+                                            const rawMessage = item.message?.trim() || "";
+                                            const cachedPrompt = isUser
+                                                ? cachedUserPrompts.filter(Boolean)[
+                                                chatHistory
+                                                    .slice(0, index)
+                                                    .filter((historyItem) => isUserRole(historyItem.role))
+                                                    .length
+                                                ]
+                                                : "";
                                             const displayText = isUser
-                                                ? item.message
+                                                ? looksLikeDocumentContent(rawMessage)
+                                                    ? cachedPrompt || item.summary || rawMessage
+                                                    : rawMessage
                                                 : aiSummary === '""' || !aiSummary
                                                     ? `I changed this ${document.design_type || "document"}`
                                                     : item.summary;

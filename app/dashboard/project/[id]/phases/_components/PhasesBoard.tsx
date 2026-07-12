@@ -36,6 +36,7 @@ import { useProjectMembership } from "@/context/ProjectMembershipContext";
 import { DocumentPreviewModal } from "../../workflows/steps/shared/components/DocumentPreviewModal";
 import type { DocumentListItem, GenerateWorkflowPayload, GenerationDocumentItem, StepName } from "../../workflows/steps/shared/types";
 import { useWorkflowGeneration } from "../../workflows/steps/shared/hooks/useWorkflowGeneration";
+import { regenerateDocument } from "../../workflows/steps/shared/api";
 import { GenerationLoadingDialog } from "../../workflows/steps/shared/components/GenerationLoadingDialog";
 import {
   getDependencyDisplay,
@@ -68,6 +69,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
   const [additionalInstructions, setAdditionalInstructions] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [generatingDocumentItem, setGeneratingDocumentItem] = useState<GenerationDocumentItem | null>(null);
+  const [regeneratingDocId, setRegeneratingDocId] = useState<string | null>(null);
 
   const fetchPhaseDocs = async ([pId, pFilter]: [string, PhaseId]) => {
     return getGeneratedDocumentsByPhase(pFilter, pId);
@@ -234,7 +236,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
       setGeneratingDocumentItem({ id: selectedEntry.document.id, name: selectedEntry.document.name });
 
       const payload: GenerateWorkflowPayload = {
-        project_name: project.name ?? projectId,
+        project_name: project?.name ?? projectId,
         description: additionalInstructions,
         documents: [{ type: selectedEntry.document.id }],
       };
@@ -267,6 +269,84 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
     setPreviewDocument(document);
     setPreviewPhaseId(phaseId);
     setIsPreviewOpen(true);
+  };
+
+  const refreshPreviewDocument = async (phaseId: PhaseId, documentId: string, previousContent?: string) => {
+    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    let lastFoundDoc: GeneratedPhaseDocument | null = null;
+
+    // Regeneration can be eventually consistent, so retry for a short period.
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const latestDocs = await getGeneratedDocumentsByPhase(phaseId, projectId);
+      const updatedDoc = latestDocs.find((doc) => doc.document_id === documentId);
+      if (updatedDoc) {
+        lastFoundDoc = updatedDoc;
+
+        if (!previousContent || updatedDoc.content !== previousContent) {
+          setPreviewDocument(updatedDoc);
+          return;
+        }
+      }
+
+      await sleep(1000);
+    }
+
+    if (lastFoundDoc) {
+      setPreviewDocument(lastFoundDoc);
+    }
+  };
+
+  const handleRegenerateFromModal = async (documentId: string, description?: string) => {
+    if (!previewPhaseId) return;
+    setRegeneratingDocId(documentId);
+
+    toast.info("Regenerating document...", {
+      duration: 2000,
+    });
+
+    try {
+      const previousContent =
+        previewDocument?.document_id === documentId ? previewDocument.content : undefined;
+      const data = await regenerateDocument(
+        previewPhaseId as StepName,
+        projectId,
+        documentId,
+        description
+      );
+
+      if (data.status !== "error") {
+        toast.success("Document regenerated successfully");
+        // Update previewDocument immediately so the modal preview refreshes without closing.
+        if (data.result?.content) {
+          setPreviewDocument((prev) =>
+            prev ? { ...prev, content: data.result.content } : prev
+          );
+        } else {
+          await refreshPreviewDocument(previewPhaseId, documentId, previousContent);
+        }
+        
+        // Mutate SWR for the specific phase to update the board state as well
+        if (previewPhaseId === "planning") {
+          mutatePlanning();
+        } else if (previewPhaseId === "analysis") {
+          mutateAnalysis();
+        } else if (previewPhaseId === "design") {
+          mutateDesign();
+        }
+      } else {
+        throw data;
+      }
+    } catch (error: any) {
+      if (error?.statusCode === 403) {
+        toast.error("Your role in this project may have changed to Viewer. You no longer have permission for this action.");
+      } else {
+        console.error("Error regenerating document:", error);
+        const errorMessage = error instanceof Error ? error.message : (error?.message || "Failed to regenerate document");
+        toast.error(errorMessage);
+      }
+    } finally {
+      setRegeneratingDocId(null);
+    }
   };
 
   const getStatusIcon = (status: DocumentStatus) => {
@@ -663,6 +743,17 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
         document={previewDocument as unknown as DocumentListItem}
         projectId={projectId}
         stepName={(previewPhaseId ?? "planning") as StepName}
+        onRegenerateSuccess={() => {
+          if (previewPhaseId === "planning") {
+            mutatePlanning();
+          } else if (previewPhaseId === "analysis") {
+            mutateAnalysis();
+          } else if (previewPhaseId === "design") {
+            mutateDesign();
+          }
+        }}
+        isRegenerating={regeneratingDocId === previewDocument?.document_id}
+        onRegenerate={handleRegenerateFromModal}
       />
 
       <GenerationLoadingDialog
