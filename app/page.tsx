@@ -12,6 +12,8 @@ import Link from "next/link";
 import { DM_Serif_Display, DM_Sans } from "next/font/google";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getShowcaseData } from "@/lib/showcase";
+import { ShowcaseSection } from "@/components/landing/showcase-section";
 
 // Dữ liệu cho các section lặp lại
 const features = [
@@ -86,6 +88,7 @@ const techStack = [
 ];
 
 export default function Home() {
+    const showcaseData = getShowcaseData();
 
     return (
         <div className={`font-sans text-[#475569] bg-white`}>
@@ -388,6 +391,9 @@ export default function Home() {
                     </div>
                 </div>
             </section>
+
+            {/* ═ SHOWCASE ═ */}
+            <ShowcaseSection data={showcaseData} />
 
             {/* ═ TECH STACK ═ */}
             <section className="bg-[#F8FAFC]">

@@ -111,9 +111,7 @@ const MarkdownWithMermaid = ({ content }: { content: string }) => {
                             );
                         }
                         return (
-                            <pre>
-                                <code className={className}>{children}</code>
-                            </pre>
+                            <code className={className}>{children}</code>
                         );
                     },
                 }}
