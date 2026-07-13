@@ -132,6 +132,7 @@ export interface DocumentListItem {
   status: string;
   updated_at: string;
   doc_type?: string;
+  doc_category?: string;
 }
 
 export interface DocumentListResponse {

@@ -39,7 +39,8 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     const WS_URL = process.env.NEXT_PUBLIC_WS_DOMAIN; 
 
     useEffect(() => {
-        const publicPaths = ["/", "/login", "/register"];
+        const publicPaths = ["/", "/login", "/register", "/forgot-password"];
+        console.log("Current path:", pathName);
         if (publicPaths.includes(pathName)) {
             setToken("");
             return;

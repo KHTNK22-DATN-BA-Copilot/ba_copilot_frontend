@@ -236,8 +236,8 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
       setGeneratingDocumentItem({ id: selectedEntry.document.id, name: selectedEntry.document.name });
 
       const payload: GenerateWorkflowPayload = {
-        project_name: project?.name ?? projectId,
-        description: additionalInstructions,
+        project_name: project ? project.name : "Project",
+        description: additionalInstructions || (project ? project.description : "No description provided"),
         documents: [{ type: selectedEntry.document.id }],
       };
 
@@ -324,7 +324,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
         } else {
           await refreshPreviewDocument(previewPhaseId, documentId, previousContent);
         }
-        
+
         // Mutate SWR for the specific phase to update the board state as well
         if (previewPhaseId === "planning") {
           mutatePlanning();
@@ -409,330 +409,330 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
           </Card>
         ) : (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="space-y-4 lg:col-span-2">
-            {filteredPhases.map((phase) => {
-              const phaseDocuments = getPhaseLeafDocuments(phase);
-              const availableCount = phaseDocuments.filter((doc) =>
-                Boolean(getMatchedGeneratedDocument(phase.id, doc.id))
-              ).length;
-              const totalCount = phaseDocuments.length;
-              const completionPercent =
-                totalCount > 0 ? (availableCount / totalCount) * 100 : 0;
+            <div className="space-y-4 lg:col-span-2">
+              {filteredPhases.map((phase) => {
+                const phaseDocuments = getPhaseLeafDocuments(phase);
+                const availableCount = phaseDocuments.filter((doc) =>
+                  Boolean(getMatchedGeneratedDocument(phase.id, doc.id))
+                ).length;
+                const totalCount = phaseDocuments.length;
+                const completionPercent =
+                  totalCount > 0 ? (availableCount / totalCount) * 100 : 0;
 
-              return (
-                <Card key={phase.id} className="overflow-hidden">
-                  <CardHeader
-                    className="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex flex-1 items-start gap-3">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg">{phase.name}</CardTitle>
-                          <CardDescription className="mt-1">
-                            {phase.description}
-                          </CardDescription>
+                return (
+                  <Card key={phase.id} className="overflow-hidden">
+                    <CardHeader
+                      className="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex flex-1 items-start gap-3">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg">{phase.name}</CardTitle>
+                            <CardDescription className="mt-1">
+                              {phase.description}
+                            </CardDescription>
+                          </div>
+                        </div>
+
+                        <div className="min-w-32 text-right">
+                          <div className="min-w-32 ml-auto text-right">
+                            <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                              {availableCount}/{totalCount} available
+                            </div>
+
+                            <div className="ml-auto h-2 w-28 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                              <div
+                                className="h-full bg-blue-600 transition-all dark:bg-blue-500"
+                                style={{ width: `${completionPercent}%` }}
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
+                    </CardHeader>
 
-                      <div className="min-w-32 text-right">
-                        <div className="min-w-32 ml-auto text-right">
-                          <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-                            {availableCount}/{totalCount} available
-                          </div>
+                    <CardContent className="pt-0">
+                      <div className="space-y-2">
+                        {phaseDocuments.map((doc) => {
+                          const matchedGeneratedDoc = getMatchedGeneratedDocument(
+                            phase.id,
+                            doc.id
+                          );
+                          const isGenerated = Boolean(matchedGeneratedDoc);
+                          const dependencyDisplay = getDependencyDisplay(doc.id);
+                          const missingRequired = getRequiredDocs(doc.id)
+                            .filter((requiredId) => !availableDocumentIds.has(requiredId.toLowerCase()))
+                            .map(getDocumentDisplayName);
+                          const displayStatus = getPhaseDocumentStatus(
+                            phase.id,
+                            doc.id,
+                            doc.status
+                          );
 
-                          <div className="ml-auto h-2 w-28 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                          return (
                             <div
-                              className="h-full bg-blue-600 transition-all dark:bg-blue-500"
-                              style={{ width: `${completionPercent}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="pt-0">
-                    <div className="space-y-2">
-                      {phaseDocuments.map((doc) => {
-                        const matchedGeneratedDoc = getMatchedGeneratedDocument(
-                          phase.id,
-                          doc.id
-                        );
-                        const isGenerated = Boolean(matchedGeneratedDoc);
-                        const dependencyDisplay = getDependencyDisplay(doc.id);
-                        const missingRequired = getRequiredDocs(doc.id)
-                          .filter((requiredId) => !availableDocumentIds.has(requiredId.toLowerCase()))
-                          .map(getDocumentDisplayName);
-                        const displayStatus = getPhaseDocumentStatus(
-                          phase.id,
-                          doc.id,
-                          doc.status
-                        );
-
-                        return (
-                          <div
-                            key={doc.id}
-                            role="button"
-                            tabIndex={0}
-                            className={cn(
-                              "flex w-full cursor-pointer items-center justify-between rounded-lg border p-3 text-left transition-all focus:outline-none focus:ring-2 focus:ring-blue-500",
-                              selectedDocument === doc.id
-                                ? "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30"
-                                : isGenerated
-                                ? "border-emerald-300 bg-emerald-50/70 hover:bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/30"
-                                : "border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800/60"
-                            )}
-                            onClick={() => setSelectedDocument(doc.id)}
-                            onKeyDown={(event) => {
-                              if (event.key === "Enter" || event.key === " ") {
-                                event.preventDefault();
-                                setSelectedDocument(doc.id);
-                              }
-                            }}
-                          >
-                            <div className="flex flex-1 items-center gap-3">
-                              {getStatusIcon(displayStatus)}
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                    {doc.name}
-                                  </p>
-                                  {(!isGenerated && (dependencyDisplay.required.length > 0 || dependencyDisplay.recommended.length > 0 || missingRequired.length > 0)) && (
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-help" />
-                                      </TooltipTrigger>
-                                      <TooltipContent side="top" className="max-w-xs">
-                                        <div className="space-y-1.5 text-xs">
-                                          {dependencyDisplay.required.length > 0 && (
-                                            <div>
-                                              <p className="font-medium text-amber-300">Required:</p>
-                                              <p className="text-gray-100">{dependencyDisplay.required.join(", ")}</p>
-                                            </div>
-                                          )}
-                                          {dependencyDisplay.recommended.length > 0 && (
-                                            <div>
-                                              <p className="font-medium text-sky-300">Recommended:</p>
-                                              <p className="text-gray-100">{dependencyDisplay.recommended.join(", ")}</p>
-                                            </div>
-                                          )}
-                                          {missingRequired.length > 0 && (
-                                            <div>
-                                              <p className="font-medium text-red-300">Missing:</p>
-                                              <p className="text-gray-100">{missingRequired.join(", ")}</p>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  )}
-                                </div>
-                                {/* {doc.parentName && (
+                              key={doc.id}
+                              role="button"
+                              tabIndex={0}
+                              className={cn(
+                                "flex w-full cursor-pointer items-center justify-between rounded-lg border p-3 text-left transition-all focus:outline-none focus:ring-2 focus:ring-blue-500",
+                                selectedDocument === doc.id
+                                  ? "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30"
+                                  : isGenerated
+                                    ? "border-emerald-300 bg-emerald-50/70 hover:bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/30"
+                                    : "border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800/60"
+                              )}
+                              onClick={() => setSelectedDocument(doc.id)}
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter" || event.key === " ") {
+                                  event.preventDefault();
+                                  setSelectedDocument(doc.id);
+                                }
+                              }}
+                            >
+                              <div className="flex flex-1 items-center gap-3">
+                                {getStatusIcon(displayStatus)}
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                      {doc.name}
+                                    </p>
+                                    {(!isGenerated && (dependencyDisplay.required.length > 0 || dependencyDisplay.recommended.length > 0 || missingRequired.length > 0)) && (
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-help" />
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top" className="max-w-xs">
+                                          <div className="space-y-1.5 text-xs">
+                                            {dependencyDisplay.required.length > 0 && (
+                                              <div>
+                                                <p className="font-medium text-amber-300">Required:</p>
+                                                <p className="text-gray-100">{dependencyDisplay.required.join(", ")}</p>
+                                              </div>
+                                            )}
+                                            {dependencyDisplay.recommended.length > 0 && (
+                                              <div>
+                                                <p className="font-medium text-sky-300">Recommended:</p>
+                                                <p className="text-gray-100">{dependencyDisplay.recommended.join(", ")}</p>
+                                              </div>
+                                            )}
+                                            {missingRequired.length > 0 && (
+                                              <div>
+                                                <p className="font-medium text-red-300">Missing:</p>
+                                                <p className="text-gray-100">{missingRequired.join(", ")}</p>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    )}
+                                  </div>
+                                  {/* {doc.parentName && (
                                   <p className="text-xs text-gray-500 dark:text-gray-400">
                                     Group: {doc.parentName}
                                   </p>
                                 )} */}
-                                {matchedGeneratedDoc?.updated_at && (
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    Last updated: {formatLastGenerated(
-                                      matchedGeneratedDoc?.updated_at
-                                    )}
-                                  </p>
+                                  {matchedGeneratedDoc?.updated_at && (
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                      Last updated: {formatLastGenerated(
+                                        matchedGeneratedDoc?.updated_at
+                                      )}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                {matchedGeneratedDoc && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-2"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      handleOpenPreview(matchedGeneratedDoc, phase.id);
+                                    }}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                    View
+                                  </Button>
                                 )}
                               </div>
                             </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
 
-                            <div className="flex items-center gap-2">
-                              {matchedGeneratedDoc && (
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  className="gap-2"
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    handleOpenPreview(matchedGeneratedDoc, phase.id);
-                                  }}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                  View
-                                </Button>
-                              )}
-                            </div>
+            <div className="lg:col-span-1">
+              <div className="sticky top-6">
+                {selectedEntry ? (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-xl">
+                        <FileText className="h-5 w-5" />
+                        Generate Document
+                      </CardTitle>
+                      <CardDescription>
+                        Use AI to generate this document based on your project data.
+                      </CardDescription>
+                    </CardHeader>
+
+                    <CardContent className="space-y-4">
+                      {(() => {
+                        const selectedIsGenerated = Boolean(
+                          getMatchedGeneratedDocument(
+                            selectedEntry.phase.id,
+                            selectedEntry.document.id
+                          )
+                        );
+
+                        return (
+                          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              {selectedEntry.document.name}
+                            </p>
+                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                              Phase: {selectedEntry.phase.name}
+                            </p>
+                            {selectedEntry.parentDocument && (
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                Group: {selectedEntry.parentDocument.name}
+                              </p>
+                            )}
+                            {!selectedIsGenerated && selectedDependencyInfo?.required.length ? (
+                              <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
+                                Required: {selectedDependencyInfo.required.join(", ")}
+                              </p>
+                            ) : null}
+                            {!selectedIsGenerated && selectedDependencyInfo?.recommended.length ? (
+                              <p className="mt-1 text-xs text-sky-700 dark:text-sky-300">
+                                Recommended: {selectedDependencyInfo.recommended.join(", ")}
+                              </p>
+                            ) : null}
+                            {selectedIsGenerated && (
+                              <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                                Generated and available
+                              </p>
+                            )}
+                            {selectedDependencyInfo?.missingRequired.length ? (
+                              <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                                Missing: {selectedDependencyInfo.missingRequired.join(", ")}
+                              </p>
+                            ) : null}
                           </div>
                         );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                      })()}
 
-          <div className="lg:col-span-1">
-            <div className="sticky top-6">
-              {selectedEntry ? (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xl">
-                      <FileText className="h-5 w-5" />
-                      Generate Document
-                    </CardTitle>
-                    <CardDescription>
-                      Use AI to generate this document based on your project data.
-                    </CardDescription>
-                  </CardHeader>
-
-                  <CardContent className="space-y-4">
-                    {(() => {
-                      const selectedIsGenerated = Boolean(
-                        getMatchedGeneratedDocument(
-                          selectedEntry.phase.id,
-                          selectedEntry.document.id
-                        )
-                      );
-
-                      return (
-                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {selectedEntry.document.name}
-                      </p>
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        Phase: {selectedEntry.phase.name}
-                      </p>
-                      {selectedEntry.parentDocument && (
-                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                          Group: {selectedEntry.parentDocument.name}
-                        </p>
-                      )}
-                      {!selectedIsGenerated && selectedDependencyInfo?.required.length ? (
-                        <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
-                          Required: {selectedDependencyInfo.required.join(", ")}
-                        </p>
-                      ) : null}
-                      {!selectedIsGenerated && selectedDependencyInfo?.recommended.length ? (
-                        <p className="mt-1 text-xs text-sky-700 dark:text-sky-300">
-                          Recommended: {selectedDependencyInfo.recommended.join(", ")}
-                        </p>
-                      ) : null}
-                      {selectedIsGenerated && (
-                        <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                          Generated and available
-                        </p>
-                      )}
-                      {selectedDependencyInfo?.missingRequired.length ? (
-                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">
-                          Missing: {selectedDependencyInfo.missingRequired.join(", ")}
-                        </p>
-                      ) : null}
-                    </div>
-                      );
-                    })()}
-
-                    <div className="space-y-2">
-                      <label
-                        htmlFor="phase-ai-instructions"
-                        className="text-sm font-medium text-gray-800 dark:text-gray-200"
-                      >
-                        Additional Instructions (Optional)
-                      </label>
-                      <Textarea
-                        id="phase-ai-instructions"
-                        className="min-h-28"
-                        placeholder="Add specific requirements or guidelines for generating this document..."
-                        value={additionalInstructions}
-                        onChange={(e) => setAdditionalInstructions(e.target.value)}
-                        disabled={isGenerating}
-                      />
-                    </div>
-
-                    {isViewer ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            className="w-full gap-2 opacity-50 cursor-not-allowed pointer-events-auto hover:bg-primary hover:text-primary-foreground"
-                            onClick={handleGenerateClick}
-                          >
-                            <Sparkles className="h-4 w-4" />
-                            Generate
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          You do not have permission to generate documents. Your role is Viewer.
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      <Button
-                        className="w-full gap-2"
-                        onClick={handleGenerate}
-                        disabled={
-                          isGenerating ||
-                          isSyncingDocuments ||
-                          hasMissingRequiredDependencies ||
-                          Boolean(
-                            getMatchedGeneratedDocument(
-                              selectedEntry.phase.id,
-                              selectedEntry.document.id
-                            )
-                          )
-                        }
-                      >
-                        {isGenerating ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Sparkles className="h-4 w-4" />
-                        )}
-                        {isGenerating ? "Generating..." : "Generate"}
-                      </Button>
-                    )}
-
-                    {hasMissingRequiredDependencies && (
-                      <p className="text-xs text-red-600 dark:text-red-400">
-                        Complete required documents before generating this one.
-                      </p>
-                    )}
-
-                    {selectedEntry &&
-                      getMatchedGeneratedDocument(
-                        selectedEntry.phase.id,
-                        selectedEntry.document.id
-                      ) && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="w-full gap-2"
-                          onClick={() => {
-                            const generatedDoc = getMatchedGeneratedDocument(
-                              selectedEntry.phase.id,
-                              selectedEntry.document.id
-                            );
-                            if (generatedDoc) {
-                              handleOpenPreview(generatedDoc, selectedEntry.phase.id);
-                            }
-                          }}
+                      <div className="space-y-2">
+                        <label
+                          htmlFor="phase-ai-instructions"
+                          className="text-sm font-medium text-gray-800 dark:text-gray-200"
                         >
-                          <Eye className="h-4 w-4" />
-                          View Latest Generated Document
+                          Additional Instructions (Optional)
+                        </label>
+                        <Textarea
+                          id="phase-ai-instructions"
+                          className="min-h-28"
+                          placeholder="Add specific requirements or guidelines for generating this document..."
+                          value={additionalInstructions}
+                          onChange={(e) => setAdditionalInstructions(e.target.value)}
+                          disabled={isGenerating}
+                        />
+                      </div>
+
+                      {isViewer ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              className="w-full gap-2 opacity-50 cursor-not-allowed pointer-events-auto hover:bg-primary hover:text-primary-foreground"
+                              onClick={handleGenerateClick}
+                            >
+                              <Sparkles className="h-4 w-4" />
+                              Generate
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            You do not have permission to generate documents. Your role is Viewer.
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <Button
+                          className="w-full gap-2"
+                          onClick={handleGenerate}
+                          disabled={
+                            isGenerating ||
+                            isSyncingDocuments ||
+                            hasMissingRequiredDependencies ||
+                            Boolean(
+                              getMatchedGeneratedDocument(
+                                selectedEntry.phase.id,
+                                selectedEntry.document.id
+                              )
+                            )
+                          }
+                        >
+                          {isGenerating ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-4 w-4" />
+                          )}
+                          {isGenerating ? "Generating..." : "Generate"}
                         </Button>
                       )}
 
-                    <p className="text-center text-xs text-gray-500 dark:text-gray-400">
-                      Generation typically takes 30-60 seconds.
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card>
-                  <CardContent className="pt-6 text-center">
-                    <FileText className="mx-auto mb-3 h-12 w-12 text-gray-300 dark:text-gray-600" />
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Select a document to generate.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
+                      {hasMissingRequiredDependencies && (
+                        <p className="text-xs text-red-600 dark:text-red-400">
+                          Complete required documents before generating this one.
+                        </p>
+                      )}
+
+                      {selectedEntry &&
+                        getMatchedGeneratedDocument(
+                          selectedEntry.phase.id,
+                          selectedEntry.document.id
+                        ) && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full gap-2"
+                            onClick={() => {
+                              const generatedDoc = getMatchedGeneratedDocument(
+                                selectedEntry.phase.id,
+                                selectedEntry.document.id
+                              );
+                              if (generatedDoc) {
+                                handleOpenPreview(generatedDoc, selectedEntry.phase.id);
+                              }
+                            }}
+                          >
+                            <Eye className="h-4 w-4" />
+                            View Latest Generated Document
+                          </Button>
+                        )}
+
+                      <p className="text-center text-xs text-gray-500 dark:text-gray-400">
+                        Generation typically takes 30-60 seconds.
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardContent className="pt-6 text-center">
+                      <FileText className="mx-auto mb-3 h-12 w-12 text-gray-300 dark:text-gray-600" />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Select a document to generate.
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             </div>
-          </div>
           </div>
         )}
       </div>
