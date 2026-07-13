@@ -43,7 +43,7 @@ export class SearchService {
                 limit: String(limit),
             });
 
-            const response = await fetch(`${this.baseUrl}/api/v1/search/?${params.toString()}`, {
+            const response = await fetch(`${this.baseUrl}/api/v2/search/?${params.toString()}`, {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${token}`,
