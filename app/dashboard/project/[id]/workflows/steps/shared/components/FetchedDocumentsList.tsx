@@ -196,67 +196,72 @@ export function FetchedDocumentsList({
                         Generated Documents
                     </label>
                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                        {documents.length} document(s) created
+                        {documents.reduce((count, doc) => {
+                            if (doc.file_category === "ai gen") return count + 1;
+                            return count;
+                        }, 0)} document(s) created
                     </p>
                 </div>
             </div>
 
             <div className="space-y-2">
-                {documents.map((doc) => (
-                    <div
-                        key={doc.document_id}
-                        className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
-                    >
-                        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded flex-shrink-0">
-                            <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                        </div>
+                {documents.map((doc) =>
+                    doc.file_category == "ai gen" && (
+                        <div
+                            key={doc.document_id}
+                            className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+                        >
+                            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded flex-shrink-0">
+                                <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            </div>
 
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-gray-900 dark:text-gray-100">
-                                        {doc.project_name}
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                                            {doc.project_name}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {doc.content && (
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
+                                        {doc.content.substring(0, 150)}
+                                        {doc.content.length > 150 ? "..." : ""}
                                     </p>
-                                </div>
-                            </div>
+                                )}
 
-                            {doc.content && (
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
-                                    {doc.content.substring(0, 150)}
-                                    {doc.content.length > 150 ? "..." : ""}
-                                </p>
-                            )}
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mt-3">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        Updated: {new Date(doc.updated_at).toLocaleString()}
+                                    </p>
 
-                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mt-3">
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    Updated: {new Date(doc.updated_at).toLocaleString()}
-                                </p>
+                                    <div className="flex items-center gap-2 self-start sm:self-auto">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => handleDownload(doc)}
+                                            disabled={downloadingDocId !== null || regeneratingDocId !== null}
+                                            title="Download"
+                                        >
+                                            <Download className={`w-4 h-4 ${downloadingDocId === doc.document_id ? 'animate-pulse' : ''}`} />
+                                        </Button>
 
-                                <div className="flex items-center gap-2 self-start sm:self-auto">
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => handleDownload(doc)}
-                                        disabled={downloadingDocId !== null || regeneratingDocId !== null}
-                                        title="Download"
-                                    >
-                                        <Download className={`w-4 h-4 ${downloadingDocId === doc.document_id ? 'animate-pulse' : ''}`} />
-                                    </Button>
-
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="gap-2"
-                                        onClick={() => handlePreview(doc)}
-                                    >
-                                        <Eye className="w-4 h-4" />
-                                        View
-                                    </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-2"
+                                            onClick={() => handlePreview(doc)}
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                            View
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    )
+                )}
             </div>
 
             <DocumentPreviewModal

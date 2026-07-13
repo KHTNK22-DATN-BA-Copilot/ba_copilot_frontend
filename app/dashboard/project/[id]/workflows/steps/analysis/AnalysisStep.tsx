@@ -45,6 +45,7 @@ export default function AnalysisStep({
     const fetchAnalysisDocuments = useCallback(async ([pId, step]: [string, string]) => {
         console.log(`[SWR] Fetching for Project: ${pId}`);
         const response = await getAnalysisDocuments(pId);
+        console.log(`[SWR] Response for Project: ${pId}, Step: ${step}`, response);
 
         if (response.status === "success" && response.documents) {
             return response.documents;
