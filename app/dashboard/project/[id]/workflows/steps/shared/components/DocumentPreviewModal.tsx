@@ -1,7 +1,5 @@
 "use client";
 import "github-markdown-css/github-markdown.css";
-import "github-markdown-css/github-markdown-dark.css";
-import "github-markdown-css/github-markdown-light.css";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -343,7 +341,7 @@ const MermaidBlock = ({ source }: { source: string }) => {
 
 const MarkdownWithMermaid = ({ content }: { content: string }) => {
     return (
-        <div className="markdown-body bg-white p-2 sm:p-4" style={{ colorScheme: "light" }}>
+        <div className="markdown-body !bg-transparent p-2 sm:p-4 dark:text-gray-200">
             <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkBreaks]}
                 components={{
