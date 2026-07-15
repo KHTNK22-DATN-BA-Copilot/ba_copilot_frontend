@@ -7,12 +7,14 @@ export function Field({
     state,
     onChange,
     message,
+    disabled,
 }: {
     label: string;
     value: string;
     state: string;
     onChange: any;
     message?: string;
+    disabled?: boolean;
 }) {
 
     const isEditMode = state === "edit";
@@ -33,6 +35,7 @@ export function Field({
                         onChange={(e) => onChange(e.target.value)}
                         className="w-full sm:max-w-xs"
                         aria-label={label}
+                        disabled={disabled}
                     />
                     {(isErrorMode && label === "Email") && (
                         <p className="text-red-500 text-xs sm:text-sm">{message}</p>

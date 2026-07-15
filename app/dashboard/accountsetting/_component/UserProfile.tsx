@@ -144,6 +144,7 @@ export default function UserProfile({
                             setState({ state: "edit" });
                         }}
                         message={isErrorMode ? state.message : ""}
+                        disabled={true}
                     />
                     <Field
                         label="Full Name"
