@@ -1,6 +1,4 @@
 import "github-markdown-css/github-markdown.css";
-import "github-markdown-css/github-markdown-dark.css";
-import "github-markdown-css/github-markdown-light.css";
 
 import { DownloadIcon, Eye, FileIcon, Trash2 } from "lucide-react";
 import { FileNode } from "./type";
@@ -10,7 +8,7 @@ import { useProjectMembership } from "@/context/ProjectMembershipContext";
 import { useState } from "react";
 import { getFileContentAction } from "@/actions/file.action";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import mammoth from "mammoth";
+import mammoth from "mammoth/mammoth.browser";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
@@ -61,7 +59,7 @@ export const FileLeaf: React.FC<FileLeafProps> = ({
             fileId,
         );
 
-        if (file.type == "file" && file.extension === ".md") {
+        if (file.type == "file" && (file.extension === ".md" || file.extension === ".txt")) {
             response.text().then((text) => {
                 setMdContent(text);
             });
@@ -171,25 +169,28 @@ export const FileLeaf: React.FC<FileLeafProps> = ({
                         {file.type == "file" && file.name + file.extension}
                     </DialogTitle>
                     {file.type == "file" &&
-                        (file.extension == ".txt" ||
-                        file.extension == ".pdf" ? (
+                        (file.extension == ".pdf" ? (
                             <iframe
                                 src={fileUrl}
                                 width="100%"
                                 height="600px"
                                 title="PDF Viewer"
                             />
-                        ) : file.extension === ".md" ? (
+                        ) : (file.extension === ".md" || file.extension === ".txt") ? (
                             <div
                                 className={
-                                    "p-5 border rounded-xl overflow-scroll markdown-body"
+                                    "p-5 border rounded-xl overflow-scroll markdown-body !bg-transparent dark:text-gray-200"
                                 }
                             >
-                                <ReactMarkdown
-                                    remarkPlugins={[remarkGfm, remarkBreaks]}
-                                >
-                                    {mdContent}
-                                </ReactMarkdown>
+                                {file.extension === ".md" ? (
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm, remarkBreaks]}
+                                    >
+                                        {mdContent}
+                                    </ReactMarkdown>
+                                ) : (
+                                    <pre className="whitespace-pre-wrap font-sans text-sm">{mdContent}</pre>
+                                )}
                             </div>
                         ) : (
                             <div

@@ -12,8 +12,9 @@ import { z } from "zod";
 import { SignIn, getGoogleAuthUrl } from "@/actions/auth.action";
 
 //import Icon
-import { ChartGantt, Github, ChevronRightIcon } from "lucide-react";
+import { ChartGantt, Github, ChevronRightIcon, Eye, EyeOff } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
+import { useState } from "react";
 
 const formSchema = z.object({
     email: z.string().trim().min(1, "Email is required").email("Invalid email format"),
@@ -59,6 +60,7 @@ export default function SignInForm() {
         message: undefined,
     };
     const [state, formAction, isPending] = useActionState(submitAction, initialState);
+    const [showPassword, setShowPassword] = useState(false);
 
     async function handleGoogleLogin() {
         const response = await getGoogleAuthUrl();
@@ -127,13 +129,22 @@ export default function SignInForm() {
                         )}
                         
                         <Label htmlFor="password" className="mt-2.5 inline-block text-gray-900 dark:text-gray-100">Password</Label>
-                        <Input
-                            type="password"
-                            id="password"
-                            name="password"
-                            placeholder="Password"
-                            className="mt-1 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
-                        />
+                        <div className="relative mt-1">
+                            <Input
+                                type={showPassword ? "text" : "password"}
+                                id="password"
+                                name="password"
+                                placeholder="Password"
+                                className="focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 pr-10 [&::-ms-reveal]:hidden"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none"
+                            >
+                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                        </div>
                         {/* Render lỗi cụ thể của Password */}
                         {state?.errors?.password && (
                             <p className="text-red-500 dark:text-red-400 text-sm mt-1">{state.errors.password[0]}</p>
