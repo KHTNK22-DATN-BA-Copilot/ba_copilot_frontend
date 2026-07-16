@@ -179,7 +179,7 @@ export const FileLeaf: React.FC<FileLeafProps> = ({
                         ) : (file.extension === ".md" || file.extension === ".txt") ? (
                             <div
                                 className={
-                                    "p-5 border rounded-xl overflow-scroll markdown-body !bg-transparent dark:text-gray-200"
+                                    "p-5 border rounded-xl overflow-scroll markdown-body"
                                 }
                             >
                                 {file.extension === ".md" ? (

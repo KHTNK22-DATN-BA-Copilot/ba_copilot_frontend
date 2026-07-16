@@ -341,7 +341,7 @@ const MermaidBlock = ({ source }: { source: string }) => {
 
 const MarkdownWithMermaid = ({ content }: { content: string }) => {
     return (
-        <div className="markdown-body !bg-transparent p-2 sm:p-4 dark:text-gray-200">
+        <div className="markdown-body p-2 sm:p-4">
             <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkBreaks]}
                 components={{
