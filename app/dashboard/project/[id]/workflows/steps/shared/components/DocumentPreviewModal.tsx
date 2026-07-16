@@ -983,10 +983,13 @@ export function DocumentPreviewModal({
                                                     .length
                                                 ]
                                                 : "";
+                                            const isFirstUserMessage = isUser && chatHistory.findIndex((historyItem) => isUserRole(historyItem.role)) === index;
                                             const displayText = isUser
-                                                ? looksLikeDocumentContent(rawMessage)
-                                                    ? cachedPrompt || item.summary || rawMessage
-                                                    : rawMessage
+                                                ? isFirstUserMessage
+                                                    ? cachedPrompt || item.summary || ""
+                                                    : looksLikeDocumentContent(rawMessage)
+                                                        ? cachedPrompt || item.summary || rawMessage
+                                                        : rawMessage
                                                 : aiSummary === '""' || !aiSummary
                                                     ? `I changed this ${document.design_type || "document"}`
                                                     : item.summary;
