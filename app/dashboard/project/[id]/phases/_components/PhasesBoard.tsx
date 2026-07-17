@@ -383,9 +383,9 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-gray-50 dark:bg-gray-900 overflow-hidden">
+      <div className="flex-shrink-0 border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
@@ -406,9 +406,9 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="flex-1 min-h-0 mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 overflow-hidden">
         {isSyncingDocuments ? (
-          <Card>
+          <Card className="h-full flex flex-col items-center justify-center">
             <CardContent className="flex items-center gap-3 py-10 text-gray-700 dark:text-gray-300">
               <Loader2 className="h-5 w-5 animate-spin" />
               <div>
@@ -420,8 +420,8 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="space-y-4 lg:col-span-2">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 h-full min-h-0">
+            <div className="space-y-4 lg:col-span-2 flex flex-col h-full min-h-0 overflow-y-auto pr-1">
               {filteredPhases.map((phase) => {
                 const phaseDocuments = getPhaseLeafDocuments(phase);
                 const availableCount = phaseDocuments.filter((doc) =>
@@ -432,9 +432,15 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                   totalCount > 0 ? (availableCount / totalCount) * 100 : 0;
 
                 return (
-                  <Card key={phase.id} className="overflow-hidden">
+                  <Card 
+                    key={phase.id} 
+                    className={cn(
+                      "flex flex-col overflow-hidden",
+                      filteredPhases.length === 1 ? "h-full min-h-0" : "max-h-[350px] min-h-[250px] flex-shrink-0"
+                    )}
+                  >
                     <CardHeader
-                      className="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                      className="flex-shrink-0 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex flex-1 items-start gap-3">
@@ -463,7 +469,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                       </div>
                     </CardHeader>
 
-                    <CardContent className="pt-0">
+                    <CardContent className="flex-1 min-h-0 overflow-y-auto pt-0 pb-6 px-6 overscroll-contain">
                       <div className="space-y-2">
                         {phaseDocuments.map((doc) => {
                           const matchedGeneratedDoc = getMatchedGeneratedDocument(
@@ -587,11 +593,11 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
               })}
             </div>
 
-            <div className="lg:col-span-1">
-              <div className="sticky top-6">
+            <div className="lg:col-span-1 h-full min-h-0">
+              <div className="h-full min-h-0">
                 {selectedEntry ? (
-                  <Card>
-                    <CardHeader>
+                  <Card className="flex flex-col h-full min-h-0 overflow-hidden">
+                    <CardHeader className="flex-shrink-0">
                       <CardTitle className="flex items-center gap-2 text-xl">
                         <FileText className="h-5 w-5" />
                         Generate Document
@@ -601,7 +607,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                       </CardDescription>
                     </CardHeader>
 
-                    <CardContent className="space-y-4">
+                    <CardContent className="flex-1 min-h-0 overflow-y-auto space-y-4 pb-6 overscroll-contain">
                        {(() => {
                         const allSelectedGeneratedDocs = getGeneratedDocumentsOfId(
                           selectedEntry.phase.id,
@@ -762,7 +768,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                     </CardContent>
                   </Card>
                 ) : (
-                  <Card>
+                  <Card className="h-full flex flex-col items-center justify-center">
                     <CardContent className="pt-6 text-center">
                       <FileText className="mx-auto mb-3 h-12 w-12 text-gray-300 dark:text-gray-600" />
                       <p className="text-sm text-gray-500 dark:text-gray-400">
