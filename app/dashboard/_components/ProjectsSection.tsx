@@ -63,7 +63,7 @@ export default function ProjectsSection({
                         new Date(a.created_at).getTime()
                     )
                 );
-                break; 
+                break;
             case "Title":
                 setSortedProjects(
                     [...projects].sort((a, b) =>
@@ -325,12 +325,6 @@ export default function ProjectsSection({
                         ))}
                     </>
                 )}
-            </div>
-
-            <div className="text-center">
-                <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md">
-                    Show more
-                </button>
             </div>
         </div>
     );

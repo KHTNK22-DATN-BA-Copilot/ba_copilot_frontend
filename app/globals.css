@@ -246,3 +246,62 @@
   background-color: #ffffff !important;
   color: #1f2328 !important;
 }
+
+/* Force markdown body descendants to be light mode always, overriding imported dark styles */
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  color: #1f2328 !important;
+  border-bottom-color: #d1d9e0b3 !important;
+}
+.markdown-body p,
+.markdown-body li {
+  color: #1f2328 !important;
+}
+.markdown-body a {
+  color: #0969da !important;
+}
+.markdown-body blockquote {
+  color: #59636e !important;
+  border-left-color: #d1d9e0 !important;
+}
+.markdown-body code,
+.markdown-body tt {
+  background-color: #818b981f !important;
+  color: #1f2328 !important;
+}
+.markdown-body pre {
+  background-color: #f6f8fa !important;
+  color: #1f2328 !important;
+}
+.markdown-body pre code {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+.markdown-body table {
+  background-color: #ffffff !important;
+  color: #1f2328 !important;
+  border-collapse: collapse !important;
+}
+.markdown-body table tr {
+  background-color: #ffffff !important;
+  border-top: 1px solid #d1d9e0b3 !important;
+  color: #1f2328 !important;
+}
+.markdown-body table tr:nth-child(2n) {
+  background-color: #f6f8fa !important;
+}
+.markdown-body table th {
+  background-color: #f6f8fa !important;
+  color: #1f2328 !important;
+  border: 1px solid #d1d9e0 !important;
+  font-weight: 600 !important;
+}
+.markdown-body table td {
+  background-color: transparent !important;
+  color: #1f2328 !important;
+  border: 1px solid #d1d9e0 !important;
+}

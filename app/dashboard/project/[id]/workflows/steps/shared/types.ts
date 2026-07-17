@@ -16,6 +16,7 @@ export type SubItem = {
   };
   isChecked?: boolean;
   isDisabled?: boolean;
+  noPreview?: boolean;
 };
 
 export type WorkflowDocument = {
@@ -29,6 +30,7 @@ export type WorkflowDocument = {
   subItems?: SubItem[];
   isChecked?: boolean;
   isDisabled?: boolean;
+  noPreview?: boolean;
 }
 
 // ─── Constrained document types (used by useDocumentConstraints) ─────
@@ -40,6 +42,7 @@ export type ConstrainedSubItem = {
   isDisabled: boolean;
   /** Human-readable reason why this document is disabled */
   disabledReason?: string;
+  noPreview?: boolean;
 };
 
 export type ConstrainedDocument = {
@@ -51,6 +54,7 @@ export type ConstrainedDocument = {
   /** Human-readable reason why this document is disabled */
   disabledReason?: string;
   subItems?: ConstrainedSubItem[];
+  noPreview?: boolean;
 }
 
 // New payload structure for WebSocket API

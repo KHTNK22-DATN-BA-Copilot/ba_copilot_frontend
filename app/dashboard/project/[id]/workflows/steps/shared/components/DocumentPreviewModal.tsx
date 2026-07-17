@@ -151,12 +151,18 @@ const serializeStructuredHtmlCss = (
 
 const buildSrcDoc = (html: string, css: string) => `
 <!DOCTYPE html>
-<html>
+<html style="color-scheme: light; background-color: white !important; color: black !important;">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <style>${css}</style>
+    <style>
+      html, body {
+        background-color: white !important;
+        color: black !important;
+      }
+      ${css}
+    </style>
   </head>
-  <body>
+  <body style="background-color: white !important; color: black !important;">
     ${html}
   </body>
 </html>
@@ -379,9 +385,9 @@ const DiffView = ({ original, modified }: { original: string; modified: string }
                         className={cn(
                             "flex px-2 py-0.5 whitespace-pre-wrap break-words",
                             part.added
-                                ? "bg-green-50 dark:bg-green-950"
+                                ? "bg-green-50"
                                 : part.removed
-                                    ? "bg-red-50 dark:bg-red-950"
+                                    ? "bg-red-50"
                                     : ""
                         )}
                     >
@@ -389,9 +395,9 @@ const DiffView = ({ original, modified }: { original: string; modified: string }
                             className={cn(
                                 "select-none mr-3 w-3 flex-shrink-0 font-bold",
                                 part.added
-                                    ? "text-green-600 dark:text-green-400"
+                                    ? "text-green-600"
                                     : part.removed
-                                        ? "text-red-600 dark:text-red-400"
+                                        ? "text-red-600"
                                         : "text-gray-400"
                             )}
                         >
@@ -400,10 +406,10 @@ const DiffView = ({ original, modified }: { original: string; modified: string }
                         <span
                             className={cn(
                                 part.added
-                                    ? "text-green-800 dark:text-green-200"
+                                    ? "text-green-800"
                                     : part.removed
-                                        ? "text-red-800 dark:text-red-200"
-                                        : "text-gray-700 dark:text-gray-300"
+                                        ? "text-red-800"
+                                        : "text-gray-700"
                             )}
                         >
                             {line}
@@ -1204,12 +1210,8 @@ export function DocumentPreviewModal({
                                                     target.clientHeight,
                                                 );
                                             }}
-                                            className={cn(
-                                                "flex-1 overflow-y-auto overflow-x-hidden border rounded-lg min-h-0",
-                                                diffMode
-                                                    ? "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
-                                                    : "border-gray-300 bg-white"
-                                            )}>
+                                            className="flex-1 overflow-y-auto overflow-x-hidden border rounded-lg min-h-0 border-gray-300 bg-white"
+                                        >
                                             {diffMode ? (
                                                 <DiffView
                                                     original={document.content || ""}

@@ -24,10 +24,10 @@ export const analysisDocuments: WorkflowDocument[] = [
 ];
 
 export const documentFiles: Record<string, string> = {
-  "feasibility-study": "/mock/analysis/feasibility_study_template.md",
-  "cost-benefit-analysis": "/mock/analysis/cost_benefit_analysis_template.md",
-  "risk-register": "/mock/analysis/risk_register_template.md",
-  "compliance": "/mock/analysis/compliance_template.md",
+  "feasibility-study": "/api/workflows/template?file=Feasibility-Study-Template.md",
+  "cost-benefit-analysis": "/api/workflows/template?file=cost-benefit-analysis-template.md",
+  "risk-register": "/api/workflows/template?file=risk-register-template.md",
+  "compliance": "/api/workflows/template?file=compliance-template.md",
 };
 
 export const getAllDocIds = (): string[] =>
