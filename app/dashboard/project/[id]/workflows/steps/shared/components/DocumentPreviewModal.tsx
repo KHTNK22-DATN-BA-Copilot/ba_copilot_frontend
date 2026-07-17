@@ -454,6 +454,7 @@ export function DocumentPreviewModal({
     const [structuredFormat, setStructuredFormat] = useState<StructuredFormat>("json");
     const [cachedUserPrompts, setCachedUserPrompts] = useState<string[]>([]);
     const chatListRef = useRef<HTMLDivElement | null>(null);
+    const chatInputRef = useRef<HTMLTextAreaElement | null>(null);
     const hasAutoSwitchedToDiffRef = useRef(false);
     const editorPanelRef = useRef<HTMLDivElement | null>(null);
     const previewPanelRef = useRef<HTMLDivElement | null>(null);
@@ -553,6 +554,7 @@ export function DocumentPreviewModal({
         if (!isOpen || !document?.document_id) {
             setChatHistory([]);
             setHistoryError(null);
+            setChatInput("");
             return;
         }
 
@@ -565,6 +567,23 @@ export function DocumentPreviewModal({
         if (!chatListRef.current) return;
         chatListRef.current.scrollTop = chatListRef.current.scrollHeight;
     }, [chatHistory, isHistoryLoading, isSendingMessage]);
+
+    useEffect(() => {
+        const textarea = chatInputRef.current;
+        if (!textarea) return;
+
+        textarea.style.height = "auto";
+        const scrollHeight = textarea.scrollHeight;
+        const maxHeight = 150; // Max height for approx 6-8 lines
+
+        if (scrollHeight > maxHeight) {
+            textarea.style.height = `${maxHeight}px`;
+            textarea.style.overflowY = "auto";
+        } else {
+            textarea.style.height = `${scrollHeight}px`;
+            textarea.style.overflowY = "hidden";
+        }
+    }, [chatInput]);
 
     const getScrollRatio = (scrollTop: number, scrollHeight: number, clientHeight: number) => {
         const maxScroll = Math.max(scrollHeight - clientHeight, 0);
@@ -975,13 +994,14 @@ export function DocumentPreviewModal({
                                             const isUser = isUserRole(item.role);
                                             const aiSummary = item.summary?.trim();
                                             const rawMessage = item.message?.trim() || "";
+                                            const userMessageIndex = chatHistory
+                                                .slice(0, index)
+                                                .filter((historyItem) => isUserRole(historyItem.role))
+                                                .length;
                                             const cachedPrompt = isUser
-                                                ? cachedUserPrompts.filter(Boolean)[
-                                                chatHistory
-                                                    .slice(0, index)
-                                                    .filter((historyItem) => isUserRole(historyItem.role))
-                                                    .length
-                                                ]
+                                                ? userMessageIndex > 0
+                                                    ? cachedUserPrompts.filter(Boolean)[userMessageIndex - 1]
+                                                    : ""
                                                 : "";
                                             const isFirstUserMessage = isUser && chatHistory.findIndex((historyItem) => isUserRole(historyItem.role)) === index;
                                             const displayText = isUser
@@ -1073,6 +1093,7 @@ export function DocumentPreviewModal({
                                     ) : (
                                         <>
                                             <Textarea
+                                                ref={chatInputRef}
                                                 placeholder="Enter your prompt"
                                                 className="min-h-[32px] sm:min-h-[36px] resize-none text-xs sm:text-sm w-full break-words"
                                                 value={chatInput}
