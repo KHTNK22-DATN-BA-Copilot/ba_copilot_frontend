@@ -139,8 +139,7 @@ export function useRegisterForm() {
             console.log('Registration successful:', userRegistered);
 
             if(userRegistered.success) {
-                //router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
-                router.push(`/login`)
+                router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
             }
             else {
                 alert(userRegistered.message)
