@@ -1,5 +1,5 @@
 "use client";
-import "github-markdown-css/github-markdown.css";
+import "github-markdown-css/github-markdown-light.css";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -873,9 +873,9 @@ export function DocumentPreviewModal({
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent
-                className="p-0 gap-0 overflow-hidden border-0"
+                className="p-0 gap-0 overflow-hidden border-0 transition-[max-width] duration-300"
                 style={{
-                    maxWidth: '96vw',
+                    maxWidth: edit ? '96vw' : '1200px',
                     width: '96vw',
                     height: '96vh',
                     maxHeight: '96vh',
@@ -1231,7 +1231,7 @@ export function DocumentPreviewModal({
                                     </div>
                                 </div>
                             ) : (
-                                <div className="h-full min-h-0 min-w-0 overflow-y-auto overflow-x-hidden border border-gray-300 rounded-lg bg-white p-2 sm:p-4">
+                                <div className="h-full min-h-0 min-w-0 overflow-y-auto overflow-x-hidden border border-gray-300 rounded-lg bg-white p-2 sm:p-4 max-w-[850px] mx-auto w-full">
                                     {isHtmlPreview ? (
                                         <iframe
                                             srcDoc={previewSrcDoc}

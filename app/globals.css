@@ -220,26 +220,29 @@
   background-image: radial-gradient(circle, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
 }
 
-/* ─── Fix github-markdown-css for class-based dark mode ─── */
-.dark .markdown-body {
-  color-scheme: dark;
-  --fgColor-default: #e6edf3;
-  --fgColor-muted: #848d97;
-  --fgColor-accent: #2f81f7;
-  --fgColor-success: #3fb950;
-  --fgColor-attention: #d29922;
-  --fgColor-danger: #f85149;
-  --fgColor-done: #ab7df8;
-  --bgColor-default: #0d1117;
-  --bgColor-muted: #161b22;
-  --bgColor-neutral-muted: rgba(110,118,129,0.4);
-  --bgColor-attention-muted: rgba(187,128,9,0.15);
-  --borderColor-default: #30363d;
-  --borderColor-muted: #21262d;
-  --borderColor-neutral-muted: rgba(110,118,129,0.4);
-  --borderColor-accent-emphasis: #1f6feb;
-  --borderColor-success-emphasis: #238636;
-  --borderColor-attention-emphasis: #9e6a03;
-  --borderColor-danger-emphasis: #da3633;
-  --borderColor-done-emphasis: #8957e5;
+/* ─── Fix github-markdown-css: Lock to Light Mode always ─── */
+.markdown-body {
+  color-scheme: light !important;
+  --fgColor-default: #1f2328 !important;
+  --fgColor-muted: #59636e !important;
+  --fgColor-accent: #0969da !important;
+  --fgColor-success: #1a7f37 !important;
+  --fgColor-attention: #9a6700 !important;
+  --fgColor-danger: #d1242f !important;
+  --fgColor-done: #8250df !important;
+  --bgColor-default: #ffffff !important;
+  --bgColor-muted: #f6f8fa !important;
+  --bgColor-neutral-muted: rgba(129,139,152,0.12) !important;
+  --bgColor-attention-muted: #fff8c5 !important;
+  --borderColor-default: #d1d9e0 !important;
+  --borderColor-muted: #d1d9e0b3 !important;
+  --borderColor-neutral-muted: rgba(129,139,152,0.12) !important;
+  --borderColor-accent-emphasis: #0969da !important;
+  --borderColor-success-emphasis: #1a7f37 !important;
+  --borderColor-attention-emphasis: #9a6700 !important;
+  --borderColor-danger-emphasis: #cf222e !important;
+  --borderColor-done-emphasis: #8250df !important;
+  
+  background-color: #ffffff !important;
+  color: #1f2328 !important;
 }
