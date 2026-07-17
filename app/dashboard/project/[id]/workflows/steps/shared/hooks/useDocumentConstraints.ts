@@ -117,6 +117,7 @@ export function useDocumentConstraints({
               isChecked,
               isDisabled,
               disabledReason: buildDisabledReason(missing),
+              noPreview: sub.noPreview,
             };
           },
         );
@@ -134,6 +135,7 @@ export function useDocumentConstraints({
             ? "All sub-items are disabled due to unmet prerequisites"
             : undefined,
           subItems: constrainedSubs,
+          noPreview: doc.noPreview,
         } satisfies ConstrainedDocument;
       }
 
@@ -149,6 +151,7 @@ export function useDocumentConstraints({
         isChecked,
         isDisabled,
         disabledReason: buildDisabledReason(missing),
+        noPreview: doc.noPreview,
       } satisfies ConstrainedDocument;
     });
   }, [documents, checkedSet, getMissing]);

@@ -166,7 +166,7 @@ export function DocumentSelector({
                                                 </p>
                                                 <DependencyDetails docId={doc.id} />
                                             </div>
-                                            {!doc.subItems && (
+                                            {!doc.subItems && !doc.noPreview && (
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
@@ -236,7 +236,7 @@ export function DocumentSelector({
                                         </p>
                                         <DependencyDetails docId={doc.id} />
                                     </div>
-                                    {!doc.subItems && (
+                                    {!doc.subItems && !doc.noPreview && (
                                         <Button
                                             variant="outline"
                                             size="sm"
@@ -277,15 +277,17 @@ export function DocumentSelector({
                                                                 </label>
                                                                 <DependencyDetails docId={subItem.id} />
                                                             </div>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="gap-2 w-full sm:w-auto flex-shrink-0 text-xs"
-                                                                onClick={() => onPreview(subItem.id)}
-                                                            >
-                                                                <Eye className="w-3 h-3" />
-                                                                Preview
-                                                            </Button>
+                                                            {!subItem.noPreview && (
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="gap-2 w-full sm:w-auto flex-shrink-0 text-xs"
+                                                                    onClick={() => onPreview(subItem.id)}
+                                                                >
+                                                                    <Eye className="w-3 h-3" />
+                                                                    Preview
+                                                                </Button>
+                                                            )}
                                                         </div>
                                                     </TooltipTrigger>
                                                     <TooltipContent
@@ -317,15 +319,17 @@ export function DocumentSelector({
                                                         </label>
                                                         <DependencyDetails docId={subItem.id} />
                                                     </div>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="gap-2 w-full sm:w-auto flex-shrink-0 text-xs"
-                                                        onClick={() => onPreview(subItem.id)}
-                                                    >
-                                                        <Eye className="w-3 h-3" />
-                                                        Preview
-                                                    </Button>
+                                                    {!subItem.noPreview && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="gap-2 w-full sm:w-auto flex-shrink-0 text-xs"
+                                                            onClick={() => onPreview(subItem.id)}
+                                                        >
+                                                            <Eye className="w-3 h-3" />
+                                                            Preview
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             )
                                         ))}

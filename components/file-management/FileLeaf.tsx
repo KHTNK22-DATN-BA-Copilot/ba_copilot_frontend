@@ -159,7 +159,7 @@ export const FileLeaf: React.FC<FileLeafProps> = ({
                 <DialogContent
                     className="p-0 gap-0 overflow-hidden border-0"
                     style={{
-                        maxWidth: "96vw",
+                        maxWidth: "850px",
                         width: "96vw",
                         height: "96vh",
                         maxHeight: "96vh",

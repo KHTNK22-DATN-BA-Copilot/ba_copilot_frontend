@@ -42,16 +42,16 @@ export const planningDocuments: WorkflowDocument[] = [
 ];
 
 export const documentFiles: Record<string, string> = {
-    "project-charter": "/mock/planning/charter/charter_docs_template.md",
+    "project-charter": "/api/workflows/template?file=charter-docs-template.md",
     "stakeholder-register":
-        "/mock/planning/charter/stakeholder_register_template.md",
+        "/api/workflows/template?file=Stakeholder-Register-Template.md",
     "high-level-requirements":
-        "/mock/planning/charter/high_level_requirements_template.md",
+        "/api/workflows/template?file=High-Level-Requirements-Document-Template.md",
     "requirements-management-plan":
-        "/mock/planning/charter/requirements_management_plan_template.md",
-    "business-case": "/mock/planning/business_case_template.md",
-    "scope-statement": "/mock/planning/scope_statement_template.md",
-    "product-roadmap": "/mock/planning/product_roadmap_template.md",
+        "/api/workflows/template?file=Requirements-Management-Plan-Template.md",
+    "business-case": "/api/workflows/template?file=Business-Case-Template.md",
+    "scope-statement": "/api/workflows/template?file=Scope-Statement-Template.md",
+    "product-roadmap": "/api/workflows/template?file=Product-Roadmap-Template.md",
 };
 
 export const getAllDocIds = (): string[] =>

@@ -157,6 +157,13 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
     return generatedDocumentIndex[phaseId]?.[documentId.toLowerCase()];
   };
 
+  const getGeneratedDocumentsOfId = (phaseId: PhaseId, documentId: string) => {
+    const docs = generatedByPhase[phaseId] || [];
+    return docs.filter(
+      (doc) => resolveGeneratedDocumentTypeId(doc) === documentId.toLowerCase()
+    );
+  };
+
   const availableDocumentIds = useMemo(() => {
     const ids = new Set<string>();
 
@@ -214,6 +221,11 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
 
   const hasMissingRequiredDependencies =
     (selectedDependencyInfo?.missingRequired.length ?? 0) > 0;
+
+  const selectedHasGeneratedDocs = useMemo(() => {
+    if (!selectedEntry) return false;
+    return getGeneratedDocumentsOfId(selectedEntry.phase.id, selectedEntry.document.id).length > 0;
+  }, [selectedEntry, generatedByPhase]);
 
   const handleGenerate = async () => {
     if (!selectedEntry) return;
@@ -371,9 +383,9 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-gray-50 dark:bg-gray-900 overflow-hidden">
+      <div className="flex-shrink-0 border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
@@ -394,9 +406,9 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="flex-1 min-h-0 mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 overflow-hidden">
         {isSyncingDocuments ? (
-          <Card>
+          <Card className="h-full flex flex-col items-center justify-center">
             <CardContent className="flex items-center gap-3 py-10 text-gray-700 dark:text-gray-300">
               <Loader2 className="h-5 w-5 animate-spin" />
               <div>
@@ -408,8 +420,8 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="space-y-4 lg:col-span-2">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 h-full min-h-0">
+            <div className="space-y-4 lg:col-span-2 flex flex-col h-full min-h-0 overflow-y-auto pr-1">
               {filteredPhases.map((phase) => {
                 const phaseDocuments = getPhaseLeafDocuments(phase);
                 const availableCount = phaseDocuments.filter((doc) =>
@@ -420,9 +432,15 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                   totalCount > 0 ? (availableCount / totalCount) * 100 : 0;
 
                 return (
-                  <Card key={phase.id} className="overflow-hidden">
+                  <Card 
+                    key={phase.id} 
+                    className={cn(
+                      "flex flex-col overflow-hidden",
+                      filteredPhases.length === 1 ? "h-full min-h-0" : "max-h-[350px] min-h-[250px] flex-shrink-0"
+                    )}
+                  >
                     <CardHeader
-                      className="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                      className="flex-shrink-0 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex flex-1 items-start gap-3">
@@ -451,13 +469,18 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                       </div>
                     </CardHeader>
 
-                    <CardContent className="pt-0">
+                    <CardContent className="flex-1 min-h-0 overflow-y-auto pt-0 pb-6 px-6 overscroll-contain">
                       <div className="space-y-2">
                         {phaseDocuments.map((doc) => {
                           const matchedGeneratedDoc = getMatchedGeneratedDocument(
                             phase.id,
                             doc.id
                           );
+                          const allGeneratedDocs = getGeneratedDocumentsOfId(
+                            phase.id,
+                            doc.id
+                          );
+                          const hasMultipleFiles = allGeneratedDocs.length > 1;
                           const isGenerated = Boolean(matchedGeneratedDoc);
                           const dependencyDisplay = getDependencyDisplay(doc.id);
                           const missingRequired = getRequiredDocs(doc.id)
@@ -549,6 +572,7 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                                     variant="outline"
                                     size="sm"
                                     className="gap-2"
+                                    disabled={hasMultipleFiles}
                                     onClick={(event) => {
                                       event.stopPropagation();
                                       handleOpenPreview(matchedGeneratedDoc, phase.id);
@@ -569,11 +593,11 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
               })}
             </div>
 
-            <div className="lg:col-span-1">
-              <div className="sticky top-6">
+            <div className="lg:col-span-1 h-full min-h-0">
+              <div className="h-full min-h-0">
                 {selectedEntry ? (
-                  <Card>
-                    <CardHeader>
+                  <Card className="flex flex-col h-full min-h-0 overflow-hidden">
+                    <CardHeader className="flex-shrink-0">
                       <CardTitle className="flex items-center gap-2 text-xl">
                         <FileText className="h-5 w-5" />
                         Generate Document
@@ -583,146 +607,168 @@ export default function PhasesBoard({ phaseFilter, projectId }: PhasesBoardProps
                       </CardDescription>
                     </CardHeader>
 
-                    <CardContent className="space-y-4">
-                      {(() => {
-                        const selectedIsGenerated = Boolean(
-                          getMatchedGeneratedDocument(
-                            selectedEntry.phase.id,
-                            selectedEntry.document.id
-                          )
+                    <CardContent className="flex-1 min-h-0 overflow-y-auto space-y-4 pb-6 overscroll-contain">
+                       {(() => {
+                        const allSelectedGeneratedDocs = getGeneratedDocumentsOfId(
+                          selectedEntry.phase.id,
+                          selectedEntry.document.id
                         );
+                        const hasGeneratedFiles = allSelectedGeneratedDocs.length > 0;
 
                         return (
-                          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
-                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {selectedEntry.document.name}
-                            </p>
-                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                              Phase: {selectedEntry.phase.name}
-                            </p>
-                            {selectedEntry.parentDocument && (
+                          <div className="space-y-4">
+                            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+                              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                {selectedEntry.document.name}
+                              </p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                Group: {selectedEntry.parentDocument.name}
+                                Phase: {selectedEntry.phase.name}
                               </p>
+                              {selectedEntry.parentDocument && (
+                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                  Group: {selectedEntry.parentDocument.name}
+                                </p>
+                              )}
+                              {!hasGeneratedFiles && selectedDependencyInfo?.required.length ? (
+                                <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
+                                  Required: {selectedDependencyInfo.required.join(", ")}
+                                </p>
+                              ) : null}
+                              {!hasGeneratedFiles && selectedDependencyInfo?.recommended.length ? (
+                                <p className="mt-1 text-xs text-sky-700 dark:text-sky-300">
+                                  Recommended: {selectedDependencyInfo.recommended.join(", ")}
+                                </p>
+                              ) : null}
+                              {hasGeneratedFiles && (
+                                <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                                  {allSelectedGeneratedDocs.length > 1
+                                    ? `${allSelectedGeneratedDocs.length} files generated and available`
+                                    : "Generated and available"}
+                                </p>
+                              )}
+                              {selectedDependencyInfo?.missingRequired.length ? (
+                                <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                                  Missing: {selectedDependencyInfo.missingRequired.join(", ")}
+                                </p>
+                              ) : null}
+                            </div>
+
+                            {hasGeneratedFiles && (
+                              <div className="space-y-2">
+                                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                                  Generated Files
+                                </label>
+                                <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                                  {allSelectedGeneratedDocs.map((doc, idx) => (
+                                    <div
+                                      key={doc.document_id}
+                                      className="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 transition-all hover:bg-gray-50/50"
+                                    >
+                                      <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                                          {doc.project_name || selectedEntry.document.name}
+                                        </p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                                          File {idx + 1} • {doc.updated_at
+                                            ? new Date(doc.updated_at).toLocaleString()
+                                            : "N/A"}
+                                        </p>
+                                      </div>
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-1.5"
+                                        onClick={() =>
+                                          handleOpenPreview(doc, selectedEntry.phase.id)
+                                        }
+                                      >
+                                        <Eye className="h-4 w-4" />
+                                        View
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
                             )}
-                            {!selectedIsGenerated && selectedDependencyInfo?.required.length ? (
-                              <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
-                                Required: {selectedDependencyInfo.required.join(", ")}
-                              </p>
-                            ) : null}
-                            {!selectedIsGenerated && selectedDependencyInfo?.recommended.length ? (
-                              <p className="mt-1 text-xs text-sky-700 dark:text-sky-300">
-                                Recommended: {selectedDependencyInfo.recommended.join(", ")}
-                              </p>
-                            ) : null}
-                            {selectedIsGenerated && (
-                              <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                                Generated and available
-                              </p>
-                            )}
-                            {selectedDependencyInfo?.missingRequired.length ? (
-                              <p className="mt-1 text-xs text-red-600 dark:text-red-400">
-                                Missing: {selectedDependencyInfo.missingRequired.join(", ")}
-                              </p>
-                            ) : null}
                           </div>
                         );
                       })()}
 
-                      <div className="space-y-2">
-                        <label
-                          htmlFor="phase-ai-instructions"
-                          className="text-sm font-medium text-gray-800 dark:text-gray-200"
-                        >
-                          Additional Instructions (Optional)
-                        </label>
-                        <Textarea
-                          id="phase-ai-instructions"
-                          className="min-h-28"
-                          placeholder="Add specific requirements or guidelines for generating this document..."
-                          value={additionalInstructions}
-                          onChange={(e) => setAdditionalInstructions(e.target.value)}
-                          disabled={isGenerating}
-                        />
-                      </div>
-
-                      {isViewer ? (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              className="w-full gap-2 opacity-50 cursor-not-allowed pointer-events-auto hover:bg-primary hover:text-primary-foreground"
-                              onClick={handleGenerateClick}
+                      {!selectedHasGeneratedDocs && (
+                        <>
+                          <div className="space-y-2">
+                            <label
+                              htmlFor="phase-ai-instructions"
+                              className="text-sm font-medium text-gray-800 dark:text-gray-200"
                             >
-                              <Sparkles className="h-4 w-4" />
-                              Generate
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            You do not have permission to generate documents. Your role is Viewer.
-                          </TooltipContent>
-                        </Tooltip>
-                      ) : (
-                        <Button
-                          className="w-full gap-2"
-                          onClick={handleGenerate}
-                          disabled={
-                            isGenerating ||
-                            isSyncingDocuments ||
-                            hasMissingRequiredDependencies ||
-                            Boolean(
-                              getMatchedGeneratedDocument(
-                                selectedEntry.phase.id,
-                                selectedEntry.document.id
-                              )
-                            )
-                          }
-                        >
-                          {isGenerating ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                              Additional Instructions (Optional)
+                            </label>
+                            <Textarea
+                              id="phase-ai-instructions"
+                              className="min-h-28"
+                              placeholder="Add specific requirements or guidelines for generating this document..."
+                              value={additionalInstructions}
+                              onChange={(e) => setAdditionalInstructions(e.target.value)}
+                              disabled={isGenerating}
+                            />
+                          </div>
+
+                          {isViewer ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  className="w-full gap-2 opacity-50 cursor-not-allowed pointer-events-auto hover:bg-primary hover:text-primary-foreground"
+                                  onClick={handleGenerateClick}
+                                >
+                                  <Sparkles className="h-4 w-4" />
+                                  Generate
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                You do not have permission to generate documents. Your role is Viewer.
+                              </TooltipContent>
+                            </Tooltip>
                           ) : (
-                            <Sparkles className="h-4 w-4" />
-                          )}
-                          {isGenerating ? "Generating..." : "Generate"}
-                        </Button>
-                      )}
-
-                      {hasMissingRequiredDependencies && (
-                        <p className="text-xs text-red-600 dark:text-red-400">
-                          Complete required documents before generating this one.
-                        </p>
-                      )}
-
-                      {selectedEntry &&
-                        getMatchedGeneratedDocument(
-                          selectedEntry.phase.id,
-                          selectedEntry.document.id
-                        ) && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="w-full gap-2"
-                            onClick={() => {
-                              const generatedDoc = getMatchedGeneratedDocument(
-                                selectedEntry.phase.id,
-                                selectedEntry.document.id
-                              );
-                              if (generatedDoc) {
-                                handleOpenPreview(generatedDoc, selectedEntry.phase.id);
+                            <Button
+                              className="w-full gap-2"
+                              onClick={handleGenerate}
+                              disabled={
+                                isGenerating ||
+                                isSyncingDocuments ||
+                                hasMissingRequiredDependencies ||
+                                Boolean(
+                                  getMatchedGeneratedDocument(
+                                    selectedEntry.phase.id,
+                                    selectedEntry.document.id
+                                  )
+                                )
                               }
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                            View Latest Generated Document
-                          </Button>
-                        )}
+                            >
+                              {isGenerating ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Sparkles className="h-4 w-4" />
+                              )}
+                              {isGenerating ? "Generating..." : "Generate"}
+                            </Button>
+                          )}
 
-                      <p className="text-center text-xs text-gray-500 dark:text-gray-400">
-                        Generation typically takes 30-60 seconds.
-                      </p>
+                          {hasMissingRequiredDependencies && (
+                            <p className="text-xs text-red-600 dark:text-red-400">
+                              Complete required documents before generating this one.
+                            </p>
+                          )}
+
+                          <p className="text-center text-xs text-gray-500 dark:text-gray-400">
+                            Generation typically takes 30-60 seconds.
+                          </p>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
                 ) : (
-                  <Card>
+                  <Card className="h-full flex flex-col items-center justify-center">
                     <CardContent className="pt-6 text-center">
                       <FileText className="mx-auto mb-3 h-12 w-12 text-gray-300 dark:text-gray-600" />
                       <p className="text-sm text-gray-500 dark:text-gray-400">

@@ -9,6 +9,7 @@ import {
     Check,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { DM_Serif_Display, DM_Sans } from "next/font/google";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -99,31 +100,13 @@ export default function Home() {
                         href="/"
                         className="flex items-center gap-3 no-underline"
                     >
-                        <svg
-                            viewBox="0 0 18 18"
-                            fill="none"
-                            className="w-9 h-9"
-                        >
-                            <rect
-                                width="18"
-                                height="18"
-                                rx="5"
-                                fill="#2A4DD4"
-                            />
-                            <path
-                                d="M3 5h8M3 9h12M3 13h6"
-                                stroke="white"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                            />
-                            <circle
-                                cx="14"
-                                cy="5"
-                                r="2.5"
-                                fill="white"
-                                opacity="0.9"
-                            />
-                        </svg>
+                        <Image
+                            src="/ic_ba_copilot.svg"
+                            alt="BA Copilot Logo"
+                            width={32}
+                            height={32}
+                            className="w-7 h-7 sm:w-8 sm:h-8"
+                        />
                         <span className="text-2xl font-bold text-[#0F1B3C]">
                             BA Copilot
                         </span>
