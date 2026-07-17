@@ -49,9 +49,15 @@ export default async function ProjectOverviewPage({
         getDesignDocuments(id)
     ]);
 
-    const planningDocCount = planningResult.documents?.length ?? 0;
-    const analysisDocCount = analysisResult.documents?.length ?? 0;
-    const designDocCount = designResult.documents?.length ?? 0;
+    const getUniqueDocCount = (docs: any[] | undefined) => {
+        if (!docs) return 0;
+        const unique = new Set(docs.map((doc) => doc.doc_type || doc.design_type));
+        return unique.size;
+    };
+
+    const planningDocCount = getUniqueDocCount(planningResult.documents);
+    const analysisDocCount = getUniqueDocCount(analysisResult.documents);
+    const designDocCount = getUniqueDocCount(designResult.documents);
 
     const quickStats: QuickStat[] = [
         { label: "Planning", value: planningDocCount.toString(), icon: "FileText" },
