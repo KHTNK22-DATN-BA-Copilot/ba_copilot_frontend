@@ -80,7 +80,6 @@ export default function VerifyEmailForm() {
 
                 {/* Manual Verify Button */}
                 <Button
-                    onClick={() => handleVerifyPin(pin.join(''))}
                     disabled={isVerifying || pin.some(digit => digit === '')}
                     className={`w-full py-1.5 px-3 rounded-lg font-medium transition-colors ${isVerifying || pin.some(digit => digit === '')
                         ? 'bg-blue-500 cursor-not-allowed text-white'

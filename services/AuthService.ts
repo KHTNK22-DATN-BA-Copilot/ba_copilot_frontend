@@ -37,12 +37,13 @@ export class AuthService {
     public static async verifyEmail(email: string, code: string) {
         try {
             const respond = await fetch(
-                `${process.env.BACKEND_DOMAIN}/api/v1/auth/verify-email?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`,
+                `${process.env.BACKEND_DOMAIN}/api/v1/auth/verify-email?email=${encodeURIComponent(email)}`,
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
+                    body: JSON.stringify({ code }),
                 },
             );
             const data = await respond.json();
