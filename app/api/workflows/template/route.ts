@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     
     const filePath = path.join(
         process.cwd(),
-        "app/dashboard/project/[id]/workflows/template",
+        "public/workflows/template",
         filename
     );
     
