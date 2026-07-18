@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, use, useContext, useEffect, useRef, useState } from "react";
+import {
+    createContext,
+    use,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import { toast } from "sonner";
 import { getAccessToken } from "@/lib/projects";
 import { useParams, usePathname } from "next/navigation";
@@ -19,7 +26,8 @@ const WSContext = createContext<WSContextType | null>(null);
 
 export const useWebSocket = () => {
     const context = useContext(WSContext);
-    if (!context) throw new Error("useWebSocket must be used within WebSocketProvider");
+    if (!context)
+        throw new Error("useWebSocket must be used within WebSocketProvider");
     return context;
 };
 
@@ -36,22 +44,33 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     const wsRef = useRef<WebSocket | null>(null);
     const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
 
-    const WS_URL = process.env.NEXT_PUBLIC_WS_DOMAIN; 
+    const WS_URL = process.env.NEXT_PUBLIC_WS_DOMAIN;
 
     useEffect(() => {
-        const publicPaths = ["/", "/login", "/register", "/forgot-password"];
+        const publicPaths = [
+            "/",
+            "/login",
+            "/register",
+            "/forgot-password",
+            "/verify-email",
+        ];
         console.log("Current path:", pathName);
+        console.log("Public paths:", publicPaths);
+
+
         if (publicPaths.includes(pathName)) {
             setToken("");
             return;
         }
 
-        console.log("WebSocketProvider mounted, loading token and projectId from storage");
+        console.log(
+            "WebSocketProvider mounted, loading token and projectId from storage",
+        );
 
         (async () => {
             const accessToken = await getAccessToken();
             setToken(accessToken ?? accessToken);
-        })()
+        })();
     }, [pathName]);
 
     useEffect(() => {
@@ -60,18 +79,19 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         }
     }, [urlProjectId]);
 
-
     useEffect(() => {
         if (!token || !projectId || projectId === "undefined") return;
 
         let isIntentionalClose = false;
 
         const connectWS = () => {
-            console.log(wsRef.current)
+            console.log(wsRef.current);
             if (wsRef.current) wsRef.current.close();
-            
+
             setWsStatus("connecting");
-            const ws = new WebSocket(`${WS_URL}/api/v1/ws/projects/${projectId}/upload?token=${token}`); //
+            const ws = new WebSocket(
+                `${WS_URL}/api/v1/ws/projects/${projectId}/upload?token=${token}`,
+            ); //
 
             ws.onopen = () => {
                 setWsStatus("connected");
@@ -88,16 +108,26 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
             ws.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
-                    
+
                     // Xử lý logic push notification dựa trên status[cite: 1]
-                    if (data.type === "file_status") { //[cite: 1]
-                        if (data.status === "completed") { //[cite: 1]
-                            toast.success(`AI processing completed for file: ${data.file_id}`);
-                        } else if (data.status === "failed") { //[cite: 1]
-                            toast.error(`AI processing failed for file: ${data.file_id}`);
-                        } else if (data.status === "processing") { //[cite: 1]
+                    if (data.type === "file_status") {
+                        //[cite: 1]
+                        if (data.status === "completed") {
+                            //[cite: 1]
+                            toast.success(
+                                `AI processing completed for file: ${data.file_id}`,
+                            );
+                        } else if (data.status === "failed") {
+                            //[cite: 1]
+                            toast.error(
+                                `AI processing failed for file: ${data.file_id}`,
+                            );
+                        } else if (data.status === "processing") {
+                            //[cite: 1]
                             // Tùy chọn: Hiện toast nhỏ nhắn hoặc bỏ qua để tránh spam
-                            toast(`AI processing file ${data.file_id}...`, { icon: '⏳' }); 
+                            toast(`AI processing file ${data.file_id}...`, {
+                                icon: "⏳",
+                            });
                         }
                     }
                 } catch (e) {

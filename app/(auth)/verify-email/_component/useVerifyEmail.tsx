@@ -63,6 +63,7 @@ export default function useVerifyEmail() {
         if (value && index < 5) {
             inputRefs.current[index + 1]?.focus();
         }
+        console.log("Current PIN:", newPin.join(""));
 
         // Auto verify when all 6 digits are entered
         if (newPin.every((digit) => digit !== "") && value) {

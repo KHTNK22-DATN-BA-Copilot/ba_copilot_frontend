@@ -299,6 +299,36 @@ export default function Home() {
                 </div>
             </section>
 
+            {/* ═ PRODUCT VIDEO (YOUTUBE) ═ */}
+            <section className="bg-gradient-to-b from-[#F1F4F9] to-white pt-16">
+                <div className="max-w-[1024px] mx-auto px-6 md:px-16 lg:px-24 pb-8 md:pb-24">
+                    <div className="text-center mb-12 max-w-[700px] mx-auto">
+                        <div className="inline-flex bg-[#EEF2FF] text-[#2A4DD4] border border-[#C2D4FF] rounded-full px-4 py-1 text-[11px] font-bold tracking-wide uppercase mb-4">
+                            Product Demo
+                        </div>
+                        <h2 className="font-serif text-[36px] md:text-[44px] leading-[1.2] text-[#0F1B3C] mb-4">
+                            Watch our demo to understand
+                            <br />
+                            <em className="text-[#2A4DD4]">how it all works</em>
+                        </h2>
+                        <p className="text-[18px] text-[#475569] leading-[1.7] px-4">
+                            Discover how BA Copilot accelerates your business analysis workflow from start to finish.
+                        </p>
+                    </div>
+
+                    <div className="relative w-full rounded-[24px] shadow-[0_20px_50px_rgba(15,27,60,0.1)] overflow-hidden border-[6px] border-white bg-white/50" style={{ paddingTop: "56.25%" }}>
+                        <iframe
+                            className="absolute top-0 left-0 w-full h-full border-none m-0 p-0"
+                            src="https://www.youtube.com/embed/1febDPXEtvE"
+                            title="BA Copilot Demo Video"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerPolicy="strict-origin-when-cross-origin"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                </div>
+            </section>
+
             {/* ═ FEATURES ═ */}
             <section
                 id="workflows"
@@ -374,9 +404,6 @@ export default function Home() {
                     </div>
                 </div>
             </section>
-
-            {/* ═ SHOWCASE ═ */}
-            <ShowcaseSection data={showcaseData} />
 
             {/* ═ TECH STACK ═ */}
             <section className="bg-[#F8FAFC]">
