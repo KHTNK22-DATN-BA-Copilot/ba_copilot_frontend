@@ -1,0 +1,108 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Header from '@/components/layout/Header';
+import ProjectHeader from './ProjectHeader';
+import ProjectDetailsForm from './ProjectDetailsForm';
+import ProjectFeatures from './ProjectFeatures';
+import ProjectActions from './ProjectActions';
+import { useDarkMode } from './useDarkMode';
+import { createProject } from "@/actions/project.action";
+
+const MAX_DESCRIPTION_LENGTH = 100;
+
+export default function NewProjectPage({username}: {username: string}) {
+    const router = useRouter();
+    const { isDarkMode, toggleDarkMode } = useDarkMode();
+
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [projectName, setProjectName] = useState("");
+    const [description, setDescription] = useState("");
+    const [isCreating, setIsCreating] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleCreate = async () => {
+        if (!projectName.trim()) return;
+
+        setIsCreating(true);
+        setError(null);
+
+        try {
+            // Use defaults as in the V2 projects API example: team_size=1, due_date="2026-05-27T14:44:09.420Z", project_priority="low"
+            const response = await createProject(
+                projectName,
+                description,
+                "active",
+                1,
+                "2026-05-27T14:44:09.420Z",
+                "low",
+            );
+
+            if (response.status === 201 && response.data) {
+                // After successful creation, navigate to the new project or dashboard
+                router.push(`/dashboard/project/${response.data.id as string}`);
+            } else {
+                setError(response.message || "Failed to create project");
+                console.error("Error creating project:", response.message);
+            }
+        } catch (error) {
+            setError("An unexpected error occurred");
+            console.error("Error creating project:", error);
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
+    const handleClose = () => {
+        router.push("/dashboard");
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <Header
+                isMenuOpen={isMenuOpen}
+                setIsMenuOpen={setIsMenuOpen}
+                isDarkMode={isDarkMode}
+                toggleDarkMode={toggleDarkMode}
+                name={username}
+            />
+
+            <main className="pt-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div className="grid grid-cols-12 gap-4">
+                    <div className="col-span-12 space-y-5">
+                        <ProjectHeader onClose={handleClose} />
+
+                        {error && (
+                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                                <p className="text-red-800 dark:text-red-200 text-sm">
+                                    {error}
+                                </p>
+                            </div>
+                        )}
+
+                        <ProjectDetailsForm
+                            projectName={projectName}
+                            setProjectName={setProjectName}
+                            description={description}
+                            setDescription={setDescription}
+                        />
+
+                        {/* <ProjectFeatures /> */}
+
+                        <ProjectActions
+                            onCancel={handleClose}
+                            onCreate={handleCreate}
+                            isDisabled={
+                                !projectName.trim() ||
+                                description.length < MAX_DESCRIPTION_LENGTH ||
+                                isCreating
+                            }
+                            isLoading={isCreating}
+                        />
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+}

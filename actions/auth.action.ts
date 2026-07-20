@@ -20,7 +20,7 @@ export async function SignUp(
     } else {
         return {
             success: false,
-            message: response.message ? response.message : "Error from backend",
+            message: response.message ? response.message : "Invalid email",
         };
     }
 }
