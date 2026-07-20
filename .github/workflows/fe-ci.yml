@@ -60,7 +60,7 @@ jobs:
         run: |
           docker compose pull frontend
           docker compose up -d --force-recreate frontend
-        working-directory: /home/nguyenvankhanh27072004/bacopilot-software engineer
+        working-directory: /home/nguyenvankhanh27072004/bacopilot-software
 
       - name: Cleanup old images
         run: docker image prune -f
