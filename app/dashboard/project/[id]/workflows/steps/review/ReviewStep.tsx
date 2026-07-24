@@ -196,11 +196,11 @@ export default function ReviewStep({
                     <ArrowLeft className="w-4 h-4" />
                     Back
                 </Button>
-                <Button onClick={onComplete} className="gap-2 w-full sm:w-auto">
+                {/* <Button onClick={onComplete} className="gap-2 w-full sm:w-auto">
                     <CheckCircle2 className="w-4 h-4" />
                     Complete Workflow
-                </Button>
-                <Button variant="outline" onClick={onRestart} className="w-full sm:w-auto">
+                </Button> */}
+                <Button onClick={onRestart} className="w-full sm:w-auto">
                     Start New Workflow
                 </Button>
             </div>
