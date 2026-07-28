@@ -109,7 +109,6 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
                 try {
                     const data = JSON.parse(event.data);
 
-                    // Xử lý logic push notification dựa trên status[cite: 1]
                     if (data.type === "file_status") {
                         //[cite: 1]
                         if (data.status === "completed") {
@@ -124,7 +123,6 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
                             );
                         } else if (data.status === "processing") {
                             //[cite: 1]
-                            // Tùy chọn: Hiện toast nhỏ nhắn hoặc bỏ qua để tránh spam
                             toast(`AI processing file ${data.file_id}...`, {
                                 icon: "⏳",
                             });
