@@ -6,7 +6,8 @@ import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { useProjectMembership } from "@/context/ProjectMembershipContext";
 import { useState } from "react";
-import { getFileContentAction } from "@/actions/file.action";
+import { getFileContentFromClient } from "./utils";
+import { getAccessToken } from "@/lib/projects";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import mammoth from "mammoth/mammoth.browser";
 import ReactMarkdown from "react-markdown";
@@ -54,9 +55,11 @@ export const FileLeaf: React.FC<FileLeafProps> = ({
     const viewFileContent = async (fileId: string | number) => {
         setIsViewing(true);
         const projectId = localStorage.getItem("projectId");
-        const response = await getFileContentAction(
+        const token = await getAccessToken();
+        const response = await getFileContentFromClient(
             projectId as string,
             fileId,
+            token ?? ""
         );
 
         if (file.type == "file" && (file.extension === ".md" || file.extension === ".txt")) {

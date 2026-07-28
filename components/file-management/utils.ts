@@ -117,7 +117,7 @@ export async function exportFileFromClient(
     documentId: number | string,
     accessToken: string,
 ): Promise<void> {
-    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_DOMAIN ?? "http://localhost:8010";
+    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_DOMAIN || "http://localhost:8010";
     const resp = await fetch(`${baseUrl}/api/v2/projects/${projectId}/files/${documentId}/export`, {
         method: "GET",
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -146,4 +146,28 @@ export async function exportFileFromClient(
     anchor.click();
     document.body.removeChild(anchor);
     window.URL.revokeObjectURL(url);
+}
+
+/**
+ * Fetch a file from the backend via client-side fetch.
+ * This is needed because server actions cannot return Blob objects directly.
+ */
+export async function getFileContentFromClient(
+    projectId: string,
+    documentId: number | string,
+    accessToken: string,
+): Promise<Blob> {
+    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_DOMAIN || "http://localhost:8010";
+    const resp = await fetch(`${baseUrl}/api/v2/projects/${projectId}/files/${documentId}/export`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${accessToken}` },
+        credentials: "include",
+    });
+    if (!resp.ok) {
+        const error = new Error(`Failed to fetch file content: ${resp.status}`);
+        (error as any).status = resp.status;
+        throw error;
+    }
+
+    return await resp.blob();
 }
